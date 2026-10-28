@@ -158,9 +158,9 @@ describe("FE-UPL-05 failed clip actions", () => {
     });
     const retry = vi.spyOn(client, "retryClip");
     expect(await screen.findByText("Transcription failed. Try again.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete clip" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(retry).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: "Delete clip" })).toBeInTheDocument();
   });
 
   it("offers only delete for a clip that cannot be retried", async () => {
