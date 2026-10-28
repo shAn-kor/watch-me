@@ -60,9 +60,10 @@ describe("FE-PNL-02 publish result", () => {
   it("shows the public link with a copy button, and the draft state after unpublish", async () => {
     const client = await prepareClient({ as: "staff" });
     await client.saveChecklist(MOCK_IDS.dogDraft, READY);
+    const { user } = await renderApp(dogUrl(MOCK_IDS.dogDraft), { client });
+    // userEvent.setup() installs its own clipboard stub, so spy after render.
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    const { user } = await renderApp(dogUrl(MOCK_IDS.dogDraft), { client });
     await user.click(await screen.findByRole("button", { name: "Publish" }));
     const dialog = await screen.findByRole("dialog", { name: "Publish Biscuit?" });
     await user.click(within(dialog).getByRole("button", { name: "Publish" }));
