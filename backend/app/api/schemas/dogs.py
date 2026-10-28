@@ -58,7 +58,8 @@ class DogPatchIn(BaseModel):
 
 
 class ChecklistIn(BaseModel):
-    people_check: bool
+    # Defaults to False so a hidden dog answers 404 before any body check (API-ORG-01).
+    people_check: bool = False
     known_concerns: str | None = Field(default=None, max_length=4000)
     known_concerns_none: bool = False
 
