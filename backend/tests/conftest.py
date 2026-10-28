@@ -8,7 +8,7 @@ Fixtures
 - `container`     `Container` with scripted AI fakes and the FakeClock
 - `app`, `client` the ASGI app and a TestClient (httpx under the hood)
 - `seed`          `SeedBuilder` (tests/factories.py)
-- `login_as`      stub until lane S1 (see its docstring)
+- `login_as`      signs `client` in as a seeded member, returns the CSRF token
 
 Markers are applied by directory: tests/unit -> unit, tests/db -> db,
 tests/api -> api, tests/pipeline -> pipeline + slow.
@@ -20,6 +20,7 @@ import os
 import shutil
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from alembic import command
@@ -157,16 +158,24 @@ def login_as(client: TestClient, container: Container) -> Callable[..., str]:
     """`login_as(member, *, password=None) -> csrf_token`: sign `client` in as a
     seeded member and return the CSRF token to send as `X-CSRF-Token`.
 
-    STUB until lane S1 (auth). Phase 0 has neither `SessionCookieCodec` (lane B)
-    nor `/api/auth/login` (lane S1), so this raises. Lane S1 replaces the body
-    with a call to the real login endpoint or to the cookie codec; every API test
-    uses this one helper so the change stays in one place.
+    Without `password` it mints the session cookie with the real `SessionCookieCodec`
+    (fast; no password hashing and no login rate-limit hit). With `password` it goes
+    through `POST /api/auth/login`. Calling it again replaces the session, so one
+    test can switch between members.
     """
 
-    def _login_as(member: object, *, password: str | None = None) -> str:
-        raise NotImplementedError(
-            "login_as is a stub until lane S1 (auth) implements /api/auth/login "
-            "and the session cookie codec"
+    def _login_as(member: Any, *, password: str | None = None) -> str:
+        client.cookies.clear()
+        if password is not None:
+            r = client.post(
+                "/api/auth/login", json={"email": member.email, "password": password}
+            )
+            assert r.status_code == 200, r.text
+            return r.json()["csrf_token"]
+        issued = container.security["cookie_codec"].issue(
+            member.id, getattr(member, "session_epoch", 0) or 0
         )
+        client.cookies.set("wm_session", issued.value)
+        return container.security["csrf"].token_for(issued.payload.sid)
 
     return _login_as

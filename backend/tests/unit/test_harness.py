@@ -55,6 +55,10 @@ def test_foreign_keys_are_enforced(seed):
         seed.qa_log(type("D", (), {"id": "missing"})())
 
 
-def test_login_as_is_a_documented_stub(login_as):
-    with pytest.raises(NotImplementedError):
-        login_as(object())
+def test_login_as_signs_the_client_in(client, seed, login_as):
+    world = seed.standard_world()
+    token = login_as(world.vol1)
+    r = client.get("/api/me")
+    assert r.status_code == 200
+    assert r.json()["member"]["id"] == world.vol1.id
+    assert r.json()["csrf_token"] == token

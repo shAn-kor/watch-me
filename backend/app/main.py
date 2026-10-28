@@ -8,24 +8,28 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, Request
 
+from app.api.deps import require_json_content_type
+from app.api.errors import install_error_handlers
 from app.api.routers import ROUTERS
+from app.api.spa import install_security_headers, install_spa
 from app.container import Container, build_container
-from app.errors import AppError, InternalError, RateLimited
 from app.logging import (
     configure_logging,
-    get_request_id,
     new_request_id,
     set_request_id,
 )
 
 
-def create_app(container: Container | None = None) -> FastAPI:
+def create_app(
+    container: Container | None = None, *, spa_dir: Path | None = None
+) -> FastAPI:
     """Build the FastAPI app. Pass a prebuilt `container` (tests) or let it be built
-    from the environment."""
+    from the environment. `spa_dir` is the built frontend (default `SPA_DIR` or
+    `frontend/dist`)."""
     owns_container = container is None
     container = container or build_container()
     configure_logging(container.settings.log_level)
@@ -36,20 +40,24 @@ def create_app(container: Container | None = None) -> FastAPI:
         if owns_container:
             container.dispose()
 
-    app = FastAPI(title="Watch Me!", lifespan=lifespan, docs_url=None, redoc_url=None)
+    app = FastAPI(
+        title="Watch Me!",
+        lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
+        dependencies=[Depends(require_json_content_type)],  # [slot S1] 415 rule
+    )
     app.state.container = container
 
     _install_request_id_middleware(app)
-    _install_error_handlers(
-        app
-    )  # [slot S1] replaced by api.errors.install_error_handlers
+    install_error_handlers(app)  # [slot S1]
 
     for router in ROUTERS:
         app.include_router(router)
 
-    # [slot S1] security headers middleware, noindex headers
+    install_security_headers(app)  # [slot S1] security and noindex headers
     # [slot S5] media routes are part of ROUTERS
-    # [slot S1] SPA shell (api/spa.py): index.html with 200 for non-/api, non-/media paths (D8)
+    install_spa(app, spa_dir)  # [slot S1] SPA shell: 200 for non-/api, non-/media paths (D8)
     return app
 
 
@@ -57,6 +65,7 @@ def _install_request_id_middleware(app: FastAPI) -> None:
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202
         request_id = new_request_id()
+        request.state.request_id = request_id  # read by the 500 handler (api/errors.py)
         set_request_id(request_id)
         try:
             response = await call_next(request)
@@ -66,22 +75,3 @@ def _install_request_id_middleware(app: FastAPI) -> None:
         if request.url.path.startswith("/api"):
             response.headers.setdefault("Cache-Control", "no-store")
         return response
-
-
-def _install_error_handlers(app: FastAPI) -> None:
-    """Minimal 01 section 1.1 envelope so the harness works before lane S1.
-    Lane S1 replaces this with `api/errors.py` (validation errors, 404/405 shapes)."""
-
-    @app.exception_handler(AppError)
-    async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
-        headers = {}
-        if isinstance(exc, RateLimited) or hasattr(exc, "retry_after_s"):
-            headers["Retry-After"] = str(getattr(exc, "retry_after_s", 1))
-        return JSONResponse(
-            exc.to_envelope(), status_code=exc.http_status, headers=headers
-        )
-
-    @app.exception_handler(Exception)
-    async def unexpected_handler(_request: Request, _exc: Exception) -> JSONResponse:
-        err = InternalError(details={"request_id": get_request_id()})
-        return JSONResponse(err.to_envelope(), status_code=err.http_status)
