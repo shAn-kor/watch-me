@@ -18,6 +18,7 @@ class Member(Base):
     __table_args__ = (
         check_in("role", values(Role), "role"),
         CheckConstraint("(consented_at IS NULL) = (consent_version IS NULL)", name="consent_pair"),
+        CheckConstraint("email = lower(email)", name="email_lower"),
         Index("uq_member_email", "email", unique=True),
         Index("ix_member_org", "org_id"),
     )

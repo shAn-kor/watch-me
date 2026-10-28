@@ -197,13 +197,6 @@ def test_db_fact_01_confirmed_triplet(engine, seed, world):
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="lead: 02 section 2.8 CHECK ((status='confirmed') = (confirmed_at IS NOT NULL AND "
-    "confirmed_role IS NOT NULL)) lets a draft carry confirmed_at alone; 07 DB-FACT-01 and "
-    "I-5 want it rejected. Propose adding CHECK (status = 'confirmed' OR (confirmed_at IS NULL "
-    "AND confirmed_role IS NULL AND confirmed_by IS NULL))",
-)
 def test_db_fact_01_draft_with_confirmed_at_only(engine, seed, world):
     f = _fact(seed, world).id
     rejected(engine, "UPDATE fact SET confirmed_at=:t WHERE id=:i", i=f, t=TS)
@@ -391,11 +384,6 @@ def test_db_mem_02_role_and_email_unique(engine, seed, world):
         _insert_member(engine, world.org.id, "dup@example.test")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="lead: member.email is only UNIQUE on the raw value; 02 section member "
-    "says 'Lowercased on write. UNIQUE' but nothing in the schema rejects 'Dup@x' vs 'dup@x'",
-)
 def test_db_mem_02_email_differing_in_case_is_rejected(engine, seed, world):
     _insert_member(engine, world.org.id, "case@example.test")
     with pytest.raises(IntegrityError):

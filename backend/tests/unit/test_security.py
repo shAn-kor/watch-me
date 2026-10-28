@@ -59,7 +59,10 @@ def test_ut_sec_03_tampered_cookie_rejected():
 
     codec = SessionCookieCodec(SECRET, FakeClock())
     value = codec.issue("m", 1).value
-    flipped = value[:-1] + ("A" if value[-1] != "A" else "B")
+    # Flip a middle character of the signature: the last base64 character
+    # carries padding bits, so changing it can decode to the same bytes.
+    i = len(value) - 5
+    flipped = value[:i] + ("A" if value[i] != "A" else "B") + value[i + 1 :]
     for bad in (flipped, "", "garbage", value + "x", "a." + value):
         with pytest.raises(Unauthenticated):
             codec.parse(bad)

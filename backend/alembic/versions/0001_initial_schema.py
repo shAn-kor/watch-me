@@ -76,6 +76,7 @@ def upgrade() -> None:
     sa.Column('created_at', app.db.types.UtcDateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.CheckConstraint("role IN ('staff', 'volunteer')", name=op.f('ck_member_role')),
     sa.CheckConstraint('(consented_at IS NULL) = (consent_version IS NULL)', name=op.f('ck_member_consent_pair')),
+    sa.CheckConstraint('email = lower(email)', name=op.f('ck_member_email_lower')),
     sa.ForeignKeyConstraint(['org_id'], ['org.id'], name=op.f('fk_member_org_id_org'), ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_member'))
     )
@@ -218,6 +219,7 @@ def upgrade() -> None:
     sa.Column('created_at', app.db.types.UtcDateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', app.db.types.UtcDateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.CheckConstraint("(status = 'confirmed') = (confirmed_at IS NOT NULL AND confirmed_role IS NOT NULL)", name=op.f('ck_fact_confirmed_triplet')),
+    sa.CheckConstraint("status = 'confirmed' OR (confirmed_at IS NULL AND confirmed_role IS NULL)", name=op.f('ck_fact_unconfirmed_clear')),
     sa.CheckConstraint("(status = 'deleted') = (deleted_at IS NOT NULL)", name=op.f('ck_fact_deleted_pair')),
     sa.CheckConstraint("confirmed_role IS NULL OR confirmed_role IN ('staff', 'volunteer')", name=op.f('ck_fact_confirmed_role')),
     sa.CheckConstraint("merged = 1 OR (origin = 'ai_unchanged' AND status = 'draft')", name=op.f('ck_fact_unmerged_only_ai_drafts')),

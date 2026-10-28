@@ -36,6 +36,10 @@ class Fact(Base):
             "(status = 'confirmed') = (confirmed_at IS NOT NULL AND confirmed_role IS NOT NULL)",
             name="confirmed_triplet",
         ),
+        CheckConstraint(
+            "status = 'confirmed' OR (confirmed_at IS NULL AND confirmed_role IS NULL)",
+            name="unconfirmed_clear",
+        ),
         CheckConstraint("(status = 'deleted') = (deleted_at IS NOT NULL)", name="deleted_pair"),
         CheckConstraint(
             "situation <> 'children_cats' OR status <> 'confirmed' OR confirmed_role = 'staff'",

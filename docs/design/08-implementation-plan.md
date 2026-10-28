@@ -185,3 +185,10 @@ Lead changes: word lists live in `backend/config/` (`banned_words.txt` from 04
 
 Rule added for Phase 2: generated media stays out of git (fixtures build into
 `backend/.cache/`).
+
+Lane E (merged after section 8 was written) found two schema gaps; the lead
+added both CHECKs to migration `0001` (no database is deployed yet):
+`ck_fact_unconfirmed_clear` (a non-confirmed fact has no `confirmed_at` or
+`confirmed_role`, I-5) and `ck_member_email_lower` (`email = lower(email)`,
+02 "lowercased on write"). UT-SEC-03 now flips a middle signature character;
+flipping the last base64 character could decode to the same bytes.
