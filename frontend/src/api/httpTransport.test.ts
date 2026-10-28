@@ -72,6 +72,8 @@ class FakeXhr {
   upload: { onprogress: ((e: ProgressEvent) => void) | null } = { onprogress: null };
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
+  onabort: (() => void) | null = null;
+  aborted = false;
   status = 201;
   responseText = JSON.stringify({ clip: { id: "c1" } });
   method = "";
@@ -91,6 +93,10 @@ class FakeXhr {
   }
   getAllResponseHeaders() {
     return "Content-Type: application/json\r\nETag: abc\r\n";
+  }
+  abort() {
+    this.aborted = true;
+    this.onabort?.();
   }
   send(body: FormData) {
     this.sent = body;
@@ -139,5 +145,38 @@ describe("HttpTransport.upload", () => {
         file: new File(["x"], "a.mp4"),
       }),
     ).rejects.toThrow();
+  });
+
+  it("aborts the request when the signal fires and rejects with AbortError", async () => {
+    class Hang extends FakeXhr {
+      send() {}
+    }
+    vi.stubGlobal("XMLHttpRequest", Hang);
+    const ctl = new AbortController();
+    const p = new HttpTransport().upload({
+      path: "/p",
+      field: "file",
+      file: new File(["x"], "a.mp4"),
+      signal: ctl.signal,
+    });
+    ctl.abort();
+    await expect(p).rejects.toMatchObject({ name: "AbortError" });
+    expect(FakeXhr.last.aborted).toBe(true);
+  });
+
+  it("does not send when the signal is already aborted", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXhr);
+    FakeXhr.last = undefined as unknown as FakeXhr;
+    const ctl = new AbortController();
+    ctl.abort();
+    await expect(
+      new HttpTransport().upload({
+        path: "/p",
+        field: "file",
+        file: new File(["x"], "a.mp4"),
+        signal: ctl.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(FakeXhr.last?.sent ?? null).toBeNull();
   });
 });

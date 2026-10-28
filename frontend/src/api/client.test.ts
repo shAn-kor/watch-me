@@ -91,6 +91,17 @@ describe("FE-API ApiClient", () => {
     expect(t.uploads[1]!.method).toBe("PUT");
   });
 
+  it("uploadClip passes an AbortSignal to the transport", async () => {
+    const t = new FakeTransport();
+    const c = new ApiClient(t);
+    const ctl = new AbortController();
+    const file = new File(["x"], "a.mp4", { type: "video/mp4" });
+    await c.uploadClip("s1", file, { signal: ctl.signal });
+    expect(t.uploads[0]!.signal).toBe(ctl.signal);
+    await c.uploadClip("s1", file);
+    expect(t.uploads[1]!.signal).toBeUndefined();
+  });
+
   it("FE-API-01 JSON bodies are sent for body-less POSTs", async () => {
     const t = new FakeTransport();
     const c = new ApiClient(t, { getCsrfToken: () => "t" });
@@ -213,6 +224,7 @@ describe("FE-API ApiClient", () => {
     const c = new ApiClient(t);
     t.next = { status: 304, headers: { etag: 'W/"a"' }, body: undefined };
     const r = await c.pollSession("s1", 'W/"a"');
+    expect(t.last.path).toBe("/api/sessions/s1?include=none");
     expect(t.last.headers?.["If-None-Match"]).toBe('W/"a"');
     expect(r).toEqual({ notModified: true, etag: 'W/"a"' });
     t.next = { status: 200, headers: { etag: 'W/"b"' }, body: { session: { id: "s1" } } };

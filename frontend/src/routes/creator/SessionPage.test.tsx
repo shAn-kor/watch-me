@@ -74,6 +74,100 @@ describe("FE-UPL-02 upload states", () => {
   });
 });
 
+describe("FE-UPL-11 cancel upload", () => {
+  /** An upload that waits until its signal aborts, like a real transfer. */
+  function hangUntilAborted(client: ApiClient) {
+    return vi.spyOn(client, "uploadClip").mockImplementation(
+      (_sid, _file, opts) =>
+        new Promise((_res, rej) => {
+          opts?.onProgress?.(10, 100);
+          opts?.signal?.addEventListener("abort", () =>
+            rej(new DOMException("Upload aborted", "AbortError")),
+          );
+        }),
+    );
+  }
+
+  it("Cancel aborts the transfer, shows no error and leaves no row", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const spy = hangUntilAborted(client);
+    const { user } = await renderApp(sessionUrl(id), { client });
+    await user.upload(await screen.findByLabelText("Choose from library"), makeFile("a.mov"));
+    expect(await screen.findByText("Uploading 10%")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByText(/Uploading/)).not.toBeInTheDocument());
+    expect(spy.mock.calls[0]![2]!.signal!.aborted).toBe(true);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText(/The upload stopped/)).not.toBeInTheDocument();
+    expect(screen.queryByText("a.mov")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Clip 1/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
+  });
+
+  it("the next queued file starts after a cancel", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const real = client.uploadClip.bind(client);
+    const spy = vi
+      .spyOn(client, "uploadClip")
+      .mockImplementationOnce(
+        (_sid, _file, opts) =>
+          new Promise((_res, rej) => {
+            opts?.onProgress?.(10, 100);
+            opts?.signal?.addEventListener("abort", () =>
+              rej(new DOMException("Upload aborted", "AbortError")),
+            );
+          }),
+      )
+      .mockImplementation(real);
+    const { user } = await renderApp(sessionUrl(id), { client });
+    await user.upload(await screen.findByLabelText("Choose from library"), [
+      makeFile("a.mov"),
+      makeFile("b.mov"),
+    ]);
+    await user.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Uploaded. Waiting to start.")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText("a.mov")).not.toBeInTheDocument();
+  });
+
+  it("has no Cancel button when nothing is uploading", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    await renderApp(sessionUrl(id), { client });
+    await screen.findByText("Add your first clip.");
+    expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
+  });
+});
+
+describe("FE-UPL-12 light polling", () => {
+  it("polls without facts and loads them once when the session reaches review", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    await client.uploadClip(id, makeFile("a.mov"));
+    await client.submitSession(id);
+    const poll = vi.spyOn(client, "pollSession");
+    const get = vi.spyOn(client, "getSession");
+    await renderApp(sessionUrl(id), { client, user: fakeTimers() });
+    expect(await screen.findByRole("heading", { name: "Drafting facts" })).toBeInTheDocument();
+    expect(get).not.toHaveBeenCalled();
+    await advance(3000);
+    await advance(3000);
+    expect(await screen.findByText("Facts are ready to review.")).toBeInTheDocument();
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+    const drafts = (await client.getSession(id)).facts.filter((f) => f.status === "draft").length;
+    expect(drafts).toBeGreaterThan(0);
+    expect(await screen.findByText(new RegExp(`^${drafts} drafts? from 1 clip`))).toBeInTheDocument();
+    const n = poll.mock.calls.length;
+    await advance(12000);
+    expect(poll.mock.calls.length).toBe(n);
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("FE-UPL-03 error causes", () => {
   const rows: [string, ApiError | Error, string, boolean][] = [
     ["unsupported_file_type", new ApiError("unsupported_file_type", 415, { allowed: [".mp4"] }), "This file type is not supported. Use an MP4 or MOV video.", false],
