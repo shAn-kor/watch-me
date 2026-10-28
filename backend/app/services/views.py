@@ -120,6 +120,37 @@ class FactView:
     blocked_reason: str | None  # first failing confirm guard code, None when allowed
 
 
+# ----------------------------------------------------------------- clip views
+
+
+@dataclass(frozen=True, slots=True)
+class ClipErrorView:
+    cause: str
+    retryable: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ClipView:
+    """A creator `Clip` (01 section 2); also what the dog detail lists."""
+
+
+    id: str
+    session_id: str
+    ordinal: int
+    original_filename: str
+    original_size_bytes: int
+    duration_s: float
+    has_audio: bool
+    status: str
+    step: str | None
+    fail_code: str | None
+    error: ClipErrorView | None
+    media_url: str | None
+    captions_url: str | None
+    created_at: datetime
+    ready_at: datetime | None
+
+
 # ----------------------------------------------------------------- job views
 
 

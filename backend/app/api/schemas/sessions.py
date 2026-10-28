@@ -8,8 +8,8 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.schemas.clips import ClipOut, UtcZ
+from app.api.schemas.facts import FactOut
 from app.services.session_service import SessionBundle, SessionView
-from app.services.views import FactView
 
 
 class SessionCreateIn(BaseModel):
@@ -46,69 +46,6 @@ class SessionEnvelope(BaseModel):
     @classmethod
     def from_view(cls, view: SessionView) -> SessionEnvelope:
         return cls(session=SessionOut.from_view(view))
-
-
-class FlagOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    code: str
-    severity: str
-    source: str
-    detail: str
-
-
-class EvidenceOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    clip_id: str
-    start_s: float
-    end_s: float
-    played_by_me: bool
-    media_url: str | None
-    captions_url: str | None
-
-
-class ClipLengthOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    clip_count: int
-    seconds: int
-    label: str
-
-
-class ConfirmedOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    by_member_id: str
-    by_name: str
-    role: str
-    at: UtcZ
-
-
-class FactOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    dog_id: str
-    session_id: str | None
-    situation: str
-    behavior: str
-    source: str
-    origin: str
-    status: str
-    flags: list[FlagOut]
-    observed_on: date
-    evidence: list[EvidenceOut]
-    clip_length: ClipLengthOut
-    confirmed: ConfirmedOut | None
-    created_by: str | None
-    can_confirm: bool
-    blocked_reason: str | None
-
-    @classmethod
-    def from_view(cls, view: FactView) -> FactOut:
-        return cls.model_validate(view)
 
 
 class ProgressOut(BaseModel):

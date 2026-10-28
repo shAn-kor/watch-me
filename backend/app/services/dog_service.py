@@ -41,7 +41,9 @@ from app.models import Clip, Dog, Fact, FilmingSession
 from app.repositories.dogs import DogCounts, DogRepository, SessionCounts
 from app.services.coverage_service import CoverageService, ShortCoverage
 from app.services.views import (
+    ClipErrorView,
     ClipLengthView,
+    ClipView,
     ConfirmedView,
     EvidenceView,
     FactView,
@@ -121,39 +123,12 @@ class SessionSummaryView:
 
 
 @dataclass(frozen=True, slots=True)
-class ClipErrorView:
-    cause: str
-    retryable: bool
-
-
-@dataclass(frozen=True, slots=True)
-class ClipSummaryView:
-    """Creator `Clip` (01 section 2) as the dog detail lists it."""
-
-    id: str
-    session_id: str
-    ordinal: int
-    original_filename: str
-    original_size_bytes: int
-    duration_s: float
-    has_audio: bool
-    status: str
-    step: str | None
-    fail_code: str | None
-    error: ClipErrorView | None
-    media_url: str | None
-    captions_url: str | None
-    created_at: datetime
-    ready_at: datetime | None
-
-
-@dataclass(frozen=True, slots=True)
 class DogDetailView:
     dog: DogView
     coverage: Coverage
     checklist: ChecklistView
     sessions: tuple[SessionSummaryView, ...]
-    clips: tuple[ClipSummaryView, ...]
+    clips: tuple[ClipView, ...]
     facts: tuple[FactView, ...]
 
 
@@ -304,7 +279,7 @@ class DogService:
             facts=facts,
         )
 
-    def _clip_view(self, clip: Clip, has_transcript: bool) -> ClipSummaryView:
+    def _clip_view(self, clip: Clip, has_transcript: bool) -> ClipView:
         ready = clip.is_ready
         error = None
         if clip.status == "failed" and clip.fail_code:
@@ -312,7 +287,7 @@ class DogService:
                 clip.fail_code, ("We could not process this clip.", False)
             )
             error = ClipErrorView(cause, retryable)
-        return ClipSummaryView(
+        return ClipView(
             id=clip.id,
             session_id=clip.session_id,
             ordinal=clip.ordinal,

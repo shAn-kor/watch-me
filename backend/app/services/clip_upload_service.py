@@ -34,8 +34,8 @@ from app.errors import (
 from app.repositories.clips import ClipRepository
 from app.repositories.sessions import SessionRepository
 from app.services.job_queue import JobQueue
-from app.services.session_service import ClipView, build_clip_view
-from app.services.views import JobSpec, MediaUrls, Principal
+from app.services.session_service import build_clip_view
+from app.services.views import ClipView, JobSpec, MediaUrls, Principal
 from app.storage.base import StorageError
 
 MAX_FILENAME_CHARS = 200

@@ -1,7 +1,7 @@
 """SQL for filming sessions and the dog lookups lane S3 needs (02 sections 2.3, 2.4).
 
-No business rules: `SessionService` and `ClipUploadService` decide. The dog lookups
-live here until the lead consolidates them with lane S2's `dogs` repository.
+No business rules: `SessionService` and `ClipUploadService` decide. The dog lookup
+is `DogRepository.get_in_org`.
 """
 
 from __future__ import annotations
@@ -29,10 +29,6 @@ class SessionRepository:
         self._s = session
 
     # ----------------------------------------------------------- dogs
-
-    def dog_in_org(self, dog_id: str, org_id: str) -> Dog | None:
-        """The dog when it belongs to the org (any status, including `deleted`)."""
-        return self._s.scalar(select(Dog).where(Dog.id == dog_id, Dog.org_id == org_id))
 
     def set_dog_people_check_cleared(self, dog: Dog) -> None:
         dog.people_check_at = None

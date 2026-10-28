@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, PlainSerializer
 from app.api.schemas.auth import iso_z
 from app.services.clip_service import ClipDeleteResult
 from app.services.clip_upload_service import UploadResult
-from app.services.session_service import ClipView
+from app.services.views import ClipView
 
 UtcZ = Annotated[
     datetime | None,

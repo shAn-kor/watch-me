@@ -1,8 +1,7 @@
 """Fact review reads and writes (lane S4). All SQL of `FactReviewService` lives here.
 
-The dog and clip lookups at the bottom are deliberately small and named for this
-lane (`get_dog_in_org`, `get_clip_context`); the lead consolidates them with the
-dog and clip repositories later.
+The clip lookup at the bottom (`get_clip_context`) is deliberately small and named
+for this lane. The dog lookup is `DogRepository.get_in_org`.
 """
 
 from __future__ import annotations
@@ -122,10 +121,7 @@ class FactRepository:
             for m in self._s.scalars(select(Member).where(Member.id.in_(ids)))
         }
 
-    # ------------------------------------------- dog and clip lookups (lane S4)
-
-    def get_dog_in_org(self, dog_id: str, org_id: str) -> Dog | None:
-        return self._s.scalar(select(Dog).where(Dog.id == dog_id, Dog.org_id == org_id))
+    # ------------------------------------------------- clip lookup (lane S4)
 
     def get_clip_context(self, clip_id: str) -> ClipContext | None:
         row = self._s.execute(

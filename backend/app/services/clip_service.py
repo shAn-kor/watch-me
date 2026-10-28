@@ -22,8 +22,8 @@ from app.errors import (
 )
 from app.repositories.clips import ClipRepository
 from app.services.job_queue import JobQueue
-from app.services.session_service import ClipView, SessionService, build_clip_view
-from app.services.views import JobSpec, MediaUrls, Principal
+from app.services.session_service import SessionService, build_clip_view
+from app.services.views import ClipView, JobSpec, MediaUrls, Principal
 
 STEP_ORDER = ("transcode", "transcribe", "sample", "draft")
 RETRYABLE_CODES = frozenset({"transcode_failed", "ai_failed", "ai_invalid_output"})
