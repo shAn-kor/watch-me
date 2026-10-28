@@ -1,0 +1,19 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": []
+  },
+  "facts": [
+    {
+      "situation": "food_toys",
+      "behavior": "Sat and waited until the bowl was put on the floor.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 20,
+          "end_t": 24
+        }
+      ]
+    }
+  ]
+}

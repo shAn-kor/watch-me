@@ -1,0 +1,36 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": [
+      {
+        "start_s": 0.5,
+        "end_s": 2.0,
+        "text": "She walks nicely on the leash."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "situation": "leash_walk",
+      "behavior": "Walked beside the handler on a loose leash.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 1,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "new_person",
+      "behavior": "Walked to the visitor and sniffed their hand.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 2,
+          "end_t": 7
+        }
+      ]
+    }
+  ]
+}

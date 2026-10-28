@@ -1,0 +1,36 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": [
+      {
+        "start_s": 0.0,
+        "end_s": 6.0,
+        "text": "She sits and waits for her bowl every time."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "situation": "food_toys",
+      "behavior": "Sat and waited until the bowl was on the floor.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 2,
+          "end_t": 6
+        }
+      ]
+    },
+    {
+      "situation": "food_toys",
+      "behavior": "Volunteer said the dog sat and waited until the bowl was on the floor.",
+      "source": "narration",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 6
+        }
+      ]
+    }
+  ]
+}

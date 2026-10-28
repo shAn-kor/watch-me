@@ -1,0 +1,9 @@
+{
+  "select": [
+    {
+      "refs": [
+        "She is a lovely dog who is great with children."
+      ]
+    }
+  ]
+}

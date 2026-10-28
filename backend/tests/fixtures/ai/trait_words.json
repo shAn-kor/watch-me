@@ -1,0 +1,75 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": []
+  },
+  "facts": [
+    {
+      "situation": "new_person",
+      "behavior": "Friendly dog that greeted the visitor.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "handling",
+      "behavior": "Well-behaved while being brushed.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 3,
+          "end_t": 6
+        }
+      ]
+    },
+    {
+      "situation": "indoors_rest",
+      "behavior": "A calm dog that lay on the bed.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 6,
+          "end_t": 9
+        }
+      ]
+    },
+    {
+      "situation": "handling",
+      "behavior": "Doesn't mind being grabbed by the collar.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 9,
+          "end_t": 12
+        }
+      ]
+    },
+    {
+      "situation": "handling",
+      "behavior": "Tolerates being picked up without fuss.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 12,
+          "end_t": 15
+        }
+      ]
+    }
+  ],
+  "check": [
+    {
+      "match": "tolerates being picked up",
+      "kind": "paraphrased_trait",
+      "phrase": "Tolerates being picked up without fuss"
+    },
+    {
+      "match": "friendly",
+      "kind": "trait_label",
+      "phrase": "Friendly"
+    }
+  ]
+}
