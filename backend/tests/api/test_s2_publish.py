@@ -9,12 +9,11 @@ from sqlalchemy import func, select
 
 from app.models import Clip, Dog, Fact
 from tests.api._s2_support import (
-    LANE_S5,
     SLUG_RE,
-    cross_lane,
     csrf,
     fresh,
 )
+from tests.api._s5_support import put_clip_file
 
 
 @pytest.fixture
@@ -147,10 +146,10 @@ def test_api_pub_06_volunteer_forbidden(client, login_as, world):
     assert r.status_code == 403 and r.json()["error"]["code"] == "forbidden_role"
 
 
-@cross_lane("lane S5 routes done; test seeds no playback file (SeedBuilder writes none), so /media cannot answer 200")
-def test_api_pub_06_hidden_reads_after_unpublish(client, login_as, world):
+def test_api_pub_06_hidden_reads_after_unpublish(client, container, login_as, world):
     token = login_as(world.staff1)
     clip = world.clips_pub["c1"]
+    put_clip_file(container, clip)  # the pipeline would have written it
     slug = world.dog_pub.public_slug
     client.cookies.clear()
     assert client.get(f"/api/public/dogs/{slug}").status_code == 200
@@ -213,10 +212,10 @@ def test_api_pub_08_draft_to_adopted_and_volunteer(client, login_as, world):
     assert r.status_code == 200 and r.json()["dog"]["status"] == "adopted"
 
 
-@cross_lane("lane S5 routes done; test seeds no playback file (SeedBuilder writes none), so /media cannot answer 200")
-def test_api_pub_08_adopted_hidden_reads(client, login_as, world):
+def test_api_pub_08_adopted_hidden_reads(client, container, login_as, world):
     token = login_as(world.staff1)
     clip = world.clips_pub["c1"]
+    put_clip_file(container, clip)  # the pipeline would have written it
     slug = world.dog_pub.public_slug
     client.cookies.clear()
     assert client.get(f"/api/public/dogs/{slug}").status_code == 200

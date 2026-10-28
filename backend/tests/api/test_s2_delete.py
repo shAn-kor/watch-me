@@ -7,11 +7,10 @@ from sqlalchemy import select
 
 from app.models import Dog, Job
 from tests.api._s2_support import (
-    LANE_S5,
-    cross_lane,
     csrf,
     fresh,
 )
+from tests.api._s5_support import put_clip_file
 
 
 @pytest.fixture
@@ -103,10 +102,10 @@ def test_api_del_03_dog_deleted_through_api_disappears(client, login_as, world):
     assert world.dog_pub.id not in [i["dog"]["id"] for i in client.get("/api/dogs").json()["dogs"]]
 
 
-@cross_lane("lane S5 routes done; test seeds no playback file (SeedBuilder writes none), so /media cannot answer 200")
-def test_api_del_03_session_and_media_of_deleted_dog(client, login_as, world):
+def test_api_del_03_session_and_media_of_deleted_dog(client, container, login_as, world):
     sess = world.session_review
     clip = world.clips_review[0]
+    put_clip_file(container, clip)  # the pipeline would have written it
     login_as(world.vol1)
     assert client.get(f"/api/sessions/{sess.id}").status_code == 200  # positive control
     assert client.get(f"/media/{clip.id}.mp4").status_code == 200

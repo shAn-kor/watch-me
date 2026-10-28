@@ -257,3 +257,21 @@ Duplication to consolidate in phase 3: the dog lookups in
 and the `FactOut`, `ClipOut` and fact view schemas in S2, S3 and S4. Ruff
 findings in `tests/` grew from 57 to 245. Ruff is not a lane gate; clean up
 in phase 3.
+
+Lane S5 (merged after the list above): backend 696 passed, 10 xfail
+(5 lane P, 2 phase 3 metrics, 3 UT-AI-06 where 04 wins).
+
+- `PublicProfileService.get_profile(uow, slug)` and
+  `MediaAccessService.resolve_clip_video(uow, clip_id, principal | None)` take
+  `uow` first, like S2 and S4. A missing, bad or revoked cookie on a media read
+  means an anonymous reader.
+- `public_facts.py` gained `get_public_profile`, `clip_is_publicly_cited`,
+  `get_media_clip`, `get_media_dog` and `transcript_cues`. It is still the
+  only read path for confirmed facts.
+- Starlette's `FileResponse` does not answer `If-None-Match`. The media routes
+  compute the ETag from the file stat and return 304 themselves, as 01 section
+  7 requires. Captions use a content-hash ETag.
+- Media routes set `X-Robots-Tag` themselves. Every denial is the same 404.
+- `ask.enabled` is always `true` in R1. There is no setting for it.
+- Tests that read `/media` for a seeded clip first write the playback file with
+  `put_clip_file`. `SeedBuilder` writes no files; the pipeline does that.
