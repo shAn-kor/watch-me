@@ -243,9 +243,6 @@ def test_pipe_del_05_purge_exhausted(settings, make_env):
     assert _dog_visible(env, staff, dog.id) == 404
 
 
-@pytest.mark.xfail(
-    reason="GET /api/admin/metrics (`purge_pending`) belongs to lane I", strict=False
-)
 def test_pipe_del_05_purge_pending_listed(settings, make_env):
     storage = FaultyStorage(LocalStorage(settings.storage_root))
     storage.delete_prefix_always_fails = True

@@ -41,6 +41,7 @@ from app.services.fact_review_service import FactReviewService
 from app.services.job_queue import JobQueue
 from app.services.media_access_service import MediaAccessService
 from app.services.merge_service import MergeService
+from app.services.metrics_service import MetricsService
 from app.services.public_profile_service import PublicProfileService
 from app.services.publish_service import PublishService
 from app.services.qa_limits import CostCapGuard, QaLogLimiter
@@ -303,6 +304,12 @@ def build_container(
         cost_service=container.services.cost_service,
     )
     # [slot I] MetricsService
+    container.services.metrics_service = MetricsService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        settings=settings,
+        cost_service=container.services.cost_service,
+    )
 
     for name, value in service_overrides.items():
         if not hasattr(container.services, name):

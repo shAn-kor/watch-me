@@ -256,10 +256,6 @@ def test_api_dlf_02_delete_guards(client, rv, world, login_as):
     assert (r.status_code, code(r)) == (404, "not_found")
 
 
-@pytest.mark.xfail(
-    reason="needs phase 3 (lead): GET /api/admin/metrics (API-MET); the kept row is asserted first",
-    strict=False,
-)
 def test_api_dlf_03_deleted_drafts_count_in_metric(client, db, rv, world, login_as):
     token = login_as(world.vol1)
     assert delete(client, token, rv.f_clip1).status_code == 204
@@ -267,7 +263,7 @@ def test_api_dlf_03_deleted_drafts_count_in_metric(client, db, rv, world, login_
     token_s = login_as(world.staff1)
     r = client.get("/api/admin/metrics")
     assert r.status_code == 200
-    assert r.json()["review"]["all_drafts"] >= 1
+    assert r.json()["draft_acceptance"]["all_drafts"] >= 1
 
 
 # ------------------------------------------------------------------ API-ADD

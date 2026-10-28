@@ -253,12 +253,7 @@ _STAFF_ROUTES = [
     pytest.param("POST", "/api/dogs/{dog}/unpublish", id="unpublish"),
     pytest.param("POST", "/api/dogs/{dog}/adopted", id="adopted"),
     pytest.param("DELETE", "/api/dogs/{dog}", id="delete-dog"),
-    pytest.param(
-        "GET",
-        "/api/admin/metrics",
-        id="admin-metrics",
-        marks=pytest.mark.xfail(reason="needs phase 3: admin metrics route", strict=False),
-    ),
+    pytest.param("GET", "/api/admin/metrics", id="admin-metrics"),
 ]
 
 

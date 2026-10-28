@@ -52,6 +52,16 @@ def to_job_error(error: AiError, purpose: Purpose) -> JobError:
 
     `JobError.usages` carries `error.usages`.
     """
+    detail = str(error)[:200] if isinstance(error, (AiTransientError, AiPermanentError)) else ""
+    job_error = _to_job_error(error, purpose)
+    if detail:
+        # Only the status and provider code ("HTTP 401 invalid_api_key"); the failure
+        # hook stores it in `clip.fail_detail`, and the metrics alert reads it.
+        job_error.detail = detail  # type: ignore[attr-defined]
+    return job_error
+
+
+def _to_job_error(error: AiError, purpose: Purpose) -> JobError:
     if isinstance(error, AiTransientError):
         return JobError("ai_failed", True, error.retry_after_s, error.usages)
     if isinstance(error, AiInvalidOutput) and purpose == "draft":

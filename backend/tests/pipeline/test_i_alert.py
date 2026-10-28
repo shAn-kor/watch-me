@@ -75,3 +75,5 @@ def test_api_met_08_stays_while_only_failures_follow(settings, make_env):
     env.add_clip(sess2, "len_25s.mp4", ordinal=1)
     env.run()
     assert _alerts(env) == ["ai_auth_error"]
+
+

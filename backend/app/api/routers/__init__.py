@@ -8,7 +8,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.routers import auth, clips, dogs, facts, health, me, media, public, sessions
+from app.api.routers import (
+    admin,
+    auth,
+    clips,
+    dogs,
+    facts,
+    health,
+    me,
+    media,
+    public,
+    sessions,
+)
 
 ROUTERS: list[APIRouter] = []
 
@@ -18,4 +29,4 @@ ROUTERS.extend([sessions.router, clips.router])  # [slot S3]
 ROUTERS.extend([facts.router])  # [slot S4]
 ROUTERS.extend([media.router])  # [slot S5] media; the profile route lives on public.router (slot S6)
 ROUTERS.extend([public.router])  # [slot S6] ask route; S5 adds the profile route to the same router
-# [slot I]  admin                 -> admin.router (phase 3)
+ROUTERS.extend([admin.router])  # [slot I] admin metrics

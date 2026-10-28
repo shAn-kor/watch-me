@@ -178,9 +178,6 @@ def test_pipe_retry_05_permanent_statuses(settings, make_env, status):
     assert http.calls == 1
 
 
-@pytest.mark.xfail(
-    reason="metrics `alerts` (ai_auth_error) belong to lane I", strict=False
-)
 @pytest.mark.parametrize("status", [401, 402, 403])
 def test_pipe_retry_05_auth_errors_raise_alert(settings, make_env, status):
     http = FakeHttp(httpx.Response(status, json={"error": {"message": "x"}}))
