@@ -156,12 +156,13 @@ def test_pipe_del_02_order_hide_files_verify_rows(settings, make_env):
     assert (
         env.keys(f"dogs/{dog.id}/") and _count(env, Clip, dog.id) > 0
     )  # nothing removed yet
-    assert storage.events == []
+    assert not [e for e in storage.events if e.startswith("delete_prefix")]
     env.run()
     assert seen["files_at_delete"] is True
     assert seen["rows_at_delete"]["clip"] > 0 and seen["rows_at_delete"]["dog"] == 1
     prefix = f"dogs/{dog.id}/"
-    assert storage.events[:2] == [
+    at = storage.events.index(f"delete_prefix:{prefix}")
+    assert storage.events[at : at + 2] == [
         f"delete_prefix:{prefix}",
         f"list_prefix:{prefix}",
     ]  # delete, then verify

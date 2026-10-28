@@ -293,7 +293,8 @@ def test_pipe_retry_08_manual_retry_resumes_at_step(settings, make_env):
     dog, vol, sess, clip = _setup(env, "h264_5s.mp4")
     env.run()
     assert env.clip(clip.id).status == "failed"
-    assert env.session_row(sess.id).status == "review"
+    # the only clip failed: the session fails with no_usable_clip (SES-14)
+    assert env.session_row(sess.id).status == "failed"
     transcript_before = [(t.id, t.text) for t in env.transcript(clip.id)]
     calls_before = env.ffmpeg.exec_calls
     sw.ok = True
@@ -351,7 +352,10 @@ def test_pipe_retry_10_retry_merges_only_new_drafts(settings, make_env):
     old = env.facts(session_id=sess.id)
     assert old and all(f.merged for f in old)
     with env.db() as s:
-        s.execute(update(Fact).where(Fact.id == old[0].id).values(status="confirmed"))
+        s.execute(update(Fact).where(Fact.id == old[0].id).values(
+                status="confirmed", confirmed_at=env.clock.now(), confirmed_role="volunteer"
+            )
+        )
         s.commit()
     snapshot = {
         f.id: (f.behavior, f.flags, f.status) for f in env.facts(session_id=sess.id)
@@ -442,7 +446,7 @@ def test_pipe_retry_12_retry_merge_twice_runs_once(env):
             f"/api/sessions/{sess.id}/retry-merge", json={}, headers=csrf(token)
         )
     assert a.status_code == 200 and b.status_code == 200
-    assert a.json()["status"] == b.json()["status"] == "processing"
+    assert a.json()["session"]["status"] == b.json()["session"]["status"] == "processing"
     assert len([j for j in env.jobs("merge") if j.status == "queued"]) == 1
     env.run()
     assert len(calls) == 1

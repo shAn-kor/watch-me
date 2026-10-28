@@ -311,9 +311,6 @@ def test_api_ses_11_submit_with_all_clips_terminal(
     assert r.json()["session"]["review_ready_at"] is None
 
 
-@pytest.mark.xfail(
-    reason="lane P: merge and check handlers and the pipeline helper", strict=False
-)
 def test_api_ses_12_review_ready_at_lifecycle(
     client, db, container, seed, world, open_session, login_as
 ):
@@ -357,9 +354,6 @@ def test_api_ses_12_review_ready_at_is_null_while_processing(
     assert (s["status"], s["review_ready_at"]) == ("processing", None)
 
 
-@pytest.mark.xfail(
-    reason="lane P: merge step marks a session with no ready clip failed", strict=False
-)
 def test_api_ses_14_all_clips_failed_merge_step(
     client, container, seed, world, open_session, login_as
 ):

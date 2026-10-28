@@ -111,5 +111,6 @@ def test_pipe_run_01_worker_restart_resets_stale_lock(env):
     assert first.status == "queued" and first.locked_by is None
     assert second.status == "failed"
     assert env.clip(last.id).status == "failed"  # the final failure hook ran
+    env.advance(60)  # the requeued job waits out its 30 s backoff
     env.run()
     assert env.clip(clip.id).status == "ready"

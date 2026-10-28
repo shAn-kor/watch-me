@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Any
 
 import pytest
@@ -494,18 +494,100 @@ def test_ut_job_14_ffmpeg_error_translation():
     assert (err.code, err.retryable) == ("transcode_failed", False)
 
 
-@pytest.mark.xfail(
-    reason="DraftHandler, TranscribeHandler and TranscodeHandler belong to lane P; "
-    "the adapter-error half of UT-JOB-14 can run only after that merge",
-    raises=ImportError,
-    strict=False,
-)
 def test_ut_job_14_handler_error_translation():
-    from app.pipeline.handlers.draft import DraftHandler  # noqa: F401
-    from app.pipeline.handlers.transcode import TranscodeHandler  # noqa: F401
-    from app.pipeline.handlers.transcribe import TranscribeHandler  # noqa: F401
+    """The adapter half of 04 8.7: ai errors leave the lane P handlers as
+    `JobError` with the step code; ffmpeg errors in the transcode handler follow
+    the same retry rule."""
+    from types import SimpleNamespace
 
-    raise AssertionError("fill in with lane P handlers")  # pragma: no cover
+    from app.ai.errors import AiPermanentError, AiTransientError
+    from app.pipeline.ffmpeg import FFmpegError
+    from app.pipeline.handlers.draft import DraftHandler
+    from app.pipeline.handlers.transcode import TranscodeHandler
+    from app.pipeline.handlers.transcribe import TranscribeHandler
+
+    info = SimpleNamespace(
+        id="c1", session_id="s1", dog_id="d1", ordinal=1, original_filename="a.mp4",
+        original_path="dogs/d1/clips/c1/original.mp4", has_audio=True, duration_s=5.0,
+        playback_path="p", situations=("new_person",), observed_on=date(2026, 10, 1), dog_name="Rex",
+        fixture_key="a", prefix="dogs/d1/clips/c1/",
+    )
+    pctx = SimpleNamespace(info=info, transcript=(), language=None, segments=())
+    pipeline = SimpleNamespace(
+        begin_step=lambda cid, step: info, draft_context=lambda cid: pctx
+    )
+
+    class Storage:
+        def exists(self, key):
+            return True
+
+        def open_path(self, key):
+            from pathlib import Path
+
+            return Path("/nonexistent") / key
+
+        def new_tmp_path(self):
+            import tempfile
+            from pathlib import Path
+
+            return Path(tempfile.mkdtemp())
+
+    def raiser(exc):
+        def call(*a, **k):
+            raise exc
+
+        return call
+
+    class Ffmpeg:
+        def __init__(self, exc):
+            self.probe = raiser(exc)
+
+    def ctx(**kw):
+        base = dict(
+            settings=SimpleNamespace(draft_mode="frames", max_clip_s=120,
+                                     clip_duration_tolerance_s=0.5),
+            storage=Storage(),
+            services=SimpleNamespace(clip_pipeline_service=pipeline),
+        )
+        base.update(kw)
+        return SimpleNamespace(**base)
+
+    job = JobView(
+        id=1, type="x", payload={"clip_id": "c1"}, dog_id="d1", session_id="s1",
+        clip_id="c1", dedupe_key=None, attempts=1, max_attempts=2,
+    )
+    for exc_type, retryable in ((AiTransientError, True), (AiPermanentError, False)):
+        ai = SimpleNamespace(transcriber=SimpleNamespace(transcribe=raiser(exc_type("x"))))
+        with pytest.raises(JobError) as caught:
+            TranscribeHandler().handle(job, ctx(ai=ai))
+        assert (caught.value.code, caught.value.retryable) == ("ai_failed", retryable)
+
+    class Frames(Storage):
+        pass
+
+    ai = SimpleNamespace(drafter=SimpleNamespace(draft=raiser(AiTransientError("x"))))
+    services = SimpleNamespace(
+        clip_pipeline_service=SimpleNamespace(
+            begin_step=lambda cid, step: info,
+            draft_context=lambda cid: SimpleNamespace(
+                info=info, transcript=(), language=None, segments=()
+            ),
+        ),
+        draft_ingest_service=None,
+    )
+    with pytest.raises(JobError) as caught:
+        DraftHandler().handle(job, ctx(ai=ai, services=services))
+    assert (caught.value.code, caught.value.retryable) == ("ai_failed", True)
+
+    for kind, code, retryable in (
+        ("timeout", "transcode_failed", True),
+        ("disk_full", "transcode_failed", True),
+        ("not_found", "transcode_failed", False),
+        ("exit", "unsupported_file", False),
+    ):
+        with pytest.raises(JobError) as caught:
+            TranscodeHandler().handle(job, ctx(ffmpeg=Ffmpeg(FFmpegError(kind, "x"))))
+        assert (caught.value.code, caught.value.retryable) == (code, retryable), kind
 
 
 # ---------------------------------------------------------------- UT-JOB-15

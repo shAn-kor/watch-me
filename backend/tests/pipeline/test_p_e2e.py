@@ -255,8 +255,8 @@ def test_pipe_e2e_09_cross_clip_merge_keeps_evidence(env):
     facts = env.facts(session_id=sess.id)
     assert len(facts) == 1 and facts[0].merged
     assert (
-        facts[0].behavior == "Sat and waited until the bowl was put on the floor."
-    )  # the longer text
+        facts[0].behavior == "Sat and waited until the bowl was put on the floor"
+    )  # the longer text, stored without the final period (04 5 step 2)
     rows = env.evidence(facts[0].id)
     assert {r.clip_id for r in rows} == {a.id, b.id}
     assert len(rows) <= 3
@@ -299,13 +299,13 @@ def test_pipe_e2e_11_rules_flags_only(env):
     by_text = _trait_session(env)
     assert len(by_text) == 5
     for text in (
-        "Friendly dog that greeted the visitor.",
-        "Well-behaved while being brushed.",
-        "A calm dog that lay on the bed.",
-        "Doesn't mind being grabbed by the collar.",
+        "Friendly dog that greeted the visitor",
+        "Well-behaved while being brushed",
+        "A calm dog that lay on the bed",
+        "Doesn't mind being grabbed by the collar",
     ):
         assert ("banned_word", "warn", "rules") in _flags(by_text[text]), text
-    assert by_text["Tolerates being picked up without fuss."].flags == []
+    assert by_text["Tolerates being picked up without fuss"].flags == []
     for f in by_text.values():
         for flag in f.flags:
             assert set(flag) == {"code", "severity", "source", "detail"}
@@ -316,7 +316,7 @@ def test_pipe_e2e_11_rules_flags_only(env):
 def test_pipe_e2e_11_model_flags_paraphrase(make_env):
     env = make_env(checker="mock")
     by_text = _trait_session(env)
-    flags = by_text["Tolerates being picked up without fuss."].flags
+    flags = by_text["Tolerates being picked up without fuss"].flags
     assert [(f["code"], f["severity"], f["source"]) for f in flags] == [
         ("trait_claim", "warn", "model")
     ]
