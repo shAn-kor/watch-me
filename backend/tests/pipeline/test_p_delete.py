@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
 from sqlalchemy import func, select, update
 
 from app.ai.types import DraftFactOut, DraftOutput, EvidenceFrames
@@ -70,7 +69,7 @@ def _count(env, model, dog_id) -> int:
             q = (
                 select(func.count())
                 .select_from(model)
-                .where(getattr(model, "dog_id") == dog_id)
+                .where(model.dog_id == dog_id)
             )
         return s.scalar(q)
 
@@ -283,7 +282,7 @@ def test_pipe_del_06_running_draft_result_is_discarded(settings, make_env):
     org, staff, vol, _ = env.world()
     dog = env.seed.dog(org, staff, name="Pub", status="published")
     sess = env.session(dog, vol)
-    clip = env.add_clip(sess, "h264_5s.mp4")
+    env.add_clip(sess, "h264_5s.mp4")
     holder.update(env=env, staff=staff, dog_id=dog.id)
     while env.run_step():
         job = env.jobs("draft")

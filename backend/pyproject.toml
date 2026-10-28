@@ -168,3 +168,12 @@ forbidden_modules = [
     "app.pipeline", "app.storage", "app.security", "app.container", "app.main", "app.worker",
 ]
 allow_indirect_imports = true
+
+# Ruff runs with its default rule set; only tests get narrow ignores, for rules
+# that are noise there. `app/` is not relaxed.
+[tool.ruff.lint.per-file-ignores]
+# F811: pytest fixtures are imported from the support modules and then used as
+#   arguments, which looks like a redefinition.
+# RUF059: tests unpack seed helpers that return tuples and use only some items.
+# B008: probe routers in the test support module use FastAPI `Depends` defaults.
+"tests/**" = ["F811", "RUF059", "B008"]

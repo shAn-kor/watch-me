@@ -6,7 +6,11 @@ from app.config import Settings
 from app.pipeline.handlers.check import CheckHandler
 from app.pipeline.handlers.draft import DraftHandler
 from app.pipeline.handlers.merge import MergeHandler
-from app.pipeline.handlers.purge import PurgeClipHandler, PurgeDogHandler, RetentionSweepHandler
+from app.pipeline.handlers.purge import (
+    PurgeClipHandler,
+    PurgeDogHandler,
+    RetentionSweepHandler,
+)
 from app.pipeline.handlers.sample import SampleHandler
 from app.pipeline.handlers.transcode import TranscodeHandler
 from app.pipeline.handlers.transcribe import TranscribeHandler

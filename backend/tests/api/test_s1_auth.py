@@ -8,7 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.models import Member
-from tests.api._s1_support import UNSAFE, build_probe_router, creator_unsafe_routes, csrf
+from tests.api._s1_support import (
+    UNSAFE,
+    build_probe_router,
+    creator_unsafe_routes,
+    csrf,
+)
 from tests.factories import TEST_PASSWORD
 
 # ---------------------------------------------------------------- fixtures

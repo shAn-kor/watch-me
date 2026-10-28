@@ -14,8 +14,8 @@ from dataclasses import dataclass
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, selectinload
 
-from app.domain.coverage import CoverageClip, CoverageFact
 from app.domain.confirm_policy import PlaybackSnapshot
+from app.domain.coverage import CoverageClip, CoverageFact
 from app.domain.ranges import Range
 from app.models import (
     Clip,

@@ -9,8 +9,6 @@ import pytest
 from app.domain.situations import SITUATION_ORDER
 from app.models import Dog
 from tests.api._s2_support import (
-    LANE_S5,
-    cross_lane,
     csrf,
     dog_body,
     fresh,

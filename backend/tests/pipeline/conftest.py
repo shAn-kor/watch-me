@@ -9,7 +9,7 @@ import pytest
 from tests.pipeline.pipe_support import PipeEnv
 
 
-def pytest_collection_modifyitems(config, items):  # noqa: ANN001
+def pytest_collection_modifyitems(config, items):
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         skip = pytest.mark.skip(reason="needs ffmpeg and ffprobe")
         for item in items:

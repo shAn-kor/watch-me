@@ -39,10 +39,13 @@ from app.errors import (
 )
 from app.models import Clip, Dog, Fact, FilmingSession
 from app.repositories import jobs as jobs_repo
+from app.repositories.dogs import DogRepository
 from app.repositories.sessions import SessionRepository
 from app.services.job_queue import JobQueue
 from app.services.views import (
+    ClipErrorView,
     ClipLengthView,
+    ClipView,
     ConfirmedView,
     EvidenceView,
     FactView,
@@ -81,31 +84,6 @@ class SessionView:
     created_at: datetime
     submitted_at: datetime | None
     review_ready_at: datetime | None
-
-
-@dataclass(frozen=True, slots=True)
-class ClipErrorView:
-    cause: str
-    retryable: bool
-
-
-@dataclass(frozen=True, slots=True)
-class ClipView:
-    id: str
-    session_id: str
-    ordinal: int
-    original_filename: str
-    original_size_bytes: int
-    duration_s: float
-    has_audio: bool
-    status: str
-    step: str | None
-    fail_code: str | None
-    error: ClipErrorView | None
-    media_url: str | None
-    captions_url: str | None
-    created_at: datetime
-    ready_at: datetime | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -232,8 +210,8 @@ class SessionService:
         if not who.consented:
             raise ConsentRequired()
         repo = SessionRepository(uow.session)
-        dog = repo.dog_in_org(dog_id, who.org_id)
-        if dog is None or dog.status == "deleted":
+        dog = DogRepository(uow.session).get_in_org(who.org_id, dog_id)
+        if dog is None:
             raise NotFound()
         if dog.status != "draft":
             raise InvalidState(details={"dog_status": dog.status})
@@ -540,8 +518,6 @@ class SessionService:
 
 
 __all__: list[Any] = [
-    "ClipErrorView",
-    "ClipView",
     "ProgressView",
     "SessionBundle",
     "SessionService",

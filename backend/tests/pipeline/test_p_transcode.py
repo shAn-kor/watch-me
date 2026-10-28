@@ -12,16 +12,16 @@ from pathlib import Path
 
 import pytest
 
+from app.pipeline.ffmpeg import FFmpeg
+from app.storage.local import LocalStorage
 from tests.pipeline.pipe_support import (
     FFMPEG_BIN,
     FFPROBE_BIN,
     FaultyStorage,
-    csrf,
     count_running,
+    csrf,
     write_script,
 )
-from app.pipeline.ffmpeg import FFmpeg
-from app.storage.local import LocalStorage
 
 
 def _ffprobe(path: Path) -> dict:

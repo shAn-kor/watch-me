@@ -67,19 +67,19 @@ class Spy:
             "transcribe": [], "draft": [], "check": [], "select": [],
         }  # fmt: skip
 
-    def transcribe(self, req: Any):  # noqa: ANN201
+    def transcribe(self, req: Any):
         self.calls["transcribe"].append(req)
         return self.inner.transcribe(req)
 
-    def draft(self, req: Any):  # noqa: ANN201
+    def draft(self, req: Any):
         self.calls["draft"].append(req)
         return self.inner.draft(req)
 
-    def check(self, req: Any):  # noqa: ANN201
+    def check(self, req: Any):
         self.calls["check"].append(req)
         return self.inner.check(req)
 
-    def select(self, req: Any):  # noqa: ANN201
+    def select(self, req: Any):
         self.calls["select"].append(req)
         return self.inner.select(req)
 
@@ -188,7 +188,7 @@ class FnDrafter:
     def __init__(self, fn: Callable[[Any], Any]):
         self.fn = fn
 
-    def draft(self, req: Any):  # noqa: ANN201
+    def draft(self, req: Any):
         from app.ai.types import Usage
 
         return self.fn(req), [Usage(provider="mock", model="mock", purpose="draft")]
@@ -465,7 +465,7 @@ class PipeEnv:
 
 def count_running(name: str) -> int:
     """Processes whose command line contains `name` (orphan check)."""
-    out = subprocess.run(["pgrep", "-f", name], capture_output=True)
+    out = subprocess.run(["pgrep", "-f", name], check=False, capture_output=True)
     return 0 if out.returncode == 1 else len(out.stdout.split())
 
 

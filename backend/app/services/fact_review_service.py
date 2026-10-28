@@ -43,6 +43,7 @@ from app.errors import (
     ValidationFailed,
 )
 from app.models import Fact, FactEvidence
+from app.repositories.dogs import DogRepository
 from app.repositories.facts import FactRepository, FactRow
 from app.repositories.playback import PlaybackRepository
 from app.services.evidence_validator import (
@@ -164,8 +165,8 @@ class FactReviewService:
         self._load(FactRepository(uow.session), principal, fact_id)
 
     def ensure_dog_visible(self, uow: UnitOfWork, principal: Principal, dog_id: str) -> None:
-        dog = FactRepository(uow.session).get_dog_in_org(dog_id, principal.org_id)
-        if dog is None or dog.status == "deleted":
+        dog = DogRepository(uow.session).get_in_org(principal.org_id, dog_id)
+        if dog is None:
             raise NotFound()
 
     # --------------------------------------------------------------- playback
@@ -312,8 +313,8 @@ class FactReviewService:
 
             raise ConsentRequired()
         repo = FactRepository(uow.session)
-        dog = repo.get_dog_in_org(dog_id, principal.org_id)
-        if dog is None or dog.status == "deleted":
+        dog = DogRepository(uow.session).get_in_org(principal.org_id, dog_id)
+        if dog is None:
             raise NotFound()
         behavior = _checked_behavior(data.behavior)
         validated = self._validator.validate(repo, principal, dog.id, list(data.evidence))
@@ -438,7 +439,7 @@ class FactReviewService:
 
     def _view(self, uow: UnitOfWork, principal: Principal, row: FactRow) -> FactView:
         repo = FactRepository(uow.session)
-        fact, dog = row.fact, row.dog
+        fact = row.fact
         evidence = sorted(fact.evidence, key=lambda e: (e.start_s, e.end_s, e.id))
         clips = repo.clips_by_id(e.clip_id for e in evidence)
         with_transcript = repo.clip_ids_with_transcript(clips)

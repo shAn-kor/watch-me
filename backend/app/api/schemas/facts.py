@@ -6,7 +6,7 @@ import math
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.api.schemas.auth import iso_z
 from app.services.fact_review_service import PlaybackResult
@@ -80,6 +80,8 @@ class FactCreateIn(BaseModel):
 
 
 class FlagOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     code: str
     severity: str
     source: str
@@ -87,6 +89,8 @@ class FlagOut(BaseModel):
 
 
 class EvidenceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     clip_id: str
     start_s: float
@@ -97,6 +101,8 @@ class EvidenceOut(BaseModel):
 
 
 class ClipLengthOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     clip_count: int
     seconds: int
     label: str
@@ -138,18 +144,10 @@ class FactOut(BaseModel):
             source=v.source,
             origin=v.origin,
             status=v.status,
-            flags=[FlagOut(code=f.code, severity=f.severity, source=f.source, detail=f.detail) for f in v.flags],
+            flags=[FlagOut.model_validate(f) for f in v.flags],
             observed_on=v.observed_on.isoformat(),
-            evidence=[
-                EvidenceOut(
-                    id=e.id, clip_id=e.clip_id, start_s=e.start_s, end_s=e.end_s,
-                    played_by_me=e.played_by_me, media_url=e.media_url, captions_url=e.captions_url,
-                )
-                for e in v.evidence
-            ],
-            clip_length=ClipLengthOut(
-                clip_count=v.clip_length.clip_count, seconds=v.clip_length.seconds, label=v.clip_length.label
-            ),
+            evidence=[EvidenceOut.model_validate(e) for e in v.evidence],
+            clip_length=ClipLengthOut.model_validate(v.clip_length),
             confirmed=(
                 ConfirmedOut(
                     by_member_id=v.confirmed.by_member_id, by_name=v.confirmed.by_name,

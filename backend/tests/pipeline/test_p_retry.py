@@ -14,19 +14,17 @@ from sqlalchemy import update
 from app.ai.adapters.mock import MockAdapter
 from app.ai.adapters.openai_compat import OpenAICompatDrafter
 from app.ai.cost import PriceTable
-from app.ai.types import DraftOutput
 from app.errors import JobError
 from app.models import Fact
-from app.pipeline.ffmpeg import FFmpeg, FFmpegError
+from app.pipeline.ffmpeg import FFmpegError
 from tests.pipeline.pipe_support import (
     FFMPEG_BIN,
     FFPROBE_BIN,
     CountingFFmpeg,
-    FnDrafter,
     ai_slots,
     csrf,
 )
-from tests.unit.ai_helpers import VALID_DRAFT, FakeHttp, completion_body, ok
+from tests.unit.ai_helpers import VALID_DRAFT, FakeHttp, ok
 
 
 def _setup(env, media="len_25s.mp4", filename=None, ordinal=1):
@@ -194,7 +192,7 @@ def test_pipe_retry_05_auth_errors_raise_alert(settings, make_env, status):
 
 
 def test_pipe_retry_06_bounded_provider_calls(settings, make_env):
-    unavailable = lambda: httpx.Response(503, json={"error": {"message": "x"}})  # noqa: E731
+    unavailable = lambda: httpx.Response(503, json={"error": {"message": "x"}})
     http = FakeHttp(ok(INVALID), unavailable(), ok(INVALID), unavailable())
     env = _stub_env(settings, make_env, http)
     dog, vol, sess, clip = _setup(env)
@@ -309,7 +307,7 @@ def test_pipe_retry_08_manual_retry_resumes_at_step(settings, make_env):
 class FrameBreaker(CountingFFmpeg):
     broken = True
 
-    def extract_frames(self, src, times, out_dir):  # noqa: ANN001
+    def extract_frames(self, src, times, out_dir):
         if self.broken:
             out = Path(out_dir)
             out.mkdir(parents=True, exist_ok=True)

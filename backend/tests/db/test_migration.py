@@ -7,10 +7,11 @@ import sqlite3
 from pathlib import Path
 
 import sqlalchemy as sa
-from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
+
+from alembic import command
 
 BACKEND = Path(__file__).resolve().parents[2]
 

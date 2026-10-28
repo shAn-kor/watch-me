@@ -190,14 +190,14 @@ def test_safe_a_06_runner_uses_the_real_service():
     assert {"NullLimiter", "NullCostCap"} <= imported
     # no other limiter, filter or mapper is defined in the runner
     defined = {n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef | ast.FunctionDef)}
-    assert not {d for d in defined if re.search(r"filter|alias|resolve|limiter", d, re.I)}
+    assert not {d for d in defined if re.search(r"filter|alias|resolve|limiter", d, re.IGNORECASE)}
 
 
 def test_safe_a_06_a_broken_filter_makes_safe_a_01_fail(cases, tmp_path, monkeypatch):
     from app.services import qa_alias
 
     # Break the in-set check: treat every 32-hex ref as valid by returning it verbatim.
-    def resolve_everything(self, table, refs):  # noqa: ANN001, ANN202
+    def resolve_everything(self, table, refs):
         from app.services.qa_alias import ResolvedSelection
 
         ids = tuple(dict.fromkeys(r for r in refs if isinstance(r, str)))[: self._max_facts]

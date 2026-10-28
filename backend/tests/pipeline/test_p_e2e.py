@@ -15,7 +15,7 @@ from sqlalchemy import update
 from app.ai.errors import AiPermanentError, AiTransientError
 from app.ai.types import DraftFactOut, DraftOutput, EvidenceFrames, Usage
 from app.errors import JobError
-from app.models import Clip, FilmingSession
+from app.models import FilmingSession
 from tests.pipeline.pipe_support import (
     ALL_SITUATIONS,
     FnDrafter,
@@ -221,7 +221,7 @@ def test_pipe_e2e_07_partial_failure_still_reaches_review(settings, make_env):
     assert len(env.jobs("merge")) == 1 and env.facts(session_id=sess.id)
     with env.api(vol) as (client, _):
         body = client.get(f"/api/sessions/{sess.id}?include=none").json()
-    failed = [c for c in body["clips"] if c["id"] == c2.id][0]
+    failed = next(c for c in body["clips"] if c["id"] == c2.id)
     assert failed["error"]["retryable"] is True
 
 

@@ -27,18 +27,18 @@ SITUATIONS = [
 
 
 def pfact(i: int, behavior: str | None = None, *, situation: str | None = None, **kw) -> PublicFact:
-    base = dict(
-        id=f"{i:032x}",
-        dog_id="d" * 32,
-        situation=situation or SITUATIONS[i % 8],
-        behavior=behavior or f"Behavior number {i}.",
-        source="clip",
-        observed_on=date(2026, 10, 28),
-        confirmed_at=datetime(2026, 10, 28, 12, tzinfo=UTC),
-        confirmed_role="volunteer",
-        created_at=datetime(2026, 10, 28, 11, tzinfo=UTC),
-        evidence=(PublicEvidence(clip_id="c" * 32, start_s=1.0, end_s=4.0, has_transcript=True),),
-    )
+    base = {
+        "id": f"{i:032x}",
+        "dog_id": "d" * 32,
+        "situation": situation or SITUATIONS[i % 8],
+        "behavior": behavior or f"Behavior number {i}.",
+        "source": "clip",
+        "observed_on": date(2026, 10, 28),
+        "confirmed_at": datetime(2026, 10, 28, 12, tzinfo=UTC),
+        "confirmed_role": "volunteer",
+        "created_at": datetime(2026, 10, 28, 11, tzinfo=UTC),
+        "evidence": (PublicEvidence(clip_id="c" * 32, start_s=1.0, end_s=4.0, has_transcript=True),),
+    }
     base.update(kw)
     return PublicFact(**base)
 

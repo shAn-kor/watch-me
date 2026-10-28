@@ -34,71 +34,71 @@ def build_probe_router() -> APIRouter:
     router = APIRouter(prefix="/api/_t")
 
     @router.get("/whoami")
-    def whoami(p=Depends(deps.principal)) -> dict[str, Any]:  # noqa: ANN001
+    def whoami(p=Depends(deps.principal)) -> dict[str, Any]:
         return {"member_id": p.member_id, "role": p.role, "org_id": p.org_id}
 
-    def _ok(p) -> dict[str, bool]:  # noqa: ANN001
+    def _ok(p) -> dict[str, bool]:
         return {"ok": True}
 
     @router.post("/write")
-    def write_post(p=Depends(deps.principal)):  # noqa: ANN001
+    def write_post(p=Depends(deps.principal)):
         return _ok(p)
 
     @router.put("/write")
-    def write_put(p=Depends(deps.principal)):  # noqa: ANN001
+    def write_put(p=Depends(deps.principal)):
         return _ok(p)
 
     @router.patch("/write")
-    def write_patch(p=Depends(deps.principal)):  # noqa: ANN001
+    def write_patch(p=Depends(deps.principal)):
         return _ok(p)
 
     @router.delete("/write")
-    def write_delete(p=Depends(deps.principal)):  # noqa: ANN001
+    def write_delete(p=Depends(deps.principal)):
         return _ok(p)
 
     @router.post("/staff")
-    def staff_only(p=Depends(deps.require_staff)):  # noqa: ANN001
+    def staff_only(p=Depends(deps.require_staff)):
         return _ok(p)
 
     @router.post("/gated")
-    def consent_gated(p=Depends(deps.require_consent)):  # noqa: ANN001
+    def consent_gated(p=Depends(deps.require_consent)):
         return _ok(p)
 
     @router.get("/open-read")
-    def open_read(p=Depends(deps.principal)):  # noqa: ANN001
+    def open_read(p=Depends(deps.principal)):
         return _ok(p)
 
-    def _dog(uow, p, dog_id: str) -> Dog:  # noqa: ANN001
+    def _dog(uow, p, dog_id: str) -> Dog:
         dog = uow.session.get(Dog, dog_id)
         if dog is None or dog.org_id != p.org_id:
             raise NotFound()
         return dog
 
     @router.get("/dogs/{dog_id}")
-    def dog_get(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):  # noqa: ANN001
+    def dog_get(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):
         return {"id": _dog(uow, p, dog_id).id}
 
     @router.patch("/dogs/{dog_id}")
-    def dog_patch(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):  # noqa: ANN001
+    def dog_patch(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):
         return {"id": _dog(uow, p, dog_id).id}
 
     @router.put("/dogs/{dog_id}")
-    def dog_put(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):  # noqa: ANN001
+    def dog_put(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):
         return {"id": _dog(uow, p, dog_id).id}
 
     @router.post("/dogs/{dog_id}")
-    def dog_post(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):  # noqa: ANN001
+    def dog_post(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):
         return {"id": _dog(uow, p, dog_id).id}
 
     @router.delete("/dogs/{dog_id}")
-    def dog_delete(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):  # noqa: ANN001
+    def dog_delete(dog_id: str, p=Depends(deps.principal), uow=Depends(deps.uow)):
         return {"id": _dog(uow, p, dog_id).id}
 
     @router.post("/sessions/{session_id}/clips")
     def upload_like(
         session_id: str,
-        p=Depends(deps.require_consent),  # noqa: ANN001
-        uow=Depends(deps.uow),  # noqa: ANN001
+        p=Depends(deps.require_consent),
+        uow=Depends(deps.uow),
     ):
         # Service order of 06 section 3.5: consent (dependency) first, then org scope.
         sess = uow.session.scalar(
@@ -115,11 +115,11 @@ def build_probe_router() -> APIRouter:
         raise RuntimeError("secret internal detail")
 
     @router.post("/public")
-    def public_post(body: _Body):  # noqa: ANN001
+    def public_post(body: _Body):
         return {"x": body.x}
 
     @router.get("/limited-writes")
-    def limited(_=Depends(deps.limit("writes"))):  # noqa: ANN001
+    def limited(_=Depends(deps.limit("writes"))):
         return {"ok": True}
 
     return router

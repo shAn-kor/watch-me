@@ -7,10 +7,11 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from app.api.schemas.auth import iso_z
+from app.api.schemas.clips import ClipOut
+from app.api.schemas.facts import ClipLengthOut, EvidenceOut, FlagOut
 from app.domain.coverage import Coverage
 from app.services.coverage_service import ShortCoverage
 from app.services.dog_service import (
-    ClipSummaryView,
     DogDetailView,
     DogListItem,
     DogView,
@@ -249,72 +250,6 @@ class SessionOut(BaseModel):
         )
 
 
-class ClipErrorOut(BaseModel):
-    cause: str
-    retryable: bool
-
-
-class ClipOut(BaseModel):
-    id: str
-    session_id: str
-    ordinal: int
-    original_filename: str
-    original_size_bytes: int
-    duration_s: float
-    has_audio: bool
-    status: str
-    step: str | None
-    fail_code: str | None
-    error: ClipErrorOut | None
-    media_url: str | None
-    captions_url: str | None
-    created_at: str | None
-    ready_at: str | None
-
-    @classmethod
-    def from_view(cls, v: ClipSummaryView) -> ClipOut:
-        return cls(
-            id=v.id,
-            session_id=v.session_id,
-            ordinal=v.ordinal,
-            original_filename=v.original_filename,
-            original_size_bytes=v.original_size_bytes,
-            duration_s=v.duration_s,
-            has_audio=v.has_audio,
-            status=v.status,
-            step=v.step,
-            fail_code=v.fail_code,
-            error=ClipErrorOut(cause=v.error.cause, retryable=v.error.retryable) if v.error else None,
-            media_url=v.media_url,
-            captions_url=v.captions_url,
-            created_at=iso_z(v.created_at),
-            ready_at=iso_z(v.ready_at),
-        )
-
-
-class FlagOut(BaseModel):
-    code: str
-    severity: str
-    source: str
-    detail: str
-
-
-class EvidenceOut(BaseModel):
-    id: str
-    clip_id: str
-    start_s: float
-    end_s: float
-    played_by_me: bool
-    media_url: str | None
-    captions_url: str | None
-
-
-class ClipLengthOut(BaseModel):
-    clip_count: int
-    seconds: int
-    label: str
-
-
 class ConfirmedOut(BaseModel):
     by_member_id: str
     by_name: str
@@ -351,25 +286,10 @@ class FactOut(BaseModel):
             source=v.source,
             origin=v.origin,
             status=v.status,
-            flags=[FlagOut(code=f.code, severity=f.severity, source=f.source, detail=f.detail) for f in v.flags],
+            flags=[FlagOut.model_validate(f) for f in v.flags],
             observed_on=v.observed_on.isoformat(),
-            evidence=[
-                EvidenceOut(
-                    id=e.id,
-                    clip_id=e.clip_id,
-                    start_s=e.start_s,
-                    end_s=e.end_s,
-                    played_by_me=e.played_by_me,
-                    media_url=e.media_url,
-                    captions_url=e.captions_url,
-                )
-                for e in v.evidence
-            ],
-            clip_length=ClipLengthOut(
-                clip_count=v.clip_length.clip_count,
-                seconds=v.clip_length.seconds,
-                label=v.clip_length.label,
-            ),
+            evidence=[EvidenceOut.model_validate(e) for e in v.evidence],
+            clip_length=ClipLengthOut.model_validate(v.clip_length),
             confirmed=(
                 ConfirmedOut(
                     by_member_id=v.confirmed.by_member_id,

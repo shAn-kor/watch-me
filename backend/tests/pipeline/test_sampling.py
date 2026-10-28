@@ -178,5 +178,5 @@ def test_pipe_smp_03_timeout_is_retried_then_fails(tmp_path, container, clock, e
     assert (row.status, row.attempts) == ("failed", 2)
     assert [e.code for e in handler.finals] == ["transcode_failed"]
     # no orphan: the fake's sleep is gone
-    leftover = subprocess.run(["pgrep", "-f", str(tmp_path / "ffmpeg")], capture_output=True)
+    leftover = subprocess.run(["pgrep", "-f", str(tmp_path / "ffmpeg")], check=False, capture_output=True)
     assert leftover.returncode == 1

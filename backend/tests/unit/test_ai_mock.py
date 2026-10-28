@@ -105,7 +105,7 @@ def test_mock_select_rules_return_refs_even_outside_the_set(tmp_path: Path):
     ]})
     m = MockAdapter(tmp_path)
     facts = [FactRef(ref="F1", situation="new_person", behavior="Walked up.")]
-    sel = lambda q: m.select(SelectRequest(question=q, facts=facts))[0].refs  # noqa: E731
+    sel = lambda q: m.select(SelectRequest(question=q, facts=facts))[0].refs
     assert sel("Is she good with KIDS?") == ["F3"]
     assert sel("Does she bark?") == ["F1", "F99"]
     assert sel("What colour is she?") == []
