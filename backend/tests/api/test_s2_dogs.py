@@ -199,6 +199,7 @@ def test_api_dog_05_dog_detail(client, login_as, world, seed):
     seed.fact(
         world.dog_review,
         situation="handling",
+        session=world.session_review,
         behavior="Newer handling observation text.",
         observed_on=world.session_review.observed_on,
     )
