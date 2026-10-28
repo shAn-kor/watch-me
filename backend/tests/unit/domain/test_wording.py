@@ -125,3 +125,11 @@ def test_ut_wrd_06_acknowledgement_set():
     assert needs_acknowledgement([unavailable, banned])
     # unknown severity is treated as warn (fail safe)
     assert needs_acknowledgement([{"code": "x", "severity": "weird"}])
+
+
+def test_ut_wrd_04_ai_text_is_normalized_leniently():
+    from app.domain.wording import normalize_ai_behavior
+
+    assert normalize_ai_behavior("  He sits\n quietly. ") == "He sits quietly"
+    assert normalize_ai_behavior("ab") is None
+    assert len(normalize_ai_behavior("a" * 400)) == 280

@@ -109,12 +109,12 @@ def test_ut_rng_08_row_under_1s_is_dropped_and_fact_counted():
 def test_ut_rng_09_range_over_60s_is_dropped_not_truncated():
     assert frame_citation_to_range(10, 100, 3, 120) is None
     report = repair_citations(
-        [[(10, 100)], [(10, 100), (30, 32)]],
+        [[(10, 100)], [(10, 100), (30, 33)]],
         3,
         120,
     )
     assert report.rows[0] == ()
-    assert report.rows[1] == (Range(30.0, 35.0),)
+    assert report.rows[1] == (Range(30.0, 36.0),)
     assert report.dropped_facts == 1
     assert report.dropped_rows == 2
 
