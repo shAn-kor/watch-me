@@ -28,19 +28,24 @@ from app.security.csrf import CsrfTokenService
 from app.security.passwords import PasswordHasher
 from app.security.ratelimit import InMemorySlidingWindow
 from app.services.auth_service import AuthService
+from app.services.clip_pipeline_service import ClipPipelineService
 from app.services.clip_service import ClipService
 from app.services.clip_upload_service import ClipUploadService
+from app.services.cost_service import CostService
 from app.services.coverage_service import CoverageService
 from app.services.deletion_service import DeletionService
 from app.services.dog_service import DogService
+from app.services.draft_ingest_service import DraftIngestService
 from app.services.evidence_validator import EvidenceValidator
 from app.services.fact_review_service import FactReviewService
 from app.services.job_queue import JobQueue
+from app.services.merge_service import MergeService
 from app.services.publish_service import PublishService
 from app.services.qa_limits import CostCapGuard, QaLogLimiter
 from app.services.qa_service import QAService
 from app.services.session_service import SessionService
 from app.services.views import MediaUrls
+from app.services.wording_service import WordingService
 from app.storage.base import Storage
 from app.storage.local import LocalStorage
 
@@ -205,7 +210,11 @@ def build_container(
         publish=container.services.publish_service,
     )
     container.services.deletion_service = DeletionService(
-        clock=clock, job_queue=container.services.job_queue
+        clock=clock,
+        job_queue=container.services.job_queue,
+        uow_factory=container.uow_factory,  # lane P purge methods
+        storage=container.storage,
+        settings=settings,
     )
     # [slot S3] SessionService, ClipUploadService, ClipService
     container.services.session_service = SessionService(
@@ -257,6 +266,34 @@ def build_container(
         max_chars=settings.qa_question_max_chars,
     )
     # [slot P] DraftIngestService, MergeService, WordingService, ClipPipelineService, CostService
+    container.services.cost_service = CostService(uow_factory=container.uow_factory, clock=clock)
+    container.services.clip_pipeline_service = ClipPipelineService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        settings=settings,
+        storage=container.storage,
+        session_service=container.services.session_service,
+        cost_service=container.services.cost_service,
+    )
+    container.services.draft_ingest_service = DraftIngestService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        session_service=container.services.session_service,
+        cost_service=container.services.cost_service,
+    )
+    container.services.merge_service = MergeService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        banned=BannedWordMatcher.from_text(
+            settings.banned_words_file.read_text(encoding="utf-8")
+        ),
+        session_service=container.services.session_service,
+    )
+    container.services.wording_service = WordingService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        cost_service=container.services.cost_service,
+    )
     # [slot I] MetricsService
 
     for name, value in service_overrides.items():

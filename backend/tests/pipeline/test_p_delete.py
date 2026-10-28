@@ -150,6 +150,7 @@ def test_pipe_del_02_order_hide_files_verify_rows(settings, make_env):
         seen["files_at_delete"] = bool(env.storage._inner.list_prefix(prefix))
 
     storage.on_delete_prefix = at_delete
+    storage.events.clear()  # the pipeline run that filled the dog also used storage
     assert _delete_dog(env, staff, dog.id) == 202
     assert _dog_visible(env, staff, dog.id) == 404  # hidden at once
     assert (
