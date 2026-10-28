@@ -1,0 +1,18 @@
+# Banned wording for the rules check (04 section 6.2). Format: see
+# app/domain/textmatch.py. Entries are separated by whitespace, "quoted
+# phrases" match as a phrase, an entry ending in * is a stem, # starts a comment.
+# trait labels
+aggressive* anxious* nervous* fearful* shy timid friendly* sweet gentle
+playful calm* happy* sad lazy stubborn dominant* submissive protective
+territorial reactive loyal affectionate* cuddly* needy independent obedient
+well-behaved good-natured even-tempered easygoing laid-back mellow
+# judgments and safety claims
+dangerous safe harmless vicious mean bad good-dog perfect
+"good with kids" "good with children" "good with cats" "good with dogs"
+"great with" "loves people" "loves kids" "hates" "afraid of" "scared of"
+# mental states
+seemed* appeared* "wanted to" "wants to" "loves to" "likes to" "enjoys"
+excited happy* comfortable relaxed
+# paraphrased claims
+"doesn't mind" "does not mind" "never bites" "won't bite" "never barks"
+"no issues" "no problems" "family dog" "ideal"

@@ -1,0 +1,11 @@
+# Health questions get the fixed health_redirect answer (01 section 5, QA-4).
+# Same format as banned_words.txt. Lead starter list (04 has none); covers
+# UT-HLT-01 and the 04 eval health set.
+vaccin* vaccine* shot shots rabies distemper parvo booster*
+medical* medic* medication* medicine* meds pill* prescription*
+sick* ill illness* disease* infection* parasite* worm* heartworm* flea* tick*
+injur* limp* lame pain* hurt* surgery surger* operation vet vets veterinar*
+spay* neuter* microchip* allerg* diet* seizure* diabet* arthrit*
+"health issues" "health problems" "medical issues" "medical problems"
+# Korean
+예방접종* 접종* 백신* 중성화* 병원* 아파* 아픈* 질병* 질환* 약물* 복용* 수술*

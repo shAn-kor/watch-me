@@ -141,3 +141,47 @@ Other Phase 0 choices: enum columns carry CHECKs for every closed set (beyond
 in `domain/enums.py`; Alembic reads `DATABASE_URL` directly; `create_app`
 takes `container=None`; dev backend port 8000; TypeScript pinned to 5.x.
 `login_as` raises until lane S1 replaces it.
+
+## 8. Phase 1 result (2026-10-28)
+
+Merged: A, B, C, D (squashed: its wip commits carried generated clips), S1.
+Backend: 337 passed, 21 xfail; import-linter 11 contracts kept. Every xfail
+names the lane that removes it.
+
+Choices made by lanes, accepted by the lead:
+
+- **A.** New domain modules `dedupe`, `textmatch`, `coverage`, `visibility`.
+  Word lists use the `textmatch` format (whitespace-separated, `"phrases"`,
+  `stem*`, `#` comments). Unknown flag severity counts as `warn`.
+- **C.** UT-AI-06: newline in `behavior`, `start_t > end_t` and 4 evidence
+  items are repaired after validation (04), not schema-invalid as 07 says;
+  those sub-cases are `xfail(strict)` until 07 is aligned. `JobError` has no
+  `fail_detail`; the provider status stays on `__cause__`. `MockAdapter`
+  turns faults into `JobError` unless `raise_ai_errors=True`.
+  `reasoning_effort` is off until the spike.
+- **D.** An unknown handler exception becomes `JobError(<step default code>,
+  retryable=False)`, and the job row stores `internal_error` (06 M31 over 07).
+  Step codes: transcode and sample `transcode_failed`; transcribe, draft and
+  check `ai_failed`; merge `merge_failed`; purge and sweep `purge_failed`.
+  Backoff: pipeline 30 s, 120 s; purge 1 m, 5 m, 15 m, 1 h, 3 h, 6 h, 12 h.
+  Every non-transient ffmpeg exit maps to `transcode_failed`; lane P decides
+  `unsupported_file`. `worker.py` wiring is lane P.
+- **S1.** `create_app(container=None, *, spa_dir=None)`. The 415 rule is an
+  app-level dependency that runs before auth. 405 and unknown routes return
+  404 `not_found`. The SPA shell is served from the 404 handler, so later
+  routers are never shadowed. The consent gate checks `consented_at` only.
+  `/healthz` returns 503 when the DB is down. `AuthService` commits through
+  its own `uow_factory`.
+
+Dependencies for creator routes (`app/api/deps.py`): `principal` (cookie, then
+CSRF on unsafe methods), `require_staff`, `require_consent`,
+`current_principal` (cookie only, media reads), `uow`, and
+`limit("writes" | "uploads" | "public" | "media")`.
+
+Lead changes: word lists live in `backend/config/` (`banned_words.txt` from 04
+6.2; `health_keywords.txt` is a lead starter list, since 04 gives none);
+`backend/.gitignore` ignores `.cache/`; 07 UT-RNG-09 now expects a 6 s row
+(`[30, 36]`), which follows from `end_s = end_t + k`.
+
+Rule added for Phase 2: generated media stays out of git (fixtures build into
+`backend/.cache/`).

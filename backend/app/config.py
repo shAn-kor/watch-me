@@ -105,8 +105,8 @@ class Settings(BaseSettings):
     ai_allow_contributor_model: bool = False
     ai_prices_file: Path = _APP_DIR / "ai" / "prices.json"
     ai_mock_fixtures_dir: Path = Path("fixtures/")
-    banned_words_file: Path = _APP_DIR / "config" / "banned_words.txt"
-    health_keywords_file: Path = _APP_DIR / "config" / "health_keywords.txt"
+    banned_words_file: Path = _APP_DIR.parent / "config" / "banned_words.txt"
+    health_keywords_file: Path = _APP_DIR.parent / "config" / "health_keywords.txt"
 
     # --- Q&A
     qa_daily_usd_cap: float = Field(3.00, ge=0)
