@@ -19,6 +19,7 @@ from app.clock import Clock, SystemClock
 from app.config import Settings
 from app.db.engine import make_engine, make_session_factory
 from app.db.uow import UnitOfWork, UowFactory, make_uow_factory
+from app.domain.health import HealthQuestionMatcher
 from app.domain.wording import BannedWordMatcher
 from app.pipeline.ffmpeg import FFmpeg
 from app.security.client_ip import ClientIpResolver, IpHasher
@@ -36,6 +37,8 @@ from app.services.evidence_validator import EvidenceValidator
 from app.services.fact_review_service import FactReviewService
 from app.services.job_queue import JobQueue
 from app.services.publish_service import PublishService
+from app.services.qa_limits import CostCapGuard, QaLogLimiter
+from app.services.qa_service import QAService
 from app.services.session_service import SessionService
 from app.services.views import MediaUrls
 from app.storage.base import Storage
@@ -237,7 +240,22 @@ def build_container(
         validator=container.services.evidence_validator,
     )
     # [slot S5] PublicProfileService, MediaAccessService
-    # [slot S6] QaService (+ QaLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
+    # [slot S6] QAService (+ QaLogLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
+    container.services.qa_service = QAService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        selector=container.ai.selector,
+        health=HealthQuestionMatcher.from_text(
+            settings.health_keywords_file.read_text(encoding="utf-8")
+        ),
+        ip_hasher=sec["ip_hasher"],
+        media_urls=container.media_urls,
+        limiter=QaLogLimiter(clock, settings.qa_limit_per_hour),
+        cap_guard=CostCapGuard(clock, settings.qa_daily_usd_cap),
+        max_facts=settings.qa_max_facts,
+        min_chars=settings.qa_question_min_chars,
+        max_chars=settings.qa_question_max_chars,
+    )
     # [slot P] DraftIngestService, MergeService, WordingService, ClipPipelineService, CostService
     # [slot I] MetricsService
 
