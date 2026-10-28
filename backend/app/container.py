@@ -36,6 +36,8 @@ from app.services.dog_service import DogService
 from app.services.evidence_validator import EvidenceValidator
 from app.services.fact_review_service import FactReviewService
 from app.services.job_queue import JobQueue
+from app.services.media_access_service import MediaAccessService
+from app.services.public_profile_service import PublicProfileService
 from app.services.publish_service import PublishService
 from app.services.qa_limits import CostCapGuard, QaLogLimiter
 from app.services.qa_service import QAService
@@ -240,6 +242,12 @@ def build_container(
         validator=container.services.evidence_validator,
     )
     # [slot S5] PublicProfileService, MediaAccessService
+    container.services.public_profile_service = PublicProfileService(
+        settings=settings,
+        media_urls=container.media_urls,
+        coverage=container.services.coverage_service,
+    )
+    container.services.media_access_service = MediaAccessService(storage=container.storage)
     # [slot S6] QAService (+ QaLogLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
     container.services.qa_service = QAService(
         uow_factory=container.uow_factory,

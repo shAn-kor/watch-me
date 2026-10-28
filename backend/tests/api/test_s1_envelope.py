@@ -126,7 +126,6 @@ def test_api_env_03_security_headers(container, spa_dir):
         assert c.get("/api/unknown").headers["X-Content-Type-Options"] == "nosniff"
 
 
-@pytest.mark.xfail(reason="needs lane S5: GET /api/public/dogs/{slug}", strict=False)
 def test_api_env_03_public_api_404_for_hidden_and_unknown_slugs(client, world):
     ok = client.get(f"/api/public/dogs/{world.dog_pub.public_slug}")
     assert ok.status_code == 200
@@ -219,7 +218,6 @@ def test_api_org_01_every_real_creator_route(client, probed_app, world, login_as
     assert checked > 0
 
 
-@pytest.mark.xfail(reason="needs lane S5: /media routes", strict=False)
 def test_api_org_01_media_with_other_org_cookie(app, client, world, login_as):
     from tests.api._s1_support import iter_api_routes
 

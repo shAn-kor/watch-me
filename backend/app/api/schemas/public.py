@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.services.public_profile_service import PublicProfile
 from app.services.qa_render import QaAnswer, QaLine
 
 
@@ -113,3 +114,106 @@ class AskOut(BaseModel):
                 url=a.contact.url, email=a.contact.email, phone=a.contact.phone
             )
         return cls(**fields)  # type: ignore[arg-type]
+
+
+# ------------------------------------------------------------ profile (lane S5)
+
+
+class ProfileDogOut(BaseModel):
+    slug: str
+    name: str
+    sex: str
+    age_estimate: str
+    size: str
+    location: str
+    photo_url: str | None
+    published_at: datetime | None
+
+
+class ProfileOrgOut(BaseModel):
+    name: str
+    country: str
+
+
+class SituationCoverageOut(BaseModel):
+    situation: str
+    label: str
+    covered: bool
+    clip_count: int
+    filmed_s: int
+    confirmed_s: int
+
+
+class ProfileCoverageOut(BaseModel):
+    situations_total: int
+    situations_covered: int
+    summary: str
+    by_situation: list[SituationCoverageOut]
+
+
+class KnownConcernsOut(BaseModel):
+    none_known: bool
+    text: str | None
+
+
+class ProfileFactOut(BaseModel):
+    id: str
+    behavior: str
+    source: str
+    source_label: str
+    observed_on: date
+    confirmed_by_label: str
+    clip_length: ClipLengthOut
+    notice: NoticeOut | None
+    evidence: list[EvidenceOut]
+
+
+class FactGroupOut(BaseModel):
+    situation: str
+    label: str
+    facts: list[ProfileFactOut]
+
+
+class NotObservedOut(BaseModel):
+    situation: str
+    label: str
+
+
+class AskInfoOut(BaseModel):
+    enabled: bool
+    max_question_chars: int
+    limit_per_hour: int
+
+
+class ProfileOut(BaseModel):
+    banner_id: str
+    dog: ProfileDogOut
+    org: ProfileOrgOut
+    coverage: ProfileCoverageOut
+    known_concerns: KnownConcernsOut
+    facts_by_situation: list[FactGroupOut]
+    not_observed: list[NotObservedOut]
+    contact: ContactOut
+    ask: AskInfoOut
+
+    @classmethod
+    def from_profile(cls, p: PublicProfile) -> ProfileOut:
+        return cls.model_validate(
+            {
+                "banner_id": p.banner_id,
+                "dog": p.dog,
+                "org": {"name": p.org_name, "country": p.org_country},
+                "coverage": {
+                    "situations_total": p.coverage.situations_total,
+                    "situations_covered": p.coverage.situations_covered,
+                    "summary": p.coverage.summary,
+                    "by_situation": p.coverage.by_situation,
+                },
+                "known_concerns": p.known_concerns,
+                "facts_by_situation": p.facts_by_situation,
+                "not_observed": p.not_observed,
+                "contact": p.contact,
+                "ask": p.ask,
+            },
+            from_attributes=True,
+        )

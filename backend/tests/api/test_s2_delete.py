@@ -47,7 +47,6 @@ def test_api_del_01_delete_dog_request(client, login_as, world, seed, db):
     assert purge[0].dedupe_key == f"purge_dog:{world.dog_pub.id}"
 
 
-@cross_lane(LANE_S5)
 def test_api_del_01_hidden_reads_after_delete(client, login_as, world):
     slug = world.dog_pub.public_slug
     clip = world.clips_pub["c1"]
@@ -104,7 +103,7 @@ def test_api_del_03_dog_deleted_through_api_disappears(client, login_as, world):
     assert world.dog_pub.id not in [i["dog"]["id"] for i in client.get("/api/dogs").json()["dogs"]]
 
 
-@cross_lane(LANE_S5)
+@cross_lane("lane S5 routes done; test seeds no playback file (SeedBuilder writes none), so /media cannot answer 200")
 def test_api_del_03_session_and_media_of_deleted_dog(client, login_as, world):
     sess = world.session_review
     clip = world.clips_review[0]

@@ -12,8 +12,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from app.api import deps
-from app.api.schemas.public import AskIn, AskOut
+from app.api.schemas.public import AskIn, AskOut, ProfileOut
 from app.config import Settings
+from app.db.uow import UnitOfWork
 from app.security.cookies import (
     VISITOR_COOKIE,
     VISITOR_MAX_AGE_S,
@@ -23,6 +24,20 @@ from app.security.cookies import (
 from app.services.qa_service import Visitor
 
 router = APIRouter(prefix="/api/public", tags=["public"])
+
+
+@router.get("/dogs/{slug}", dependencies=[Depends(deps.limit("public"))])
+def profile(
+    slug: str,
+    unit: UnitOfWork = Depends(deps.uow),
+    container: Any = Depends(deps.get_container),
+) -> JSONResponse:
+    """01 section 6.1: the public profile. Hidden and unknown slugs are one 404."""
+    view = container.services.public_profile_service.get_profile(unit, slug)
+    return JSONResponse(
+        ProfileOut.from_profile(view).model_dump(mode="json"),
+        headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex"},
+    )
 
 
 @router.post("/dogs/{slug}/ask")

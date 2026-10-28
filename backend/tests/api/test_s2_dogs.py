@@ -169,7 +169,6 @@ def test_api_dog_04_list_and_detail_coverage_agree(client, login_as, world):
     assert cov["not_observed"][0] == {"situation": "handling", "label": "Handling"}
 
 
-@cross_lane(LANE_S5)
 def test_api_dog_04_public_profile_agrees(client, login_as, world):
     login_as(world.vol1)
     detail = client.get(f"/api/dogs/{world.dog_pub.id}").json()
@@ -382,7 +381,6 @@ def test_api_dog_06_published_header_edit_allowed(client, login_as, world):
     assert r.json()["dog"]["status"] == "published"
 
 
-@cross_lane(LANE_S5)
 def test_api_dog_06_published_header_edit_visible_on_profile(client, login_as, world):
     token = login_as(world.vol1)
     client.patch(f"/api/dogs/{world.dog_pub.id}", json={"age_estimate": "7 years"}, headers=csrf(token))
@@ -490,7 +488,6 @@ def test_api_dog_09_photo_url_shown(client, login_as, world):
     assert listed[world.dog_review.id]["photo_url"] == dog["photo_url"]
 
 
-@cross_lane(LANE_S5)
 def test_api_dog_09_photo_media_access(client, login_as, world):
     token = login_as(world.vol1)
     _put_photo(client, world.dog_review.id, token, make_png(), "p.png", "image/png")
