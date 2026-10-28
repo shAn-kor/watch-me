@@ -12,6 +12,7 @@ from app.models import (
     Fact,
     FactEvidence,
     FilmingSession,
+    PlaybackEvent,
     Segment,
     TranscriptSegment,
 )
@@ -113,3 +114,9 @@ class ClipRepository:
                 .distinct()
             )
         )
+
+    def delete_playback(self, evidence_ids: list[str]) -> None:
+        if evidence_ids:
+            self._s.execute(
+                delete(PlaybackEvent).where(PlaybackEvent.evidence_id.in_(evidence_ids))
+            )
