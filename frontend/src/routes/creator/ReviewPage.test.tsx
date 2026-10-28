@@ -80,7 +80,9 @@ describe("FE-CRD-01 confirm disabled until played", () => {
     await user.click(within(c).getByRole("button", { name: "Confirm" }));
     expect(confirmSpy).toHaveBeenCalledWith(F_LEASH, false);
     expect((await screen.findAllByText(/Fact confirmed\./)).length).toBeGreaterThan(0);
-    expect(await screen.findByText(/Confirmed by Sam, staff/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Confirmed" }));
+    const lines = await screen.findAllByText(/Confirmed by Sam, staff/);
+    expect(lines).toHaveLength(2);
   });
 });
 
