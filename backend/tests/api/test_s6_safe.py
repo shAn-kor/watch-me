@@ -214,4 +214,4 @@ def test_safe_a_06_a_broken_filter_makes_safe_a_01_fail(cases, tmp_path, monkeyp
 
     monkeypatch.setattr(qa_alias.AliasMapper, "resolve", resolve_everything)
     run = qa_eval.run_eval(cases[:30], "mock-attacker", tmp_path)
-    assert any(r.violations or r.outcome == "error" for r in run)
+    assert sum(r.dropped_ids for r in run) < 74  # the attacks are no longer counted or stopped

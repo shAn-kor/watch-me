@@ -180,7 +180,7 @@ def test_ut_qa_09_cost_cap_guard(seed, db, clock, settings):
     seed.ledger("qa_select", usd_micros=9_000_000, created_at=now - timedelta(days=1))
     guard.ensure_below_cap(db)  # 2,999,999 passes
     seed.ledger("qa_select", usd_micros=1, created_at=now)
-    db.expire_all()
+    db.commit()
     with pytest.raises(QaCostCapReached) as err:
         guard.ensure_below_cap(db)  # exactly 3,000,000 is at the cap
     assert err.value.retry_after_s == 12 * 3600  # 12:00 UTC to the next 00:00 UTC
@@ -192,7 +192,7 @@ def test_ut_qa_09_the_day_starts_at_utc_midnight(seed, db, clock):
     seed.ledger("qa_select", usd_micros=3_000_000, created_at=midnight - timedelta(seconds=1))
     guard.ensure_below_cap(db)  # yesterday's spend is ignored
     seed.ledger("qa_select", usd_micros=3_000_000, created_at=midnight)
-    db.expire_all()
+    db.commit()
     with pytest.raises(QaCostCapReached):
         guard.ensure_below_cap(db)  # a row at exactly 00:00:00 UTC counts
 

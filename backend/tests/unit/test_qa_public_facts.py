@@ -51,7 +51,7 @@ def test_public_facts_evidence_only_from_ready_live_clips(db, engine, seed, worl
             text("UPDATE clip SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id"),
             {"id": world.clip_a.id},
         )
-    db.expire_all()
+    db.commit()
     assert public_facts(db, world.dog_a.id)[0].evidence == ()
 
 

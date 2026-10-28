@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.routers import auth, health, me
+from app.api.routers import auth, health, me, public
 
 ROUTERS: list[APIRouter] = []
 
@@ -17,5 +17,5 @@ ROUTERS.extend([auth.router, me.router, health.router])  # [slot S1]
 # [slot S3] sessions, clips       -> sessions.router, clips.router
 # [slot S4] facts                 -> facts.router
 # [slot S5] public (profile), media -> public.router, media.router
-# [slot S6] public (ask)          -> shares public.router with S5
+ROUTERS.extend([public.router])  # [slot S6] ask route; S5 adds the profile route to the same router
 # [slot I]  admin                 -> admin.router (phase 3)

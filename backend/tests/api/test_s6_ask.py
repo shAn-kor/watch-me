@@ -1,3 +1,4 @@
+# ruff: noqa: F811
 """Lane S6: API-ASK-01..36 (07 section 3.12), `POST /api/public/dogs/{slug}/ask`."""
 
 from __future__ import annotations

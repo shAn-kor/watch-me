@@ -182,7 +182,26 @@ def build_container(
     # [slot S3] SessionService, ClipUploadService, ClipService
     # [slot S4] FactReviewService, EvidenceValidator
     # [slot S5] PublicProfileService, MediaAccessService
-    # [slot S6] QaService (+ QaLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
+    # [slot S6] QAService (+ QaLogLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
+    from app.domain.health import HealthQuestionMatcher
+    from app.services.qa_limits import CostCapGuard, QaLogLimiter
+    from app.services.qa_service import QAService
+
+    container.services.qa_service = QAService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        selector=container.ai.selector,
+        health=HealthQuestionMatcher.from_text(
+            settings.health_keywords_file.read_text(encoding="utf-8")
+        ),
+        ip_hasher=sec["ip_hasher"],
+        media_urls=container.media_urls,
+        limiter=QaLogLimiter(clock, settings.qa_limit_per_hour),
+        cap_guard=CostCapGuard(clock, settings.qa_daily_usd_cap),
+        max_facts=settings.qa_max_facts,
+        min_chars=settings.qa_question_min_chars,
+        max_chars=settings.qa_question_max_chars,
+    )
     # [slot P] DraftIngestService, MergeService, WordingService, ClipPipelineService, CostService
     # [slot I] MetricsService
 
