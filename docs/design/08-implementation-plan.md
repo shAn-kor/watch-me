@@ -414,3 +414,41 @@ Interpretations:
 - The seed tool stores emails in lower case, leaves existing rows as they
   are (a changed password is not applied), creates members without consent,
   and exits non-zero when a seed setting is missing.
+
+## 12. Phase 3 lanes FE-X and Q result (2026-10-29)
+
+Backend: 819 passed, 3 xfail (UT-AI-06). Frontend: 254 passed.
+lint-imports: 11 kept. `pnpm contract` leaves no diff.
+
+### Lane FE-X (frontend contract)
+
+- FE-API-05: `backend/tools/dump_openapi.py` prints the OpenAPI JSON (fake
+  keys, in-memory DB, no network). `pnpm contract` regenerates
+  `src/api/generated/openapi.d.ts` with `openapi-typescript` 7.13.0, fails on a
+  git diff of that file, and runs `tsc --noEmit`. `src/api/contract.test.ts`
+  checks 17 responses and 10 requests against the hand-written `types.ts`.
+  `types.ts` stays hand-written; 01 is its source.
+- Drift fixed: `Org.location` is `string`.
+- Not checked yet (phase 3 backend follow-up): the public profile, ask and
+  session-detail responses have no `response_model`; `created_at`, `as_of`
+  and `confirmed.at` are typed `str | None` but are never null; enum fields
+  are plain `str`.
+- Upload rows have a "Cancel" button (05). It aborts the transfer and removes
+  the row, with no toast. If the server already saved the clip, it shows after
+  the next reload.
+- `pollSession` sends `include=none`. When the session becomes `review`, the
+  feed calls `getSession` once for the facts.
+
+### Lane Q (backend cleanup)
+
+- The dog lookup is `DogRepository.get_in_org` (`repositories/dogs.py`).
+  `ClipErrorView` and `ClipView` live in `services/views.py`. `FlagOut`,
+  `EvidenceOut` and `ClipLengthOut` live in `schemas/facts.py`. The OpenAPI
+  schemas are unchanged.
+- `dogs.FactOut` and `dogs.ConfirmedOut` stay separate: there,
+  `confirmed.at` is nullable.
+- Ruff: `tests/` 404 to 0, `app/` and `tools/` 134 to 106 (102 router B008
+  for `Depends`, 2 deliberate S110, 2 in `app/db/uow.py`).
+  `backend/pyproject.toml` ignores F811, RUF059 and B008 in `tests/**` only.
+- The media routes' `operationId` (HEAD versus GET) changes with the Python
+  hash seed. `dump_openapi.py` drops HEAD routes, so the dump is stable.
