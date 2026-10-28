@@ -15,6 +15,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.db.base import new_id
 from app.db.uow import UowFactory
@@ -66,6 +67,7 @@ class DraftIngestService:
     ) -> IngestReport:
         usages = list(usages)
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             row = uow.session.execute(
                 select(Clip, FilmingSession, Dog)
                 .join(FilmingSession, FilmingSession.id == Clip.session_id)

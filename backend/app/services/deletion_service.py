@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from sqlalchemy import delete, select, update
 
+from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.config import Settings
 from app.db.uow import UnitOfWork, UowFactory
@@ -99,6 +100,7 @@ class DeletionService:
         assert self._uow_factory is not None and self._storage is not None
         now = self._clock.now()
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             dog = uow.session.get(Dog, dog_id)
             if dog is None:
                 return "gone"
@@ -122,6 +124,7 @@ class DeletionService:
                 return "rescheduled"
         self._purge_files(f"dogs/{dog_id}/")
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             clip_ids = select(Clip.id).where(Clip.dog_id == dog_id)
             fact_ids = select(Fact.id).where(Fact.dog_id == dog_id)
             session_ids = select(FilmingSession.id).where(FilmingSession.dog_id == dog_id)
@@ -150,6 +153,7 @@ class DeletionService:
         was deleted (hidden) first is purged."""
         assert self._uow_factory is not None and self._storage is not None
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             clip = uow.session.get(Clip, clip_id)
             if clip is not None:
                 if clip.deleted_at is None:
@@ -160,6 +164,7 @@ class DeletionService:
             return "gone"
         self._purge_files(f"dogs/{dog_id}/clips/{clip_id}/")
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             evidence_ids = select(FactEvidence.id).where(FactEvidence.clip_id == clip_id)
             uow.session.execute(
                 delete(PlaybackEvent).where(PlaybackEvent.evidence_id.in_(evidence_ids))
@@ -180,6 +185,7 @@ class DeletionService:
         cfg = self._settings
         now = self._clock.now()
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             qa = QaLogRepository(uow.session)
             nulled = qa.null_questions_before(now - timedelta(days=cfg.qa_question_retention_days))
             qa_deleted = qa.delete_before(now - timedelta(days=cfg.qa_row_retention_days))

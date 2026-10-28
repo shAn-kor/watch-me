@@ -18,6 +18,7 @@ from typing import Any
 
 from sqlalchemy import delete, select
 
+from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.config import Settings
 from app.db.uow import UowFactory
@@ -126,6 +127,7 @@ class ClipPipelineService:
         """Mark the clip `processing` at `step`. None means: nothing to do (the clip
         or its dog is gone, or the clip is already terminal)."""
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             found = self._load(uow, clip_id)
             if found is None:
                 return None
@@ -147,6 +149,7 @@ class ClipPipelineService:
         codec: str | None = None,
     ) -> None:
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             clip = uow.session.get(Clip, clip_id)
             if clip is None or clip.deleted_at is not None:
                 return
@@ -169,6 +172,7 @@ class ClipPipelineService:
     ) -> int:
         """Replace the transcript rows and write the `transcribe` ledger rows."""
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             found = self._load(uow, clip_id)
             if found is None:
                 return 0
@@ -197,6 +201,7 @@ class ClipPipelineService:
     def save_segments(self, clip_id: str, windows: Sequence[Any]) -> None:
         """Replace the fixed 10 s segment rows (1-based `idx`)."""
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             if self._load(uow, clip_id) is None:
                 return
             uow.session.execute(delete(Segment).where(Segment.clip_id == clip_id))
@@ -242,6 +247,7 @@ class ClipPipelineService:
         if code not in _VALID_CODES:
             code = "transcode_failed"
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             clip = uow.session.get(Clip, clip_id)
             if clip is None or clip.deleted_at is not None or clip.status == "ready":
                 return
@@ -260,6 +266,7 @@ class ClipPipelineService:
         if self._settings.keep_originals:
             return
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             clip = uow.session.get(Clip, clip_id)
             if clip is None or clip.status != "ready":
                 return

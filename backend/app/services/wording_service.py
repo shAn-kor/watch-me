@@ -14,6 +14,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from app.services._write_lock import lock_for_write
 from app.ai.errors import AiError, to_job_error
 from app.ai.types import CheckItem, CheckRequest
 from app.clock import Clock
@@ -46,6 +47,7 @@ class WordingService:
         """Run the batch check and store the flags. Returns the number of facts
         flagged. Never raises for a checker error."""
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             facts = self._facts(uow, session_id, fact_ids)
             if not facts:
                 return 0
@@ -102,6 +104,7 @@ class WordingService:
 
     def mark_check_unavailable(self, session_id: str, fact_ids: Sequence[str]) -> None:
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             for fact in self._facts(uow, session_id, fact_ids):
                 self._set_unavailable(fact)
             uow.commit()

@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import select
 
+from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.db.base import new_id
 from app.db.uow import UowFactory
@@ -44,6 +45,7 @@ class MergeService:
 
     def merge_session(self, session_id: str) -> MergeReport:
         with self._uow_factory() as uow:
+            lock_for_write(uow)
             sess = uow.session.get(FilmingSession, session_id)
             if sess is None:
                 return MergeReport(())
