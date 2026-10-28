@@ -1,0 +1,169 @@
+[project]
+name = "watch-me-backend"
+version = "0.1.0"
+description = "Watch Me! R1 backend (FastAPI, SQLAlchemy 2, SQLite)"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "python-multipart>=0.0.20",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "argon2-cffi>=23.1",
+    "itsdangerous>=2.2",
+    "openai>=1.54",
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "hypothesis>=6.120",
+    "import-linter>=2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.uv]
+package = false
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --strict-config -m 'not spike and not safe_live'"
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
+markers = [
+    "unit: pure unit tests (07 level UT); applied automatically under tests/unit",
+    "db: database constraint tests (level DB); applied automatically under tests/db",
+    "api: API tests through the ASGI app (level API); applied automatically under tests/api",
+    "pipeline: worker end to end with real ffmpeg and mock AI (level PIPE); applied under tests/pipeline",
+    "slow: slow tests (real ffmpeg); deselect with -m 'not slow'",
+    "ffmpeg: needs real ffmpeg and ffprobe binaries",
+    "spike: AI quality spike against real providers (manual; deselected by default)",
+    "safe_live: SAFE-L live-model safety eval (manual; deselected by default)",
+]
+
+# --------------------------------------------------------- import-linter
+# Encodes 06-modules-classes.md section 2 (UT-ARCH-01). Direction is downward
+# only. "allow_indirect_imports" is on because the layers legitimately reach
+# lower layers through intermediaries (api -> services -> repositories).
+# Type-checking-only imports do not count as dependencies.
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+exclude_type_checking_imports = true
+
+[[tool.importlinter.contracts]]
+name = "api must not import repositories, models, pipeline, ai, storage"
+type = "forbidden"
+source_modules = ["app.api"]
+forbidden_modules = ["app.repositories", "app.models", "app.pipeline", "app.ai", "app.storage"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "services must not import api, pipeline"
+type = "forbidden"
+source_modules = ["app.services"]
+forbidden_modules = ["app.api", "app.pipeline"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "pipeline must not import api, repositories, models, db (all DB work goes through services)"
+type = "forbidden"
+source_modules = ["app.pipeline"]
+forbidden_modules = ["app.api", "app.repositories", "app.models", "app.db"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "repositories must not import services, api, pipeline, ai, storage"
+type = "forbidden"
+source_modules = ["app.repositories"]
+forbidden_modules = ["app.services", "app.api", "app.pipeline", "app.ai", "app.storage"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "models may import only db and domain.enums"
+type = "forbidden"
+source_modules = ["app.models"]
+forbidden_modules = [
+    "app.api", "app.services", "app.repositories", "app.pipeline", "app.ai",
+    "app.storage", "app.security", "app.container", "app.main", "app.worker",
+    "app.config", "app.clock", "app.errors", "app.logging",
+    "app.domain",
+]
+ignore_imports = ["app.models.** -> app.domain.enums"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "ai has no DB, models, repositories, services, storage, pipeline, api, security (config only for the registry)"
+type = "forbidden"
+source_modules = ["app.ai"]
+forbidden_modules = [
+    "app.db", "app.models", "app.repositories", "app.services", "app.storage",
+    "app.pipeline", "app.api", "app.security", "app.clock", "app.logging",
+    "app.container", "app.main", "app.worker",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "storage imports stdlib only"
+type = "forbidden"
+source_modules = ["app.storage"]
+forbidden_modules = [
+    "app.api", "app.services", "app.repositories", "app.models", "app.db",
+    "app.pipeline", "app.ai", "app.security", "app.domain", "app.config",
+    "app.clock", "app.errors", "app.logging", "app.container", "app.main", "app.worker",
+    "sqlalchemy", "pydantic", "pydantic_settings", "fastapi", "starlette", "openai", "httpx",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "domain imports stdlib only"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = [
+    "app.api", "app.services", "app.repositories", "app.models", "app.db",
+    "app.pipeline", "app.ai", "app.storage", "app.security", "app.config",
+    "app.clock", "app.errors", "app.logging", "app.container", "app.main", "app.worker",
+    "sqlalchemy", "pydantic", "pydantic_settings", "fastapi", "starlette", "openai", "httpx",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "security must not import services, api, repositories (or any other app layer but domain)"
+type = "forbidden"
+source_modules = ["app.security"]
+forbidden_modules = [
+    "app.services", "app.api", "app.repositories", "app.models", "app.db",
+    "app.pipeline", "app.ai", "app.storage", "app.container", "app.main", "app.worker",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "only entry points import the container"
+type = "forbidden"
+source_modules = [
+    "app.api", "app.services", "app.repositories", "app.models", "app.db",
+    "app.pipeline", "app.ai", "app.storage", "app.security", "app.domain",
+]
+forbidden_modules = ["app.container", "app.main", "app.worker"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "foundation modules (config, clock, logging, errors) sit below every layer"
+type = "forbidden"
+source_modules = ["app.config", "app.clock", "app.logging", "app.errors"]
+forbidden_modules = [
+    "app.api", "app.services", "app.repositories", "app.models", "app.db",
+    "app.pipeline", "app.storage", "app.security", "app.container", "app.main", "app.worker",
+]
+allow_indirect_imports = true
