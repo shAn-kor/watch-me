@@ -134,6 +134,8 @@ export function useUploads({
   const queue = useRef<LocalUpload[]>([]);
   const running = useRef(false);
   const alive = useRef(false);
+  /** One controller per file that is uploading now. */
+  const controllers = useRef(new Map<string, AbortController>());
 
   useEffect(() => {
     alive.current = true;
@@ -156,10 +158,13 @@ export function useUploads({
         next.state = "uploading";
         next.percent = 0;
         next.error = null;
+        const ctl = new AbortController();
+        controllers.current.set(next.key, ctl);
         sync();
         try {
           const res = await api.uploadClip(sessionId, next.file, {
             clientRequestId: next.requestId,
+            signal: ctl.signal,
             onProgress: (loaded, total) => {
               next.percent =
                 total > 0
@@ -168,11 +173,15 @@ export function useUploads({
               sync();
             },
           });
+          // Cancelled just as the server answered: the row is already gone.
+          if (ctl.signal.aborted) continue;
           queue.current = queue.current.filter((x) => x !== next);
           feed.addClip(res.clip);
           if (res.warnings.includes("no_audio_track")) onNoAudio(res.clip.id);
           sync();
         } catch (e) {
+          // Cancel is not an error: no failed row, no toast (05 S7).
+          if (ctl.signal.aborted) continue;
           if (isApiError(e) && e.code === "unauthenticated") onExpire();
           const f = uploadFailure(e, limits);
           next.state = "failed";
@@ -180,6 +189,8 @@ export function useUploads({
           next.retryable = f.retryable;
           next.consentLink = f.consentLink;
           sync();
+        } finally {
+          controllers.current.delete(next.key);
         }
       }
     } finally {
@@ -245,9 +256,21 @@ export function useUploads({
     [sync],
   );
 
+  /** Stop a running upload and drop its row. Nothing is shown as failed. */
+  const cancel = useCallback(
+    (key: string) => {
+      const item = queue.current.find((x) => x.key === key);
+      if (!item || item.state !== "uploading") return;
+      controllers.current.get(key)?.abort();
+      queue.current = queue.current.filter((x) => x !== item);
+      sync();
+    },
+    [sync],
+  );
+
   const pending = items.filter((x) => x.state !== "failed").length;
   const busy = items.some(
     (x) => x.state === "waiting" || x.state === "uploading",
   );
-  return { items, add, retry, remove, pending, busy };
+  return { items, add, retry, remove, cancel, pending, busy };
 }

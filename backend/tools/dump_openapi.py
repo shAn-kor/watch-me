@@ -35,9 +35,18 @@ def build_schema() -> dict[str, Any]:
         )
         container = build_container(settings)
         try:
-            return create_app(container, spa_dir=Path(tmp) / "spa").openapi()
+            schema = create_app(container, spa_dir=Path(tmp) / "spa").openapi()
         finally:
             container.dispose()
+    # HEAD mirrors GET on the media routes and shares its operationId, whose
+    # suffix (`_get` or `_head`) changes between runs. Drop HEAD and pin `_get`
+    # so the output is the same on every run. The client never calls these.
+    for item in schema["paths"].values():
+        item.pop("head", None)
+        get = item.get("get")
+        if get and get.get("operationId", "").endswith("_head"):
+            get["operationId"] = get["operationId"][: -len("_head")] + "_get"
+    return schema
 
 
 def main(argv: list[str]) -> int:

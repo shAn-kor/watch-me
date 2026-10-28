@@ -462,13 +462,12 @@ export interface paths {
             cookie?: never;
         };
         /** Dog Photo */
-        get: operations["dog_photo_media_dogs__dog_id__photo_jpg_head"];
+        get: operations["dog_photo_media_dogs__dog_id__photo_jpg_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
-        /** Dog Photo */
-        head: operations["dog_photo_media_dogs__dog_id__photo_jpg_head"];
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -480,13 +479,12 @@ export interface paths {
             cookie?: never;
         };
         /** Clip Media */
-        get: operations["clip_media_media__name__head"];
+        get: operations["clip_media_media__name__get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
-        /** Clip Media */
-        head: operations["clip_media_media__name__head"];
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -2149,7 +2147,7 @@ export interface operations {
             };
         };
     };
-    dog_photo_media_dogs__dog_id__photo_jpg_head: {
+    dog_photo_media_dogs__dog_id__photo_jpg_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2180,69 +2178,7 @@ export interface operations {
             };
         };
     };
-    dog_photo_media_dogs__dog_id__photo_jpg_head: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                dog_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    clip_media_media__name__head: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    clip_media_media__name__head: {
+    clip_media_media__name__get: {
         parameters: {
             query?: never;
             header?: never;

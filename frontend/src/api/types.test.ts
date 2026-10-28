@@ -40,7 +40,7 @@ describe("api contract types", () => {
         id: "3b7d",
         name: "Maple Street Rescue",
         country: "US",
-        location: null,
+        location: "Portland, OR",
         contact: { url: null, email: "adopt@example.org", phone: null },
       },
       csrf_token: "6f2a",

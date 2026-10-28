@@ -399,6 +399,7 @@ function SessionBody({
               ordinal={clips.length + i + 1}
               onRetry={uploads.retry}
               onRemove={uploads.remove}
+              onCancel={uploads.cancel}
             />
           ))}
         </ul>

@@ -45,6 +45,8 @@ export class SessionFeed {
   private closed = true;
   private inflight = false;
   private again = false;
+  /** `facts` in the snapshot are real (read with `getSession`), not the empty poll list. */
+  private factsLoaded = false;
   private listeners = new Set<() => void>();
 
   constructor(
@@ -127,8 +129,18 @@ export class SessionFeed {
       if (r.notModified) {
         if (this.snap.failing) this.set({ failing: false });
       } else {
-        this.set({ data: r.data, error: null, loading: false, failing: false });
+        // Polls ask for `include=none`, so `facts` is empty. Keep the facts we
+        // already read for this review; otherwise read them once below.
+        const keep = this.factsLoaded && r.data.session.status === "review";
+        if (!keep) this.factsLoaded = false;
+        this.set({
+          data: keep && this.snap.data ? { ...r.data, facts: this.snap.data.facts } : r.data,
+          error: null,
+          loading: false,
+          failing: false,
+        });
       }
+      await this.loadFacts();
     } catch (e) {
       if (this.closed) return;
       if (isApiError(e) && e.code === "unauthenticated") {
@@ -152,6 +164,26 @@ export class SessionFeed {
       return;
     }
     this.schedule();
+  }
+
+  /**
+   * Facts are only shown once the session is in `review` (the "N drafts" line),
+   * so the poll skips them and we read them once, when review is reached.
+   */
+  private async loadFacts(): Promise<void> {
+    const d = this.snap.data;
+    if (!d || d.session.status !== "review" || this.factsLoaded) return;
+    try {
+      const full = await this.api.getSession(this.id);
+      if (this.closed) return;
+      const cur = this.snap.data;
+      if (!cur || cur.session.status !== "review") return;
+      this.factsLoaded = true;
+      this.set({ data: { ...cur, facts: full.facts } });
+    } catch {
+      // The summary line shows zero drafts. The review screen reads its own
+      // facts, so nothing else depends on this call; a reload tries again.
+    }
   }
 
   /** Put a freshly uploaded clip into the list without waiting for the next poll. */

@@ -27,6 +27,8 @@ export interface UploadRequest {
   fields?: Record<string, string>;
   headers?: Record<string, string>;
   onProgress?: (loaded: number, total: number) => void;
+  /** Abort the transfer. The promise rejects with an `AbortError`. */
+  signal?: AbortSignal;
 }
 
 /**

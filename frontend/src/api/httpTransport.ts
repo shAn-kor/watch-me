@@ -62,6 +62,12 @@ export class HttpTransport implements ApiTransport {
 
   upload(req: UploadRequest): Promise<TransportResponse> {
     return new Promise((resolve, reject) => {
+      const { signal } = req;
+      const aborted = () => new DOMException("Upload aborted", "AbortError");
+      if (signal?.aborted) {
+        reject(aborted());
+        return;
+      }
       const xhr = new XMLHttpRequest();
       xhr.open(req.method ?? "POST", req.path);
       xhr.withCredentials = true;
@@ -77,7 +83,8 @@ export class HttpTransport implements ApiTransport {
         if (e.lengthComputable) req.onProgress?.(e.loaded, e.total);
       };
       xhr.onerror = () => reject(new TypeError("Network error during upload"));
-      xhr.onabort = () => reject(new TypeError("Upload aborted"));
+      xhr.onabort = () => reject(aborted());
+      signal?.addEventListener("abort", () => xhr.abort(), { once: true });
       xhr.onload = () => {
         const headers = parseRawHeaders(xhr.getAllResponseHeaders());
         resolve({

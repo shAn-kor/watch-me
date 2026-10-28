@@ -152,7 +152,7 @@ export interface Org {
   id: Id;
   name: string;
   country: string;
-  location: string | null;
+  location: string;
   contact: Contact;
 }
 

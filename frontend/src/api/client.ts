@@ -151,7 +151,11 @@ export class ApiClient {
     method: "POST" | "PUT",
     field: string,
     file: File,
-    extra: { fields?: Record<string, string>; onProgress?: (l: number, t: number) => void } = {},
+    extra: {
+      fields?: Record<string, string>;
+      onProgress?: (l: number, t: number) => void;
+      signal?: AbortSignal;
+    } = {},
   ): Promise<TransportResponse> {
     const res = await this.transport.upload({
       method,
@@ -161,6 +165,7 @@ export class ApiClient {
       fields: extra.fields,
       headers: this.csrfHeaders(method, true),
       onProgress: extra.onProgress,
+      signal: extra.signal,
     });
     return this.check(res);
   }
@@ -235,9 +240,13 @@ export class ApiClient {
     const q = opts.include ? `?include=${opts.include}` : "";
     return this.json("GET", `/api/sessions/${id}${q}`);
   }
-  /** Conditional GET for the 3 s poll (If-None-Match, 304 means unchanged). */
+  /**
+   * Conditional GET for the 3 s poll (If-None-Match, 304 means unchanged).
+   * Sends `include=none` (01 section 5.2): `facts` comes back empty. Callers
+   * that need facts read them with `getSession`.
+   */
   async pollSession(id: Id, etag?: string | null): Promise<SessionPoll> {
-    const res = await this.send("GET", `/api/sessions/${id}`, undefined, {
+    const res = await this.send("GET", `/api/sessions/${id}?include=none`, undefined, {
       headers: etag ? { "If-None-Match": etag } : undefined,
     });
     const tag = res.headers["etag"] ?? null;
@@ -256,11 +265,17 @@ export class ApiClient {
   async uploadClip(
     sessionId: Id,
     file: File,
-    opts: { clientRequestId?: string; onProgress?: (loaded: number, total: number) => void } = {},
+    opts: {
+      clientRequestId?: string;
+      onProgress?: (loaded: number, total: number) => void;
+      /** Cancel the upload; the promise rejects with an `AbortError`. */
+      signal?: AbortSignal;
+    } = {},
   ): Promise<ClipUploadResponse> {
     const res = await this.upload(`/api/sessions/${sessionId}/clips`, "POST", "file", file, {
       fields: opts.clientRequestId ? { client_request_id: opts.clientRequestId } : undefined,
       onProgress: opts.onProgress,
+      signal: opts.signal,
     });
     return res.body as ClipUploadResponse;
   }

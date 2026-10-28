@@ -130,7 +130,10 @@ export class MockTransport implements ApiTransport {
   }
 
   async upload(req: UploadRequest): Promise<TransportResponse> {
+    const gone = () => new DOMException("Upload aborted", "AbortError");
+    if (req.signal?.aborted) throw gone();
     await this.delay();
+    if (req.signal?.aborted) throw gone();
     const total = req.file.size;
     req.onProgress?.(Math.floor(total / 2), total);
     req.onProgress?.(total, total);

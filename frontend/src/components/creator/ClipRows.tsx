@@ -141,11 +141,13 @@ export function LocalRow({
   ordinal,
   onRetry,
   onRemove,
+  onCancel,
 }: {
   item: LocalUpload;
   ordinal: number;
   onRetry: (key: string) => void;
   onRemove: (key: string) => void;
+  onCancel: (key: string) => void;
 }) {
   return (
     <li>
@@ -166,6 +168,15 @@ export function LocalRow({
             aria-valuenow={item.percent}
           >
             <div style={{ width: `${item.percent}%` }} />
+          </div>
+          <div className="wm-row">
+            <button
+              type="button"
+              className="wm-btn wm-btn--secondary"
+              onClick={() => onCancel(item.key)}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       ) : null}
