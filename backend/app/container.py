@@ -26,7 +26,11 @@ from app.security.csrf import CsrfTokenService
 from app.security.passwords import PasswordHasher
 from app.security.ratelimit import InMemorySlidingWindow
 from app.services.auth_service import AuthService
+from app.services.coverage_service import CoverageService
+from app.services.deletion_service import DeletionService
+from app.services.dog_service import DogService
 from app.services.job_queue import JobQueue
+from app.services.publish_service import PublishService
 from app.services.views import MediaUrls
 from app.storage.base import Storage
 from app.storage.local import LocalStorage
@@ -179,6 +183,21 @@ def build_container(
         ip_hasher=sec["ip_hasher"],
     )
     # [slot S2] DogService, PublishService, CoverageService, DeletionService
+    container.services.coverage_service = CoverageService()
+    container.services.publish_service = PublishService(
+        clock=clock, settings=settings, media_urls=container.media_urls
+    )
+    container.services.dog_service = DogService(
+        clock=clock,
+        settings=settings,
+        storage=container.storage,
+        media_urls=container.media_urls,
+        coverage=container.services.coverage_service,
+        publish=container.services.publish_service,
+    )
+    container.services.deletion_service = DeletionService(
+        clock=clock, job_queue=container.services.job_queue
+    )
     # [slot S3] SessionService, ClipUploadService, ClipService
     # [slot S4] FactReviewService, EvidenceValidator
     # [slot S5] PublicProfileService, MediaAccessService
