@@ -51,12 +51,13 @@ def caller(http: FakeHttp, purpose_model: str = MODEL):
 def run_structured(http: FakeHttp, schema=DraftOutput, purpose="draft"):
     sc, chat = caller(http)
     messages = [{"role": "user", "content": "hi"}]
-    return sc.call(
+    res = sc.call(
         lambda msgs: chat.complete(msgs, {"type": "json_object"}, temperature=0, max_tokens=50),
         messages,
         schema,
         purpose,
     )
+    return res.value, res.usages
 
 
 # ------------------------------------------------------------------ AI-01..03
@@ -304,3 +305,27 @@ def test_completion_without_usage_still_yields_one_usage_row():
     http = FakeHttp(httpx.Response(200, json=completion_body(VALID, usage=False)))
     out, usages = run_structured(http)
     assert len(usages) == 1 and usages[0].tokens_in == 0
+
+
+def test_streamed_draft_read_collects_content_and_usage(tmp_path: Path):
+    """AI_STREAM=true: the draft call reads an SSE stream (04 section 8.2)."""
+
+    def chunk(delta: dict, finish=None, usage=None) -> str:
+        body = {"id": "c", "object": "chat.completion.chunk", "created": 1, "model": MODEL,
+                "choices": [{"index": 0, "delta": delta, "finish_reason": finish}] if delta or finish else []}
+        if usage:
+            body["usage"] = usage
+        return f"data: {json.dumps(body)}\n\n"
+
+    half = len(VALID) // 2
+    sse = (
+        chunk({"role": "assistant", "content": VALID[:half]})
+        + chunk({"content": VALID[half:]}, finish="stop")
+        + chunk({}, usage={"prompt_tokens": 50, "completion_tokens": 7, "total_tokens": 57})
+        + "data: [DONE]\n\n"
+    )
+    http = FakeHttp(httpx.Response(200, content=sse.encode(), headers={"content-type": "text/event-stream"}))
+    out, usages = OpenAICompatDrafter(http.chat(), PRICES, stream=True).draft(draft_request(tmp_path))
+    assert out.facts[0].situation == "new_person"
+    assert (usages[0].tokens_in, usages[0].tokens_out) == (50, 7)
+    assert http.requests[0]["stream"] is True

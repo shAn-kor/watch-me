@@ -90,7 +90,7 @@ def test_mock_check_rules():
             CheckItem(ref="C1", situation="new_person", behavior="She was a bit SHY at first.", source="clip"),
             CheckItem(ref="C2", situation="leash_walk", behavior="Pulled on the leash.", source="clip"),
         ],
-        fixture_key="trait_words",
+        fixture_key=None,
     )
     results, usages = m.check(req)
     assert [(r.ref, r.kind) for r in results] == [("C1", "trait_label"), ("C2", "none")]

@@ -123,7 +123,7 @@ def test_registry_builds_openai_compat_roles():
 def test_registry_openai_compat_without_key_is_a_config_error():
     with pytest.raises(AiConfigError) as exc:
         AiRegistry.from_settings(settings(ai_drafter="openai_compat"))
-    assert "AI_API_KEY" in str(exc.value) and "drafter" in str(exc.value)
+    assert "AI_API_KEY" in str(exc.value) and "DRAFTER" in str(exc.value)
 
 
 def test_registry_refuses_contributor_model():
