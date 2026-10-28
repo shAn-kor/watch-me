@@ -11,6 +11,7 @@ from app.models import FilmingSession
 from tests.api._s3_support import (  # noqa: F401
     csrf,
     jobs,
+    open_session,
     session_row,
     world,
 )
