@@ -368,3 +368,49 @@ Interpretations:
 8. E2E-18 and E2E-19 partial cases cannot be reproduced with the 1-fact
    fixture.
 9. The RET-02 test calls the private `_enqueue_daily_sweep`.
+
+## 11. Phase 3 lane I result (2026-10-29)
+
+`GET /api/admin/metrics`, `MetricsService`, the `ai_auth_error` alert and
+`backend/tools/seed.py` are merged. Backend: 819 passed, 3 xfail (UT-AI-06,
+04 wins). lint-imports: 11 kept.
+
+- `to_job_error` (`app/ai/errors.py`) sets `JobError.detail` for transient and
+  permanent errors. The text is only "HTTP {status} [provider code]"; the
+  adapter never keeps the body. It lands in `clip.fail_detail`, which no API
+  exposes.
+- API-DLF-03 now reads `draft_acceptance.all_drafts` (01 section 8.1), not
+  `review.all_drafts`.
+
+Alert clearing rule (API-MET-08; 04 section 8.7 says only "sets an operator
+alert"):
+
+- The alert is on while the newest failed `draft` or `transcribe` job belongs
+  to a clip whose `fail_detail` starts with "HTTP 401", "HTTP 402" or
+  "HTTP 403".
+- A later `transcribe`, `draft` or `check` job that succeeds clears it. A
+  manual clip retry or a clip delete also ends it.
+- The state comes from the database, because the worker and the API are
+  separate processes. No migration.
+- A config reload does not clear it; there is no state that records a reload.
+- Jobs are ordered by id, not time.
+- Q&A and check failures do not raise it.
+
+Interpretations:
+
+- `alerts` is a list of codes (`["ai_auth_error"]`). `purge_pending` is a
+  list of dog ids. Both match the frontend `types.ts`.
+- `all_drafts` counts merged facts whose origin is not `human_added`, in any
+  status.
+- Facts, sessions and per-dog cost of a deleted dog are excluded at once. The
+  cost total keeps every ledger row (API-MET-07).
+- `purge_pending` lists every deleted-dog tombstone, not only dogs with a
+  failed purge job.
+- `published_dogs` counts status `published` only. The publish-time median
+  covers published and adopted dogs, from the first session's `created_at` to
+  `published_at`.
+- Medians are whole seconds, `null` with no data. Rates are 0.0 when the
+  denominator is 0.
+- The seed tool stores emails in lower case, leaves existing rows as they
+  are (a changed password is not applied), creates members without consent,
+  and exits non-zero when a seed setting is missing.
