@@ -4,9 +4,9 @@ import { App } from "./App";
 import { createTestRouter } from "./router";
 
 describe("app shell", () => {
-  it("renders the dog list placeholder at /app", () => {
+  it("sends a signed-out visit of /app to the sign-in page", async () => {
     render(<App router={createTestRouter(["/app"])} client={createMockClient()} />);
-    expect(screen.getByText("Dog list (placeholder)")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeInTheDocument();
   });
 
   it("renders the public profile at /d/:slug", async () => {

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   createBrowserRouter,
   createMemoryRouter,
+  Navigate,
   Outlet,
   type RouteObject,
 } from "react-router-dom";
@@ -10,6 +11,7 @@ import DogDetailPage from "../routes/creator/DogDetailPage";
 import DogListPage from "../routes/creator/DogListPage";
 import DogNewPage from "../routes/creator/DogNewPage";
 import LoginPage from "../routes/creator/LoginPage";
+import CreatorNotFoundPage from "../routes/creator/CreatorNotFoundPage";
 import ReviewPage from "../routes/creator/ReviewPage";
 import SessionNewPage from "../routes/creator/SessionNewPage";
 import SessionPage from "../routes/creator/SessionPage";
@@ -57,9 +59,15 @@ export const routes: RouteObject[] = [
         ),
       },
       { path: "/app/consent", element: member(<ConsentPage />) },
-      { path: "/app", element: consented(<DogListPage />) },
-      { path: "/app/dogs/new", element: consented(<DogNewPage />) },
-      { path: "/app/dogs/:dogId", element: consented(<DogDetailPage />) },
+      { path: "/app", element: <Navigate to="/app/dogs" replace /> },
+      { path: "/app/dogs", element: member(<DogListPage />) },
+      { path: "/app/dogs/new", element: member(<DogNewPage />) },
+      { path: "/app/dogs/:dogId", element: member(<DogDetailPage />) },
+      { path: "/app/dogs/:dogId/edit", element: member(<DogNewPage />) },
+      {
+        path: "/app/dogs/:dogId/review",
+        element: consented(<ReviewPage />),
+      },
       {
         path: "/app/dogs/:dogId/sessions/new",
         element: consented(<SessionNewPage />),
@@ -69,6 +77,7 @@ export const routes: RouteObject[] = [
         path: "/app/sessions/:sessionId/review",
         element: consented(<ReviewPage />),
       },
+      { path: "/app/*", element: member(<CreatorNotFoundPage />) },
       { path: "/d/:slug", element: <PublicProfilePage /> },
       { path: "/terms", element: <TermsPage /> },
       // No index or search page (FE-PUB-11): everything else is "not available".
