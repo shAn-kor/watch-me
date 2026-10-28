@@ -102,15 +102,15 @@ def code(response) -> str:
 
 
 def fresh_fact(db, fact_id: str) -> Fact:
-    db.expire_all()
+    db.rollback()  # end the read snapshot so later reads see new commits
     return db.get(Fact, fact_id)
 
 
 def evidence_rows(db, fact_id: str) -> list[FactEvidence]:
-    db.expire_all()
+    db.rollback()  # end the read snapshot so later reads see new commits
     return list(db.scalars(select(FactEvidence).where(FactEvidence.fact_id == fact_id)))
 
 
 def events(db, fact_id: str) -> list[PlaybackEvent]:
-    db.expire_all()
+    db.rollback()  # end the read snapshot so later reads see new commits
     return list(db.scalars(select(PlaybackEvent).where(PlaybackEvent.fact_id == fact_id)))
