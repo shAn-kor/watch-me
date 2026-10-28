@@ -18,6 +18,12 @@ from app.clock import Clock, SystemClock
 from app.config import Settings
 from app.db.engine import make_engine, make_session_factory
 from app.db.uow import UnitOfWork, UowFactory, make_uow_factory
+from app.security.client_ip import ClientIpResolver, IpHasher
+from app.security.cookies import SessionCookieCodec
+from app.security.csrf import CsrfTokenService
+from app.security.passwords import PasswordHasher
+from app.security.ratelimit import InMemorySlidingWindow
+from app.services.auth_service import AuthService
 from app.services.views import MediaUrls
 from app.storage.base import Storage
 
@@ -129,7 +135,31 @@ def build_container(
     # [slot B] security: SessionCookieCodec, CsrfTokenService, RateLimiter, ClientIpResolver
     # [slot C] ai: AiRegistry.from_settings(settings) when `ai` is None (mock adapters in tests)
     # [slot D] pipeline: FFmpeg wrapper, JobQueue, JobRunner
-    # [slot S1] AuthService
+    # [slot S1] AuthService. The lane B primitives are not wired anywhere else yet,
+    # so this slot builds them into `container.security` (setdefault: a later
+    # slot B wiring wins).
+    sec = container.security
+    sec.setdefault("password_hasher", PasswordHasher())
+    sec.setdefault(
+        "cookie_codec",
+        SessionCookieCodec(
+            settings.secret_key.get_secret_value(), clock, settings.session_max_age_s
+        ),
+    )
+    sec.setdefault("csrf", CsrfTokenService(settings.secret_key.get_secret_value()))
+    sec.setdefault("rate_limiter", InMemorySlidingWindow(clock))
+    sec.setdefault("ip_resolver", ClientIpResolver(settings.trusted_proxy))
+    sec.setdefault("ip_hasher", IpHasher(settings.ip_hash_key.get_secret_value()))
+    container.services.auth_service = AuthService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        settings=settings,
+        hasher=sec["password_hasher"],
+        codec=sec["cookie_codec"],
+        csrf=sec["csrf"],
+        limiter=sec["rate_limiter"],
+        ip_hasher=sec["ip_hasher"],
+    )
     # [slot S2] DogService, PublishService, CoverageService, DeletionService
     # [slot S3] SessionService, ClipUploadService, ClipService
     # [slot S4] FactReviewService, EvidenceValidator
