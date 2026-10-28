@@ -9,7 +9,6 @@ import pytest
 from app.domain.situations import SITUATION_ORDER
 from app.models import Dog
 from tests.api._s2_support import (
-    LANE_S3_S4,
     LANE_S5,
     cross_lane,
     csrf,
@@ -318,7 +317,6 @@ def test_api_dog_10_creator_evidence_carries_media_urls(client, login_as, world,
     assert waiting["media_url"] is None and waiting["captions_url"] is None
 
 
-@cross_lane(LANE_S3_S4)
 def test_api_dog_10_session_and_patch_fact_carry_media_urls(client, login_as, world, seed):
     clip = world.clips_review[0]
     fact = seed.fact(

@@ -7,5 +7,26 @@ sick* ill illness* disease* infection* parasite* worm* heartworm* flea* tick*
 injur* limp* lame pain* hurt* surgery surger* operation vet vets veterinar*
 spay* neuter* microchip* allerg* diet* seizure* diabet* arthrit*
 "health issues" "health problems" "medical issues" "medical problems"
+# Profile facts that clips cannot show (04 eval hl-02, hl-06, hl-08, hl-10):
+# the shelter answers these, so they share the redirect (07 SAFE-A-05).
+age
+"how old"
+breed*
+weigh*
+fee
+fees
+"adoption fee"
+cost
+costs
+price*
 # Korean
+나이*
+"몇 살"
+몇살*
+품종*
+견종*
+몸무게*
+체중*
+입양비*
+비용*
 예방접종* 접종* 백신* 중성화* 병원* 아파* 아픈* 질병* 질환* 약물* 복용* 수술*

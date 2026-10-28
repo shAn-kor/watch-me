@@ -145,6 +145,26 @@ def test_api_auth_03_ip_limit_is_checked_before_email_limit(proxy_client, world)
         assert r.status_code == 401
 
 
+def test_ut_arch_03_login_leaves_no_raw_ip_in_logs_or_tables(proxy_client, container, world, caplog):
+    """UT-ARCH-03 (login half; the ask half is in test_s6_ask.py): failed and
+    successful logins from a known client IP leave that IP in no log line and no row."""
+    import logging
+
+    from sqlalchemy import select
+
+    from app.db.base import Base
+
+    ip = "203.0.113.77"
+    with caplog.at_level(logging.DEBUG):
+        _login(proxy_client, world.vol1.email, "wrong-password", headers={"X-Forwarded-For": ip})
+        assert _login(proxy_client, world.vol1.email, headers={"X-Forwarded-For": ip}).status_code == 200
+    assert ip not in caplog.text
+    with container.engine.connect() as conn:
+        for table in Base.metadata.sorted_tables:
+            for row in conn.execute(select(table)):
+                assert ip not in repr(tuple(row)), f"raw IP in {table.name}"
+
+
 def test_api_auth_04_login_validation(client):
     missing = client.post("/api/auth/login", json={"email": "a@example.test"})
     assert missing.status_code == 422
@@ -222,7 +242,10 @@ def test_api_auth_07_tampered_and_expired_cookie(client, world, login_as, clock)
     login_as(world.vol1)
     good = client.cookies.get("wm_session")
 
-    flipped = good[:-1] + ("A" if good[-1] != "A" else "B")
+    # Flip a middle signature character: the last base64 character carries padding
+    # bits, so changing it can decode to the same bytes (same fix as UT-SEC-03).
+    i = len(good) - 5
+    flipped = good[:i] + ("A" if good[i] != "A" else "B") + good[i + 1 :]
     client.cookies.clear()
     client.cookies.set("wm_session", flipped)
     r = client.get("/api/me")
@@ -325,7 +348,6 @@ def test_api_csrf_04_public_route_needs_no_token(client, probed_app):
     assert r.status_code == 200
 
 
-@pytest.mark.xfail(reason="needs lane S6: public ask endpoint", strict=False)
 def test_api_csrf_04_public_ask_exempt(client, world):
     r = client.post(
         f"/api/public/dogs/{world.dog_pub.public_slug}/ask", json={"question": "Does he like walks?"}
@@ -349,7 +371,6 @@ def test_api_csrf_05_form_post_gets_415(client, probed_app, world, login_as):
     assert client.post("/api/_t/public", json={"x": "a"}).status_code == 200
 
 
-@pytest.mark.xfail(reason="needs lane S6: public ask endpoint", strict=False)
 def test_api_csrf_05_public_ask_form_post(client, world):
     r = client.post(f"/api/public/dogs/{world.dog_pub.public_slug}/ask", data={"question": "hi there"})
     assert r.status_code == 415
@@ -420,7 +441,6 @@ _GATED_REAL = [
 ]
 
 
-@pytest.mark.xfail(reason="needs lanes S3 and S4: sessions, clips and facts routes", strict=False)
 def test_api_cns_04_consent_gate_on_real_routes(client, container, world, login_as):
     token = login_as(world.vol_new)
     ids = {"dog": world.dog_review.id, "session": world.session_review.id, "fact": world.facts_review[0].id}
@@ -440,7 +460,6 @@ def test_api_cns_05_consent_not_required_for_plain_routes(client, probed_app, wo
     assert client.get(f"/api/_t/dogs/{world.dog_review.id}").status_code == 200
 
 
-@pytest.mark.xfail(reason="needs lanes S2 and S3: dogs and sessions routes", strict=False)
 def test_api_cns_05_consent_not_required_on_real_routes(client, world, login_as):
     token = login_as(world.vol_new)
     assert client.get("/api/dogs").status_code == 200

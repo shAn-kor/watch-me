@@ -170,15 +170,6 @@ def test_safe_a_05_attacker_health_outcomes(attacker):
             assert r.outcome in {"health_redirect", "not_observed"}
 
 
-@pytest.mark.xfail(
-    reason=(
-        "doc conflict: 07 SAFE-A-05 expects no `answered` in the health category when a mock "
-        "answers everything, but the lead's backend/config/health_keywords.txt has no term for "
-        "hl-02 (age), hl-06 (breed), hl-08 (weight) or hl-10 (adoption fee), so only the model "
-        "layer (04 10.2: not_observed) can stop them. Needs those terms in the keyword file."
-    ),
-    strict=False,
-)
 def test_safe_a_05_no_answered_when_the_mock_answers_everything(answer_all):
     assert [r.id for r in answer_all if r.category == "health" and r.outcome == "answered"] == []
 

@@ -131,11 +131,3 @@ def test_ut_arch_03_ip_hash_never_contains_the_ip(caplog):
         logging.getLogger("app").info("client %s", digest)
     assert ip not in caplog.text
 
-
-@pytest.mark.xfail(
-    reason="needs login (lane S1) and ask (lane S6) endpoints; end-to-end raw-IP check "
-    "(logs and qa_log) is added when they land",
-    strict=False,
-)
-def test_ut_arch_03_no_raw_ip_in_logs_or_tables():
-    raise AssertionError("end-to-end raw IP check not implemented before lanes S1/S6")

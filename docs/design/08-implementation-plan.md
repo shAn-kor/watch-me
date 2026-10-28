@@ -192,3 +192,68 @@ added both CHECKs to migration `0001` (no database is deployed yet):
 `confirmed_role`, I-5) and `ck_member_email_lower` (`email = lower(email)`,
 02 "lowercased on write"). UT-SEC-03 now flips a middle signature character;
 flipping the last base64 character could decode to the same bytes.
+
+## 9. Phase 2 backend result (2026-10-28)
+
+Lanes S2, S3, S4 and S6 are merged. Backend: 642 passed, 22 xfail, 0 xpass.
+`lint-imports`: 11 kept. Every remaining xfail names lane S5, lane P, or the
+phase 3 admin metrics route. The lead removed the S1 and S2 xfail markers that
+the merged routes now pass.
+
+Shared seams for later lanes:
+
+- **S2.** `load_dog(uow, principal, dog_id)` returns `not_found` for a deleted,
+  other-org or unknown dog. Also: `dog_view`, `CoverageService.for_dog`,
+  `for_dogs` and `short_for_dogs`, and `DeletionService.request_dog_delete`
+  (lane P owns `run_purge_*`). Photos are re-encoded with Pillow, which drops
+  EXIF. `.heic` returns 415. The extension must match the magic bytes.
+- **S3.** Upload enqueues `transcode` with payload `{clip_id, session_id,
+  dog_id}`. A manual retry enqueues the failed step's job type, with the same
+  payload, attempts reset to 0, and no dedupe key. The `merge` job has payload
+  `{session_id}` and dedupe key `merge:{session_id}`. The `purge_clip` job has
+  payload `{clip_id, dog_id}`, dedupe key `purge_clip:{id}`, and 8 attempts.
+  Pipeline hooks: `SessionService.enqueue_merge`, `on_clip_terminal`,
+  `mark_review_ready` and `mark_failed`. With `uow=None`, each opens its own
+  transaction.
+- **S4.** `FactReviewService` methods take `uow` first and never commit.
+  `EvidenceValidator.range_problem` is pure, so lane P can reuse it.
+- **S6.** `repositories/public_facts.py` has `get_public_dog(session, slug)`
+  and `public_facts(session, dog_id)`; this is the only read path for
+  confirmed facts (UT-ARCH-02). `public.router` holds the ask route, and
+  lane S5 adds the profile route to it. The retention sweep in lane P calls
+  `null_questions_before` and `delete_before` on the `qa_log` repository.
+
+Decisions:
+
+- S3: a `Content-Length` over 200 MiB returns 413 at once (07 UP-05). There is
+  no multipart overhead allowance.
+- S3: a clip retry clears the session's `review_ready_at` and `fail_code` at
+  once. 07 SES-12 and CLP-06 win over 06.
+- S3: reusing a `client_request_id` on a session that already has 3 clips
+  returns `clip_limit_reached`.
+- S4: `can_confirm` is computed as if `acknowledge_flags=true`.
+- S4: a fact of another org returns 404 before body validation.
+- S4: a volunteer may edit or delete their own staff note when it has no
+  session, but only staff confirm it.
+- S4: a text edit replaces the flags with fresh rule flags.
+- S4: four evidence items return `too_long` (limit 3).
+- Deleting a confirmed fact clears `confirmed_*`. This keeps 02 I-5 and the
+  2.8 CHECK ("a non-confirmed fact has none"). REV-10 counts by `origin`, so
+  no metric loses data.
+- The ask route has only the `qa_log` hourly limits, as 01 1.3 specifies.
+  The 120-per-minute IP limit applies to public profile reads (lane S5).
+  Error responses do not set `wm_visitor`.
+- Health keywords now also cover age, breed, weight, fee and cost, in English
+  and Korean. These are profile facts that clips cannot show, so they get the
+  shelter redirect. This makes 07 SAFE-A-05 pass with a mock that answers every
+  question. The mock eval still meets every category bar except `answerable`,
+  which only a live model can meet (SAFE-L).
+- UT-ARCH-03 is now two real tests: the login half is in `test_s1_auth.py` and
+  the ask half is in `test_s6_ask.py`. The placeholder is removed.
+- API-AUTH-07 flips a middle signature character, the same fix as UT-SEC-03.
+
+Duplication to consolidate in phase 3: the dog lookups in
+`repositories/sessions.py`, `repositories/facts.py` and the S2 dog service,
+and the `FactOut`, `ClipOut` and fact view schemas in S2, S3 and S4. Ruff
+findings in `tests/` grew from 57 to 245. Ruff is not a lane gate; clean up
+in phase 3.

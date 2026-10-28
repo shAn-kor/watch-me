@@ -193,7 +193,6 @@ def test_api_org_01_member_of_org_a_is_allowed(client, probed_app, world, login_
         assert r.status_code == 200, method
 
 
-@pytest.mark.xfail(reason="needs lanes S2 to S4: real creator routes with org A ids", strict=False)
 def test_api_org_01_every_real_creator_route(client, probed_app, world, login_as):
     from tests.api._s1_support import iter_api_routes, uses_principal
 
@@ -256,11 +255,15 @@ _STAFF_ROUTES = [
     pytest.param("POST", "/api/dogs/{dog}/unpublish", id="unpublish"),
     pytest.param("POST", "/api/dogs/{dog}/adopted", id="adopted"),
     pytest.param("DELETE", "/api/dogs/{dog}", id="delete-dog"),
-    pytest.param("GET", "/api/admin/metrics", id="admin-metrics"),
+    pytest.param(
+        "GET",
+        "/api/admin/metrics",
+        id="admin-metrics",
+        marks=pytest.mark.xfail(reason="needs phase 3: admin metrics route", strict=False),
+    ),
 ]
 
 
-@pytest.mark.xfail(reason="needs lanes S2 and phase 3: dog lifecycle and admin routes", strict=False)
 @pytest.mark.parametrize(("method", "path"), _STAFF_ROUTES)
 def test_api_role_01_real_staff_routes(client, world, login_as, method, path):
     token = login_as(world.vol1)

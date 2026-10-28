@@ -58,10 +58,6 @@ def test_ut_meta_01_job_error_shape():
     assert not hasattr(err, "fail_code")
 
 
-@pytest.mark.xfail(
-    reason="API tests land in lanes S1 to S6; until then no code is asserted over HTTP",
-    strict=False,
-)
 def test_ut_meta_01_every_code_is_asserted_in_api_tests():
     asserted: set[str] = set()
     for path in (BACKEND / "tests" / "api").rglob("test_*.py"):
