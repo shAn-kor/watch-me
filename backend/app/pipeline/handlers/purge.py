@@ -26,7 +26,7 @@ class _PurgeBase:
     def on_final_failure(self, job: JobView, error: JobError, ctx: HandlerContext) -> None:
         log.error("%s job %s failed for good: %s", self.job_type, job.id, error.code)
 
-    def _run(self, fn, *args):  # noqa: ANN001, ANN002
+    def _run(self, fn, *args):
         try:
             return fn(*args)
         except JobError:
@@ -39,7 +39,7 @@ class _PurgeBase:
 class PurgeClipHandler(_PurgeBase):
     job_type = "purge_clip"
 
-    def _default(self, settings):  # noqa: ANN001
+    def _default(self, settings):
         return settings.purge_clip_timeout_s if settings else 120
 
     def handle(self, job: JobView, ctx: HandlerContext) -> HandlerResult:
@@ -54,7 +54,7 @@ class PurgeClipHandler(_PurgeBase):
 class PurgeDogHandler(_PurgeBase):
     job_type = "purge_dog"
 
-    def _default(self, settings):  # noqa: ANN001
+    def _default(self, settings):
         return settings.purge_dog_timeout_s if settings else 300
 
     def handle(self, job: JobView, ctx: HandlerContext) -> HandlerResult:
@@ -69,7 +69,7 @@ class PurgeDogHandler(_PurgeBase):
 class RetentionSweepHandler(_PurgeBase):
     job_type = "retention_sweep"
 
-    def _default(self, settings):  # noqa: ANN001
+    def _default(self, settings):
         return settings.sweep_timeout_s if settings else 60
 
     def handle(self, job: JobView, ctx: HandlerContext) -> HandlerResult:

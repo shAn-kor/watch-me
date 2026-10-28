@@ -102,7 +102,7 @@ def test_api_met_03_time_metrics(client, login_as, seed, world, clock):
     org, staff, vol = world
     t0 = clock.now()
     dog = seed.dog(org, staff)
-    s = lambda **kw: seed.session(dog, vol, **kw)  # noqa: E731
+    s = lambda **kw: seed.session(dog, vol, **kw)
     s(status="review", submitted_at=t0, review_ready_at=t0 + timedelta(seconds=100))
     s(status="review", submitted_at=t0, review_ready_at=t0 + timedelta(seconds=300))
     # retried: review_ready_at cleared, then set 5 minutes later; submitted_at is the original
@@ -216,8 +216,9 @@ def test_api_met_07_metrics_survive_dog_delete(client, login_as, seed, world, co
     assert mid["purge_pending"] == [gone.id]
     # after the purge the ledger rows are orphaned, not deleted
     with container.uow() as uow:
-        from app.models import Job
         from sqlalchemy import select
+
+        from app.models import Job
 
         job_id = uow.session.scalar(select(Job.id).where(Job.dog_id == gone.id))
     assert container.services.deletion_service.run_purge_dog(gone.id, job_id) == "purged"

@@ -23,13 +23,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
+from alembic import command
 from app.clock import FakeClock
 from app.config import Settings
 from app.container import Container, build_container
@@ -49,7 +49,7 @@ _DIR_MARKERS = {
 }
 
 
-def pytest_collection_modifyitems(config, items):  # noqa: ANN001
+def pytest_collection_modifyitems(config, items):
     for item in items:
         parts = Path(str(item.fspath)).relative_to(BACKEND / "tests").parts
         for marker in _DIR_MARKERS.get(parts[0], ()):

@@ -19,7 +19,7 @@ def test_ut_meta_01_catalog_matches_spec_file():
     text = SPEC.read_text(encoding="utf-8")
     start = text.index("### 1.2 Error code catalog")
     end = text.index("### 1.3 Rate limits")
-    rows = re.findall(r"^\|\s*(\d{3})\s*\|\s*`([a-z_]+)`", text[start:end], re.M)
+    rows = re.findall(r"^\|\s*(\d{3})\s*\|\s*`([a-z_]+)`", text[start:end], re.MULTILINE)
     assert tuple((int(s), c) for s, c in rows) == CATALOG
 
 

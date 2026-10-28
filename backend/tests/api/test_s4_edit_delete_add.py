@@ -5,8 +5,6 @@ from __future__ import annotations
 import unicodedata
 from datetime import date
 
-import pytest
-
 from tests.api._s4_support import (  # noqa: F401
     add,
     code,
@@ -260,7 +258,7 @@ def test_api_dlf_03_deleted_drafts_count_in_metric(client, db, rv, world, login_
     token = login_as(world.vol1)
     assert delete(client, token, rv.f_clip1).status_code == 204
     assert fresh_fact(db, rv.f_clip1.id).origin == "ai_unchanged"  # row kept for REV-10
-    token_s = login_as(world.staff1)
+    login_as(world.staff1)
     r = client.get("/api/admin/metrics")
     assert r.status_code == 200
     assert r.json()["draft_acceptance"]["all_drafts"] >= 1

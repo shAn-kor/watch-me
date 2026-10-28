@@ -18,7 +18,7 @@ def _lint_imports(cwd: Path) -> subprocess.CompletedProcess[str]:
     exe = Path(sys.executable).parent / "lint-imports"
     assert exe.exists(), "import-linter is not installed in this environment"
     return subprocess.run(
-        [str(exe)], cwd=cwd, capture_output=True, text=True, timeout=120
+        [str(exe)], check=False, cwd=cwd, capture_output=True, text=True, timeout=120
     )
 
 

@@ -11,7 +11,6 @@ from dataclasses import dataclass
 
 from sqlalchemy import select
 
-from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.db.base import new_id
 from app.db.uow import UowFactory
@@ -19,6 +18,7 @@ from app.domain.dedupe import FactDraft, dedupe_within_clip, merge_across_clips
 from app.domain.ranges import Range
 from app.domain.wording import BannedWordMatcher
 from app.models import Clip, Fact, FactEvidence, FilmingSession
+from app.services._write_lock import lock_for_write
 
 
 @dataclass(frozen=True, slots=True)

@@ -161,7 +161,7 @@ class UploadReceiver:
                 raise UploadIncomplete() from exc
             try:
                 parser.finalize()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 raise MalformedRequest() from exc
             if not state.ended:
                 raise UploadIncomplete()

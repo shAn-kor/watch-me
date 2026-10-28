@@ -12,7 +12,6 @@ from datetime import timedelta
 
 from sqlalchemy import delete, select, update
 
-from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.config import Settings
 from app.db.uow import UnitOfWork, UowFactory
@@ -32,6 +31,7 @@ from app.models import (
 )
 from app.repositories.dogs import DogRepository
 from app.repositories.qa_log import QaLogRepository
+from app.services._write_lock import lock_for_write
 from app.services.dog_service import load_dog
 from app.services.job_queue import JobQueue
 from app.services.views import JobSpec, Principal

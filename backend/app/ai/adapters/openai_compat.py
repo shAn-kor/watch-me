@@ -74,13 +74,13 @@ class ChatClient:
         max_tokens: int,
         stream: bool | None = None,
     ) -> RawCompletion:
-        kwargs: dict[str, Any] = dict(
-            model=self.model,
-            messages=messages,
-            response_format=response_format,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "response_format": response_format,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
         if REASONING_EFFORT:
             kwargs["reasoning_effort"] = REASONING_EFFORT
         use_stream = self._stream if stream is None else stream

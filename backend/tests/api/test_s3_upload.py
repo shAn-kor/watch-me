@@ -354,7 +354,8 @@ def test_api_up_19_probe_timeout(
 def test_api_up_20_filename_handling(
     client, db, container, world, open_session, login_as
 ):
-    from tests.api._s3_support import BOUNDARY, TAIL, csrf as _csrf, part_head
+    from tests.api._s3_support import BOUNDARY, TAIL, part_head
+    from tests.api._s3_support import csrf as _csrf
 
     token = login_as(world.vol1)
     data = media("h264_5s.mp4").read_bytes()

@@ -314,7 +314,7 @@ def test_ut_job_08_claim_atomicity(env: Env):
         try:
             while (view := env.queue.claim(f"w{idx}")) is not None:
                 claimed[idx].append(view.id)
-        except BaseException as exc:  # pragma: no cover
+        except BaseException as exc:  # noqa: BLE001  # pragma: no cover
             errors.append(exc)
 
     threads = [threading.Thread(target=work, args=(i,)) for i in range(2)]
@@ -543,12 +543,12 @@ def test_ut_job_14_handler_error_translation():
             self.probe = raiser(exc)
 
     def ctx(**kw):
-        base = dict(
-            settings=SimpleNamespace(draft_mode="frames", max_clip_s=120,
+        base = {
+            "settings": SimpleNamespace(draft_mode="frames", max_clip_s=120,
                                      clip_duration_tolerance_s=0.5),
-            storage=Storage(),
-            services=SimpleNamespace(clip_pipeline_service=pipeline),
-        )
+            "storage": Storage(),
+            "services": SimpleNamespace(clip_pipeline_service=pipeline),
+        }
         base.update(kw)
         return SimpleNamespace(**base)
 

@@ -37,8 +37,8 @@ from app.errors import (
     UnsupportedFileType,
     ValidationFailed,
 )
-from app.models import Clip, Dog, Fact, FilmingSession
-from app.repositories.dogs import DogCounts, DogRepository, SessionCounts
+from app.models import Clip, Dog
+from app.repositories.dogs import DogCounts, DogRepository
 from app.services.coverage_service import CoverageService, ShortCoverage
 from app.services.views import (
     ClipErrorView,

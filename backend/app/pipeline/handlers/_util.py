@@ -28,7 +28,7 @@ def step_job(step: str, job: JobView) -> JobSpec:
     )
 
 
-def fail_clip(job: JobView, error: Exception, ctx) -> None:  # noqa: ANN001
+def fail_clip(job: JobView, error: Exception, ctx) -> None:
     """`on_final_failure` of every clip step: the clip is `failed` with the code."""
     code = getattr(error, "code", "transcode_failed")
     detail = getattr(error, "detail", None)

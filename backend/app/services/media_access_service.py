@@ -38,7 +38,7 @@ class MediaFile:
 
 
 def vtt_timestamp(seconds: float) -> str:
-    total_ms = int(round(seconds * 1000))
+    total_ms = round(seconds * 1000)
     h, rest = divmod(total_ms, 3_600_000)
     m, rest = divmod(rest, 60_000)
     s, ms = divmod(rest, 1000)
@@ -80,7 +80,7 @@ class MediaAccessService:
             modified=clip.ready_at,
         )
 
-    def _readable_clip(self, uow: UnitOfWork, clip_id: str, principal: Principal | None):  # noqa: ANN202
+    def _readable_clip(self, uow: UnitOfWork, clip_id: str, principal: Principal | None):
         clip = get_media_clip(uow.session, clip_id)
         if clip is None:
             raise NotFound()

@@ -47,7 +47,7 @@ class QaLogRepository:
         self._s.flush()
         return row
 
-    def _active(self, column, value: str, since: datetime):  # noqa: ANN001, ANN202
+    def _active(self, column, value: str, since: datetime):
         return (column == value, QaLog.created_at > since, QaLog.outcome != "error")
 
     def count_since(self, *, since: datetime, ip_hash: str | None = None, cookie_id: str | None = None) -> int:

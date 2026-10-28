@@ -108,7 +108,7 @@ class QAService:
             request = SelectRequest(
                 question=text,
                 facts=table.fact_refs,
-                max_refs=self._mapper._max_facts,  # noqa: SLF001
+                max_refs=self._mapper._max_facts,
             )
             try:
                 output, usages = self._selector.select(request)
@@ -171,9 +171,9 @@ class _Log:
             usage = Usage.model_validate(usage) if not isinstance(usage, Usage) else usage
             last = repo.add_usage(
                 usage,
-                purpose=self._svc._purpose,  # noqa: SLF001
+                purpose=self._svc._purpose,
                 dog_id=self._dog.id,
-                now=self._svc._clock.now(),  # noqa: SLF001
+                now=self._svc._clock.now(),
             )
         return last
 
@@ -188,13 +188,13 @@ class _Log:
             dropped_ids=self.dropped,
             ledger_id=self.ledger_id,
             latency_ms=int((perf_counter() - self._started) * 1000),
-            now=self._svc._clock.now(),  # noqa: SLF001
+            now=self._svc._clock.now(),
         )
 
     def finish(self, u: Any, answer: QaAnswer) -> QaAnswer:
         self.fact_ids = list(answer.cited_fact_ids)
         self.record(answer.outcome)
-        remaining = self._svc._limiter.remaining(  # noqa: SLF001
+        remaining = self._svc._limiter.remaining(
             self._session, self._ip_hash, self._cookie_id
         )
         u.commit()

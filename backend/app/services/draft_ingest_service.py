@@ -15,7 +15,6 @@ from typing import Any
 
 from sqlalchemy import select
 
-from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.db.base import new_id
 from app.db.uow import UowFactory
@@ -28,6 +27,7 @@ from app.domain.ranges import (
 )
 from app.domain.wording import normalize_ai_behavior
 from app.models import Clip, Dog, Fact, FactEvidence, FilmingSession, TranscriptSegment
+from app.services._write_lock import lock_for_write
 
 log = logging.getLogger(__name__)
 

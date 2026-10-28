@@ -10,7 +10,7 @@ slug and a people check; a confirmed fact gets `confirmed_at` and
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date
 from typing import Any
 
 from argon2 import PasswordHasher

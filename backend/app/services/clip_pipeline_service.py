@@ -18,12 +18,12 @@ from typing import Any
 
 from sqlalchemy import delete, select
 
-from app.services._write_lock import lock_for_write
 from app.clock import Clock
 from app.config import Settings
 from app.db.uow import UowFactory
 from app.domain.enums import CLIP_FAIL_CODES
 from app.models import Clip, Dog, FilmingSession, Segment, TranscriptSegment
+from app.services._write_lock import lock_for_write
 from app.storage.base import Storage, StorageError
 
 log = logging.getLogger(__name__)

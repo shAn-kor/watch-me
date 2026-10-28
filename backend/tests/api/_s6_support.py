@@ -58,7 +58,7 @@ class QaWorld:
         return {f.id for f in self.facts_a}
 
 
-def build_qa_world(seed) -> QaWorld:  # noqa: ANN001
+def build_qa_world(seed) -> QaWorld:
     org = seed.org("Maple Street Rescue", contact_email="adopt@example.org")
     staff = seed.member(org, "staff", name="Staff One")
 
@@ -119,7 +119,7 @@ def build_qa_world(seed) -> QaWorld:  # noqa: ANN001
 
 
 @pytest.fixture
-def qa_world(seed) -> QaWorld:  # noqa: ANN001
+def qa_world(seed) -> QaWorld:
     return build_qa_world(seed)
 
 
@@ -128,7 +128,7 @@ def selector() -> ScriptedSelector:
     return ScriptedSelector()
 
 
-def make_container(settings, engine, clock, selector_obj, **setting_updates):  # noqa: ANN001
+def make_container(settings, engine, clock, selector_obj, **setting_updates):
     updated = settings.model_copy(update={"trusted_proxy": True, **setting_updates})
     slots = scripted_ai_slots()
     slots.selector = selector_obj
@@ -136,15 +136,15 @@ def make_container(settings, engine, clock, selector_obj, **setting_updates):  #
 
 
 @pytest.fixture
-def container(settings, engine, clock, selector):  # noqa: ANN001
+def container(settings, engine, clock, selector):
     """Overrides the shared `container`: trusted proxy on (so tests pick the client
     IP with X-Forwarded-For) and the scripted selector in the selector slot."""
     return make_container(settings, engine, clock, selector)
 
 
-def use_selector(container, selector_obj) -> None:  # noqa: ANN001
+def use_selector(container, selector_obj) -> None:
     container.ai.selector = selector_obj
-    container.services.qa_service._selector = selector_obj  # noqa: SLF001
+    container.services.qa_service._selector = selector_obj
 
 
 # ------------------------------------------------------------------- helpers
@@ -158,7 +158,7 @@ def ask(
     ip: str | None = None,
     cookie: str | None = None,
     **kw: Any,
-):  # noqa: ANN001
+):
     """POST the ask endpoint. `cookie=None` sends no visitor cookie."""
     client.cookies.clear()
     headers = dict(kw.pop("headers", {}))
@@ -171,7 +171,7 @@ def ask(
     )
 
 
-def rows(engine, model, *where):  # noqa: ANN001
+def rows(engine, model, *where):
     with make_session_factory(engine)() as s:
         stmt = select(model)
         for w in where:
@@ -179,7 +179,7 @@ def rows(engine, model, *where):  # noqa: ANN001
         return list(s.scalars(stmt.order_by(model.id)))
 
 
-def code(response) -> str:  # noqa: ANN001
+def code(response) -> str:
     return response.json()["error"]["code"]
 
 
@@ -198,16 +198,18 @@ class CountingSelector:
         self.inner = inner
         self.calls = 0
 
-    def select(self, req):  # noqa: ANN001, ANN201
+    def select(self, req):
         self.calls += 1
         return self.inner.select(req)
 
 
-def session_of(engine) -> Session:  # noqa: ANN001
+def session_of(engine) -> Session:
     return make_session_factory(engine)()
 
 
 __all__ = [
+    "QUESTION",
+    "URL",
     "AiSlots",
     "CountingSelector",
     "QaWorld",
@@ -220,6 +222,4 @@ __all__ = [
     "selector",
     "use_selector",
     "write_mock_selector",
-    "QUESTION",
-    "URL",
 ]

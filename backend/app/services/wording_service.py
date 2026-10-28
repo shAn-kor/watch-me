@@ -14,13 +14,13 @@ from typing import Any
 
 from sqlalchemy import select
 
-from app.services._write_lock import lock_for_write
 from app.ai.errors import AiError, to_job_error
 from app.ai.types import CheckItem, CheckRequest
 from app.clock import Clock
 from app.db.uow import UowFactory
 from app.errors import JobError
 from app.models import Clip, Fact, FactEvidence, FilmingSession
+from app.services._write_lock import lock_for_write
 
 log = logging.getLogger(__name__)
 

@@ -101,10 +101,10 @@ def test_ut_ai_02_error_summary_has_no_input_values(tmp_path: Path):
 @pytest.mark.parametrize(
     "bad",
     [
-        dict(content="nope"),
-        dict(content=VALID, finish="length"),
-        dict(content=None, refusal="I cannot help with that"),
-        dict(content=VALID, finish="content_filter"),
+        {"content": "nope"},
+        {"content": VALID, "finish": "length"},
+        {"content": None, "refusal": "I cannot help with that"},
+        {"content": VALID, "finish": "content_filter"},
     ],
     ids=["not-json", "length", "refusal", "content-filter"],
 )

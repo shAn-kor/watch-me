@@ -1,4 +1,3 @@
-# ruff: noqa: F811
 """Lane S6: API-ASK-01..36 (07 section 3.12), `POST /api/public/dogs/{slug}/ask`."""
 
 from __future__ import annotations
@@ -41,11 +40,11 @@ NOT_OBSERVED_HINT = (
 HEALTH_HINT = "Health information comes from the shelter, not from these clips."
 
 
-def refs(*r):  # noqa: ANN002, ANN201
+def refs(*r):
     return SelectOutput(refs=list(r))
 
 
-def real_selector(*script):  # noqa: ANN002, ANN201
+def real_selector(*script):
     http = FakeHttp(*script)
     return OpenAICompatSelector(
         http.chat(), PriceTable.from_dict({}), strict=True
