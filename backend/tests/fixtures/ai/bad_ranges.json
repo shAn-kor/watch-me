@@ -1,0 +1,88 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": [
+      {
+        "start_s": 0.0,
+        "end_s": 4.0,
+        "text": "Watch her go."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "situation": "leash_walk",
+      "behavior": "Pulled on the leash past the clip end.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 40,
+          "end_t": 90
+        }
+      ]
+    },
+    {
+      "situation": "leash_walk",
+      "behavior": "Pulled on the leash from a negative start.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": -5,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "new_person",
+      "behavior": "Walked to the visitor with reversed times.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 9,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "food_toys",
+      "behavior": "Took the treat in a very short range.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 3,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "indoors_rest",
+      "behavior": "Lay on the bed for a very long range.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 80
+        }
+      ]
+    },
+    {
+      "situation": "handling",
+      "behavior": "Stood still while an unknown segment was cited.",
+      "source": "clip",
+      "evidence": [
+        "c9-seg9"
+      ]
+    },
+    {
+      "situation": "alone_time",
+      "behavior": "Stayed in a room, a situation outside the session.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 3
+        }
+      ]
+    }
+  ]
+}

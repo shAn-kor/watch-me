@@ -1,0 +1,30 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": []
+  },
+  "facts": [
+    {
+      "situation": "alone_time",
+      "behavior": "Stayed in the crate without a sound.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 3
+        }
+      ]
+    },
+    {
+      "situation": "handling",
+      "behavior": "Volunteer said the dog stood still for the vet.",
+      "source": "narration",
+      "evidence": [
+        {
+          "start_t": 30,
+          "end_t": 40
+        }
+      ]
+    }
+  ]
+}

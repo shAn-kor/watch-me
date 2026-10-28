@@ -1,0 +1,30 @@
+{
+  "transcript": {
+    "language": "ko",
+    "segments": [
+      {
+        "start_s": 0.5,
+        "end_s": 3.0,
+        "text": "간식을 주니까 앉아서 기다려요."
+      },
+      {
+        "start_s": 3.5,
+        "end_s": 7.0,
+        "text": "장난감을 물고 와요."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "situation": "food_toys",
+      "behavior": "Sat and waited before the treat was given.",
+      "source": "narration",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 3
+        }
+      ]
+    }
+  ]
+}

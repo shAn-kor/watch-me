@@ -146,16 +146,13 @@ def test_ut_cfg_02_contributor_model_guard(monkeypatch):
     assert make(monkeypatch).forbidden_contributor_models() == []
 
 
-@pytest.mark.xfail(
-    reason="AiRegistry.from_settings is lane C (ai/registry.py); the Settings-side guard is tested above",
-    strict=False,
-)
 def test_ut_cfg_02_registry_refuses_contributor_model(monkeypatch):
-    from app.ai.registry import AiRegistry  # noqa: F401  (does not exist before lane C)
+    from app.ai.registry import AiConfigError, AiRegistry
 
-    raise AssertionError(
-        "lane C must assert AiRegistry.from_settings raises a config error"
-    )
+    bad = make(monkeypatch, ai_model="muse-spark-1.3-contributor")
+    with pytest.raises(AiConfigError):
+        AiRegistry.from_settings(bad)
+    AiRegistry.from_settings(make(monkeypatch))  # the default config starts
 
 
 def test_ut_cfg_03_prod_requires_secure_cookie(monkeypatch):

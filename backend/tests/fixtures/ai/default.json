@@ -1,0 +1,68 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": [
+      {
+        "start_s": 0.0,
+        "end_s": 3.4,
+        "text": "This is Biscuit, she is a bit shy at first."
+      },
+      {
+        "start_s": 3.4,
+        "end_s": 9.8,
+        "text": "Now my friend is walking up to her."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "situation": "new_person",
+      "behavior": "Walked to the visitor with a loose wagging tail.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 3,
+          "end_t": 9
+        }
+      ]
+    },
+    {
+      "situation": "leash_walk",
+      "behavior": "Pulled on the leash for the first minute, then walked beside the handler.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 2
+        }
+      ]
+    }
+  ],
+  "check": [
+    {
+      "match": "shy",
+      "kind": "trait_label",
+      "phrase": "shy"
+    }
+  ],
+  "select": [
+    {
+      "question_contains": [
+        "kid",
+        "child"
+      ],
+      "refs": [
+        "F3"
+      ]
+    },
+    {
+      "question_contains": [
+        "bark"
+      ],
+      "refs": [
+        "F1",
+        "F2"
+      ]
+    }
+  ]
+}

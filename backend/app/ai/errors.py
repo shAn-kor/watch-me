@@ -1,7 +1,7 @@
 """Adapter-internal exceptions and the boundary conversion to `JobError`
 (04 sections 2, 8.7, 8.8; 06 section 3.3).
 
-Only the classes are frozen in Phase 0. `to_job_error` is implemented by lane C.
+The classes are frozen in Phase 0. `to_job_error` is implemented by lane C.
 """
 
 from __future__ import annotations
@@ -50,6 +50,11 @@ def to_job_error(error: AiError, purpose: Purpose) -> JobError:
     - `AiInvalidOutput` -> `JobError("ai_invalid_output", False)` for `draft`,
       `JobError("ai_failed", False)` for `transcribe`, `check`, `select`.
 
-    `JobError.usages` carries `error.usages`. Implemented by lane C.
+    `JobError.usages` carries `error.usages`.
     """
-    raise NotImplementedError("lane C implements to_job_error")
+    if isinstance(error, AiTransientError):
+        return JobError("ai_failed", True, error.retry_after_s, error.usages)
+    if isinstance(error, AiInvalidOutput) and purpose == "draft":
+        return JobError("ai_invalid_output", False, None, error.usages)
+    # AiPermanentError, AiInvalidOutput for the other purposes, and a bare AiError
+    return JobError("ai_failed", False, None, error.usages)
