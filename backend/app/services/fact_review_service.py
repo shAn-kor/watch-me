@@ -439,7 +439,7 @@ class FactReviewService:
 
     def _view(self, uow: UnitOfWork, principal: Principal, row: FactRow) -> FactView:
         repo = FactRepository(uow.session)
-        fact, _dog = row.fact, row.dog
+        fact = row.fact
         evidence = sorted(fact.evidence, key=lambda e: (e.start_s, e.end_s, e.id))
         clips = repo.clips_by_id(e.clip_id for e in evidence)
         with_transcript = repo.clip_ids_with_transcript(clips)

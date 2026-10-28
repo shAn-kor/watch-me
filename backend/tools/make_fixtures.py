@@ -89,7 +89,7 @@ def cache_dir() -> Path:
 
 
 def _run(args: list[str]) -> None:
-    proc = subprocess.run(args, capture_output=True, text=True, timeout=300)
+    proc = subprocess.run(args, check=False, capture_output=True, text=True, timeout=300)
     if proc.returncode != 0:
         raise FixtureError(f"{Path(args[0]).name} failed: {proc.stderr[-800:]}")
 
@@ -97,7 +97,7 @@ def _run(args: list[str]) -> None:
 def _duration(path: Path) -> float:
     proc = subprocess.run(
         [FFPROBE, "-v", "error", "-print_format", "json", "-show_format", str(path)],
-        capture_output=True, text=True, timeout=30,
+        check=False, capture_output=True, text=True, timeout=30,
     )  # fmt: skip
     if proc.returncode != 0:
         raise FixtureError(f"ffprobe failed on {path.name}: {proc.stderr[-300:]}")
