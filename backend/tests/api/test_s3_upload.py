@@ -403,7 +403,14 @@ def test_api_up_21_tmp_never_public(
 def test_upload_total_rows_only_on_success(
     client, db, container, world, open_session, login_as
 ):
+    before = (
+        db.scalar(select(func.count()).select_from(Clip)),
+        db.scalar(select(func.count()).select_from(Job)),
+    )
     token = login_as(world.vol1)
     upload_file(client, token, open_session.id, "not_video.mp4")
-    assert db.scalar(select(func.count()).select_from(Clip)) == 0
-    assert db.scalar(select(func.count()).select_from(Job)) == 0
+    db.expire_all()
+    assert (
+        db.scalar(select(func.count()).select_from(Clip)),
+        db.scalar(select(func.count()).select_from(Job)),
+    ) == before

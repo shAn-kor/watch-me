@@ -26,7 +26,10 @@ from app.security.csrf import CsrfTokenService
 from app.security.passwords import PasswordHasher
 from app.security.ratelimit import InMemorySlidingWindow
 from app.services.auth_service import AuthService
+from app.services.clip_service import ClipService
+from app.services.clip_upload_service import ClipUploadService
 from app.services.job_queue import JobQueue
+from app.services.session_service import SessionService
 from app.services.views import MediaUrls
 from app.storage.base import Storage
 from app.storage.local import LocalStorage
@@ -180,6 +183,27 @@ def build_container(
     )
     # [slot S2] DogService, PublishService, CoverageService, DeletionService
     # [slot S3] SessionService, ClipUploadService, ClipService
+    container.services.session_service = SessionService(
+        uow_factory=container.uow_factory,
+        clock=clock,
+        settings=settings,
+        job_queue=container.services.job_queue,
+        media_urls=container.media_urls,
+    )
+    container.services.clip_upload_service = ClipUploadService(
+        clock=clock,
+        settings=settings,
+        job_queue=container.services.job_queue,
+        storage=container.storage,
+        ffmpeg=container.pipeline["ffmpeg"],
+        media_urls=container.media_urls,
+    )
+    container.services.clip_service = ClipService(
+        clock=clock,
+        job_queue=container.services.job_queue,
+        session_service=container.services.session_service,
+        media_urls=container.media_urls,
+    )
     # [slot S4] FactReviewService, EvidenceValidator
     # [slot S5] PublicProfileService, MediaAccessService
     # [slot S6] QaService (+ QaLimiter, CostCapGuard, AliasMapper, AnswerRenderer)

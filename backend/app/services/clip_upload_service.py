@@ -58,13 +58,13 @@ class UploadResult:
     created: bool
 
 
-def clean_filename(raw: str) -> str:
+def clean_filename(raw: str, *, limit: int | None = MAX_FILENAME_CHARS) -> str:
     """Control characters out, directory parts out, at most 200 characters."""
     name = _CONTROL.sub("", raw).replace("\\", "/")
     name = name.rsplit("/", 1)[-1].strip()
     if name in ("", ".", ".."):
         name = "upload"
-    return name[:MAX_FILENAME_CHARS]
+    return name if limit is None else name[:limit]
 
 
 class ClipUploadService:
@@ -143,7 +143,7 @@ class ClipUploadService:
                     )
             self._check_limit(repo, sess.id)
 
-            ext = PurePosixPath(clean_filename(received.filename)).suffix.lower()
+            ext = PurePosixPath(clean_filename(received.filename, limit=None)).suffix.lower()
             allowed = [e.lower() for e in self._settings.allowed_extensions]
             if ext not in allowed:
                 raise UnsupportedFileType(details={"allowed": allowed})

@@ -181,7 +181,7 @@ def stored_keys(container, prefix: str = "dogs") -> list[str]:
 
 
 def jobs(db, **where: Any) -> list[Job]:
-    db.expire_all()
+    db.rollback()  # end the read snapshot, then expire
     stmt = select(Job).order_by(Job.id)
     for k, v in where.items():
         stmt = stmt.where(getattr(Job, k) == v)
@@ -189,7 +189,7 @@ def jobs(db, **where: Any) -> list[Job]:
 
 
 def clips_of(db, session_id: str) -> list[Clip]:
-    db.expire_all()
+    db.rollback()  # end the read snapshot, then expire
     return list(
         db.scalars(
             select(Clip).where(Clip.session_id == session_id).order_by(Clip.ordinal)
@@ -198,5 +198,5 @@ def clips_of(db, session_id: str) -> list[Clip]:
 
 
 def session_row(db, session_id: str) -> FilmingSession:
-    db.expire_all()
+    db.rollback()  # end the read snapshot, then expire
     return db.get(FilmingSession, session_id)
