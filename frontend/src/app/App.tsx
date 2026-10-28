@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import type { ApiClient } from "../api/client";
 import { ApiProvider } from "../api/provider";
+import { CreatorProviders } from "../components/creator/CreatorProviders";
 import type { createAppRouter } from "./router";
 
 export function createQueryClient() {
@@ -17,12 +19,15 @@ export interface AppProps {
   client: ApiClient;
 }
 
-/** Providers shared by main.tsx and tests. AuthProvider joins in lane FE-C. */
+/** Providers shared by main.tsx and tests. creator providers (auth, toasts) are mounted here. */
 export function App({ router, queryClient, client }: AppProps) {
+  const [fallback] = useState(createQueryClient);
   return (
     <ApiProvider client={client}>
-      <QueryClientProvider client={queryClient ?? createQueryClient()}>
-        <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient ?? fallback}>
+        <CreatorProviders>
+          <RouterProvider router={router} />
+        </CreatorProviders>
       </QueryClientProvider>
     </ApiProvider>
   );
