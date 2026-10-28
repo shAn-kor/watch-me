@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, Float, ForeignKey, Index, Integer, String, text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, check_bool, check_in

@@ -32,7 +32,7 @@ def make_engine(url: str, *, echo: bool = False) -> Engine:
 
 def _install_sqlite_pragmas(engine: Engine, *, memory: bool) -> None:
     @event.listens_for(engine, "connect")
-    def _on_connect(dbapi_connection, _record):  # noqa: ANN001
+    def _on_connect(dbapi_connection, _record):
         # Take over transaction control so BEGIN is emitted by SQLAlchemy (below)
         # and SAVEPOINT / DDL behave predictably with pysqlite.
         dbapi_connection.isolation_level = None
@@ -47,7 +47,7 @@ def _install_sqlite_pragmas(engine: Engine, *, memory: bool) -> None:
             cursor.close()
 
     @event.listens_for(engine, "begin")
-    def _on_begin(connection):  # noqa: ANN001
+    def _on_begin(connection):
         connection.exec_driver_sql("BEGIN")
 
 

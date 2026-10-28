@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.routers import auth, clips, dogs, health, me, sessions
+from app.api.routers import auth, clips, dogs, facts, health, me, sessions
 
 ROUTERS: list[APIRouter] = []
 
 ROUTERS.extend([auth.router, me.router, health.router])  # [slot S1]
 ROUTERS.extend([dogs.router])  # [slot S2]
 ROUTERS.extend([sessions.router, clips.router])  # [slot S3]
-# [slot S4] facts                 -> facts.router
+ROUTERS.extend([facts.router])  # [slot S4]
 # [slot S5] public (profile), media -> public.router, media.router
 # [slot S6] public (ask)          -> shares public.router with S5
 # [slot I]  admin                 -> admin.router (phase 3)

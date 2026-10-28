@@ -5,7 +5,13 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from app.ai.prompts.common import fill, json_line, neutralize, new_nonce, response_format
+from app.ai.prompts.common import (
+    fill,
+    json_line,
+    neutralize,
+    new_nonce,
+    response_format,
+)
 from app.ai.types import SelectRequest
 
 SYSTEM = """\

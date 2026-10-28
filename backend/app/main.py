@@ -63,7 +63,7 @@ def create_app(
 
 def _install_request_id_middleware(app: FastAPI) -> None:
     @app.middleware("http")
-    async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202
+    async def request_id_middleware(request: Request, call_next):
         request_id = new_request_id()
         request.state.request_id = request_id  # read by the 500 handler (api/errors.py)
         set_request_id(request_id)
