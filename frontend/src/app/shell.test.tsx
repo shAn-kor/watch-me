@@ -9,15 +9,15 @@ describe("app shell", () => {
     expect(screen.getByText("Dog list (placeholder)")).toBeInTheDocument();
   });
 
-  it("renders the public profile placeholder at /d/:slug", () => {
+  it("renders the public profile at /d/:slug", async () => {
     render(<App router={createTestRouter(["/d/k7m2q9x4tbwe"])} client={createMockClient()} />);
     expect(
-      screen.getByText("Public profile (placeholder)"),
+      await screen.findByRole("heading", { level: 1, name: "Juniper" }),
     ).toBeInTheDocument();
   });
 
   it("shows the not-available page for unknown paths (no index page)", () => {
     render(<App router={createTestRouter(["/"])} client={createMockClient()} />);
-    expect(screen.getByText("Profile not available")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "This profile is not available" })).toBeInTheDocument();
   });
 });

@@ -86,8 +86,8 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
 
   if (!config.enabled) {
     return (
-      <section id="ask" aria-labelledby="ask-h">
-        <h2 id="ask-h">Ask about this dog</h2>
+      <section id="ask">
+        <h2>Ask about this dog</h2>
         <p>Questions are turned off for this profile.</p>
       </section>
     );
@@ -130,8 +130,8 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
   const remaining = answer?.limits.remaining_this_hour;
 
   return (
-    <section id="ask" aria-labelledby="ask-h">
-      <h2 id="ask-h">Ask about this dog</h2>
+    <section id="ask">
+      <h2>Ask about this dog</h2>
       <p>Answers use only confirmed facts on this page.</p>
       <form onSubmit={submit}>
         <label htmlFor="ask-q">Ask about this dog</label>
