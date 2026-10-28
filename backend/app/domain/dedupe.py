@@ -103,9 +103,9 @@ def _resolve(a: FactDraft, b: FactDraft, *, cross_clip: bool) -> tuple[FactDraft
             return pair["clip"], pair["narration"]
         return None
     if cross_clip:
-        key = lambda f: (-len(f.text), -len(f.evidence), _earliest(f))  # noqa: E731
+        key = lambda f: (-len(f.text), -len(f.evidence), _earliest(f))
     else:
-        key = lambda f: (-len(f.evidence), -len(f.text), _earliest(f))  # noqa: E731
+        key = lambda f: (-len(f.evidence), -len(f.text), _earliest(f))
     survivor, removed = sorted((a, b), key=key)
     merged = normalize_evidence((*survivor.evidence, *removed.evidence))
     return replace(survivor, evidence=merged), removed

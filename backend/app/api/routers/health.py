@@ -17,7 +17,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/healthz", response_model=HealthOut)
-def healthz(container=Depends(deps.get_container)):  # noqa: ANN001, ANN201
+def healthz(container=Depends(deps.get_container)):
     try:
         with container.uow() as unit:
             unit.session.execute(text("SELECT 1"))

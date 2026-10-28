@@ -16,9 +16,19 @@ import openai
 from pydantic import BaseModel, ConfigDict
 
 from app.ai.cost import PriceTable
-from app.ai.errors import AiError, AiPermanentError, AiTransientError, Purpose, to_job_error
+from app.ai.errors import (
+    AiError,
+    AiPermanentError,
+    AiTransientError,
+    Purpose,
+    to_job_error,
+)
 from app.ai.prompts.check import build_check_messages, check_response_format
-from app.ai.prompts.draft import _default_read_image, build_draft_messages, draft_response_format
+from app.ai.prompts.draft import (
+    _default_read_image,
+    build_draft_messages,
+    draft_response_format,
+)
 from app.ai.prompts.select import build_select_messages, select_response_format
 from app.ai.structured import RawCompletion, StructuredCaller
 from app.ai.types import (

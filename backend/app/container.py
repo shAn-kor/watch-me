@@ -19,6 +19,7 @@ from app.clock import Clock, SystemClock
 from app.config import Settings
 from app.db.engine import make_engine, make_session_factory
 from app.db.uow import UnitOfWork, UowFactory, make_uow_factory
+from app.domain.wording import BannedWordMatcher
 from app.pipeline.ffmpeg import FFmpeg
 from app.security.client_ip import ClientIpResolver, IpHasher
 from app.security.cookies import SessionCookieCodec
@@ -26,6 +27,8 @@ from app.security.csrf import CsrfTokenService
 from app.security.passwords import PasswordHasher
 from app.security.ratelimit import InMemorySlidingWindow
 from app.services.auth_service import AuthService
+from app.services.evidence_validator import EvidenceValidator
+from app.services.fact_review_service import FactReviewService
 from app.services.job_queue import JobQueue
 from app.services.views import MediaUrls
 from app.storage.base import Storage
@@ -181,6 +184,15 @@ def build_container(
     # [slot S2] DogService, PublishService, CoverageService, DeletionService
     # [slot S3] SessionService, ClipUploadService, ClipService
     # [slot S4] FactReviewService, EvidenceValidator
+    container.services.evidence_validator = EvidenceValidator()
+    container.services.fact_review_service = FactReviewService(
+        clock=clock,
+        media_urls=container.media_urls,
+        banned=BannedWordMatcher.from_text(
+            settings.banned_words_file.read_text(encoding="utf-8")
+        ),
+        validator=container.services.evidence_validator,
+    )
     # [slot S5] PublicProfileService, MediaAccessService
     # [slot S6] QaService (+ QaLimiter, CostCapGuard, AliasMapper, AnswerRenderer)
     # [slot P] DraftIngestService, MergeService, WordingService, ClipPipelineService, CostService

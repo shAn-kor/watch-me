@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import text
 
-from tests.api._s1_support import csrf
 from tests.api._s4_support import (  # noqa: F401
     code,
     confirm,

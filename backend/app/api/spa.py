@@ -77,7 +77,7 @@ def install_spa(app: FastAPI, directory: Path | None = None) -> SpaShell:
 
 def install_security_headers(app: FastAPI) -> None:
     @app.middleware("http")
-    async def security_headers(request: Request, call_next):  # noqa: ANN001, ANN202
+    async def security_headers(request: Request, call_next):
         response = await call_next(request)
         headers = response.headers
         headers.setdefault("X-Content-Type-Options", "nosniff")
