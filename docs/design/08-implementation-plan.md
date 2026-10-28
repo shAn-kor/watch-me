@@ -121,3 +121,23 @@ any contract change it needs.
 If time runs short, follow PRD section 7: REV-10, then CAP-2, then the QA-1
 per-cookie limit. Safety controls (PUB-0, PUB-9, REV-2, REV-9, QA-2) are
 never cut.
+
+## 7. Phase 0 result (2026-10-28)
+
+Backend: 36 passed, 3 xfail (UT-CFG-02 waits for lane C, UT-ARCH-03 for S1 and
+S6, UT-META-01 for S1 to S6); import-linter 11 contracts kept. Frontend: 6
+tests pass; lint and build pass; `ErrorCode` matches the 28 codes of 01.
+
+Deviations from 06 section 2, now frozen in `backend/pyproject.toml`:
+
+- `ai` may import `app.config` (the registry builds adapters from `Settings`).
+- `api` may import `app.db` (the uow dependency in `deps.py`).
+- Stricter than 06: `ai` may not import security, clock or logging;
+  `pipeline` may not import `app.db`; `repositories` may not import pipeline,
+  ai or storage.
+
+Other Phase 0 choices: enum columns carry CHECKs for every closed set (beyond
+02); the `fact_evidence` length CHECK rounds to 6 decimals; `Situation` lives
+in `domain/enums.py`; Alembic reads `DATABASE_URL` directly; `create_app`
+takes `container=None`; dev backend port 8000; TypeScript pinned to 5.x.
+`login_as` raises until lane S1 replaces it.
