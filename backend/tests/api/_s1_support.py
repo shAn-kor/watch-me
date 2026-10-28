@@ -125,27 +125,37 @@ def build_probe_router() -> APIRouter:
     return router
 
 
+def iter_api_routes(router: Any, prefix: str = ""):
+    """Yield (full_path, APIRoute) for every route, also through include_router
+    wrappers (FastAPI includes routers lazily)."""
+    from fastapi.routing import APIRoute
+
+    for route in router.routes:
+        if isinstance(route, APIRoute):
+            yield prefix + route.path, route
+        elif hasattr(route, "original_router"):
+            inner = prefix + getattr(route.include_context, "prefix", "")
+            yield from iter_api_routes(route.original_router, inner)
+
+
+def uses_principal(dependant: Any) -> bool:
+    from app.api import deps
+
+    return any(
+        sub.call is deps.current_principal or uses_principal(sub)
+        for sub in dependant.dependencies
+    )
+
+
 def creator_unsafe_routes(app: Any) -> list[tuple[str, str]]:
     """(method, path with dummy ids) of every unsafe route under /api that uses the
     creator principal dependency. This is the "route table" of API-CSRF-03."""
-    from fastapi.routing import APIRoute
-
-    from app.api import deps
-
-    def uses_principal(dep: Any) -> bool:
-        for sub in dep.dependencies:
-            if sub.call is deps.current_principal or uses_principal(sub):
-                return True
-        return False
-
     found: list[tuple[str, str]] = []
-    for route in app.routes:
-        if not isinstance(route, APIRoute) or not route.path.startswith("/api/"):
+    for full_path, route in iter_api_routes(app.router):
+        if not full_path.startswith("/api/") or not uses_principal(route.dependant):
             continue
-        if not uses_principal(route.dependant):
-            continue
-        path = route.path
-        for name in route.param_convertors if hasattr(route, "param_convertors") else ():
+        path = full_path
+        for name in route.param_convertors:
             path = path.replace("{" + name + "}", "x" * 32)
         for method in sorted(route.methods & set(UNSAFE)):
             found.append((method, path))

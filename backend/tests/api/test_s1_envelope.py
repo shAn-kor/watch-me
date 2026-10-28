@@ -195,12 +195,7 @@ def test_api_org_01_member_of_org_a_is_allowed(client, probed_app, world, login_
 
 @pytest.mark.xfail(reason="needs lanes S2 to S4: real creator routes with org A ids", strict=False)
 def test_api_org_01_every_real_creator_route(client, probed_app, world, login_as):
-    from fastapi.routing import APIRoute
-
-    from app.api import deps
-
-    def uses_principal(dep):
-        return any(s.call is deps.current_principal or uses_principal(s) for s in dep.dependencies)
+    from tests.api._s1_support import iter_api_routes, uses_principal
 
     ids = {
         "dog_id": world.dog_review.id,
@@ -210,12 +205,12 @@ def test_api_org_01_every_real_creator_route(client, probed_app, world, login_as
     }
     token = login_as(world.staff_b)
     checked = 0
-    for route in probed_app.routes:
-        if not isinstance(route, APIRoute) or "/_t/" in route.path or not route.path.startswith("/api/"):
+    for full_path, route in iter_api_routes(probed_app.router):
+        if "/_t/" in full_path or not full_path.startswith("/api/"):
             continue
-        if not uses_principal(route.dependant) or not any(k in route.path for k in ids):
+        if not uses_principal(route.dependant) or not any(k in full_path for k in ids):
             continue
-        path = route.path
+        path = full_path
         for key, value in ids.items():
             path = path.replace("{" + key + "}", value)
         for method in route.methods - {"HEAD", "OPTIONS"}:
@@ -226,7 +221,10 @@ def test_api_org_01_every_real_creator_route(client, probed_app, world, login_as
 
 
 @pytest.mark.xfail(reason="needs lane S5: /media routes", strict=False)
-def test_api_org_01_media_with_other_org_cookie(client, world, login_as):
+def test_api_org_01_media_with_other_org_cookie(app, client, world, login_as):
+    from tests.api._s1_support import iter_api_routes
+
+    assert any(p.startswith("/media/") for p, _ in iter_api_routes(app.router)), "no media route"
     login_as(world.staff_b)
     r = client.get(f"/media/{world.clips_review[0].id}.mp4")
     assert r.status_code == 404

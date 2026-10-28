@@ -214,7 +214,7 @@ def test_api_auth_06_logout_increments_session_epoch(client, db, world, login_as
     token = login_as(world.vol1)
     before = db.get(Member, world.vol1.id).session_epoch
     assert client.post("/api/auth/logout", headers=csrf(token)).status_code == 204
-    db.expire_all()
+    db.rollback()  # end the old read snapshot
     assert db.get(Member, world.vol1.id).session_epoch == before + 1
 
 

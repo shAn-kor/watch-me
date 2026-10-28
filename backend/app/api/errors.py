@@ -17,7 +17,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
-from starlette.exception_handlers import http_exception_handler as _plain_http_handler
+from fastapi.exception_handlers import http_exception_handler as _plain_http_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.errors import (
