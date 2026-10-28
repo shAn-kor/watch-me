@@ -14,18 +14,22 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.ai.protocols import FactDrafter, FactSelector, Transcriber, WordingChecker
+from app.ai.registry import AiRegistry
 from app.clock import Clock, SystemClock
 from app.config import Settings
 from app.db.engine import make_engine, make_session_factory
 from app.db.uow import UnitOfWork, UowFactory, make_uow_factory
+from app.pipeline.ffmpeg import FFmpeg
 from app.security.client_ip import ClientIpResolver, IpHasher
 from app.security.cookies import SessionCookieCodec
 from app.security.csrf import CsrfTokenService
 from app.security.passwords import PasswordHasher
 from app.security.ratelimit import InMemorySlidingWindow
 from app.services.auth_service import AuthService
+from app.services.job_queue import JobQueue
 from app.services.views import MediaUrls
 from app.storage.base import Storage
+from app.storage.local import LocalStorage
 
 
 @dataclass
@@ -131,10 +135,24 @@ def build_container(
         ai=ai or AiSlots(),
     )
 
-    # [slot B] storage: LocalStorage(settings.storage_root) when `storage` is None
-    # [slot B] security: SessionCookieCodec, CsrfTokenService, RateLimiter, ClientIpResolver
-    # [slot C] ai: AiRegistry.from_settings(settings) when `ai` is None (mock adapters in tests)
-    # [slot D] pipeline: FFmpeg wrapper, JobQueue, JobRunner
+    # [slot B] storage
+    if container.storage is None:
+        container.storage = LocalStorage(settings.storage_root)
+    # [slot B] security: built in the S1 block below
+    # [slot C] ai (tests pass scripted slots)
+    if ai is None:
+        registry = AiRegistry.from_settings(settings)
+        container.ai = AiSlots(
+            transcriber=registry.transcriber(),
+            drafter=registry.drafter(),
+            checker=registry.checker(),
+            selector=registry.selector(),
+        )
+    # [slot D] jobs; the JobRunner is built by the worker (lane P)
+    container.services.job_queue = JobQueue(
+        container.uow_factory, clock, stale_s=settings.job_stale_s
+    )
+    container.pipeline.setdefault("ffmpeg", FFmpeg.from_settings(settings))
     # [slot S1] AuthService. The lane B primitives are not wired anywhere else yet,
     # so this slot builds them into `container.security` (setdefault: a later
     # slot B wiring wins).
