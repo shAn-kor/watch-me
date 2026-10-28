@@ -1,0 +1,25 @@
+{
+  "transcript": {
+    "language": "en",
+    "segments": []
+  },
+  "facts": [
+    {
+      "situation": "indoors_rest",
+      "behavior": "Lay down on the bed within a few seconds.",
+      "source": "clip",
+      "evidence": [
+        {
+          "start_t": 0,
+          "end_t": 3
+        }
+      ]
+    }
+  ],
+  "faults": [
+    {
+      "kind": "transient",
+      "fail_times": 2
+    }
+  ]
+}

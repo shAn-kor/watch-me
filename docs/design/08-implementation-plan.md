@@ -275,3 +275,96 @@ Lane S5 (merged after the list above): backend 696 passed, 10 xfail
 - `ask.enabled` is always `true` in R1. There is no setting for it.
 - Tests that read `/media` for a seeded clip first write the playback file with
   `put_clip_file`. `SeedBuilder` writes no files; the pipeline does that.
+
+## 10. Batch 5 result (2026-10-28)
+
+Lanes FE-P, FE-C and P are merged. Frontend: 245 passed. Backend: see the
+lane P paragraph below. lint-imports: 11 kept.
+
+### Lane FE-P (public screens)
+
+- The not-available page uses h1 "This profile is not available" and
+  `document.title` "Profile not available".
+- The ask box shows the server `heading` and `hint` verbatim.
+- The coverage sentence is built from the numbers.
+- An unknown `banner_id` calls `console.warn`. The banner text is constant.
+- A 429 shows the wait in minutes, rounded up from `Retry-After` (default
+  3600 s). The cost cap shows hours, rounded up.
+- The page has one shared player.
+- The ask section has no `aria-labelledby`, so the label query is not
+  ambiguous.
+- The profile footer links to `/terms`. The FE-STA todo for this link was
+  removed; `PublicProfilePage.test.tsx` covers it.
+
+### Lane FE-C (creator screens)
+
+1. The consent guard applies only to S6, S7 and S8. S0 and S2 to S5 require
+   login only.
+2. A fact added by hand in session scope is a staff note. It does not show in
+   the session list. FE-CRD-06 is checked in dog scope.
+3. "Delete clip" also shows for ready clips while the session is open. This
+   adds to 05.
+4. Dog list row aria-label: `{name}, {status}, clips in N of 8 situations[, N
+   drafts to review]`.
+5. The client does not measure clip length before upload.
+6. The edit sheet adds no history entry.
+7. There is no automatic retry on `csrf_failed`.
+8. Focus moves to the next card title only after confirm or delete. A filter
+   change does not move focus.
+9. The blocked-confirm text for a fact with three ranges is "Watch all ranges
+   to confirm."
+10. The range editor's clip option label is "Clip {n} - {filename} -
+    {length}".
+
+Open contract requests for lane F files (phase 3): `uploadClip` takes no
+`AbortSignal`, so there is no upload cancel button. `pollSession` sends no
+`include=none`, so each poll also fetches the facts.
+
+### Lane P (pipeline)
+
+Backend after the merge: 791 passed, 9 xfail. The 5 lane P xfails (SES-12,
+SES-14, UT-AI-13, UT-AI-14, UT-JOB-14) are gone. New xfails for phase 3:
+metrics `purge_pending` and the three `ai_auth_error` alerts.
+PIPE-TRC-09 passes after the merge with S5. Its URL is now
+`/media/{clip_id}.mp4` (01 section 7), and it runs the whole pipeline first,
+because S5 serves ready clips only.
+
+`unsupported_file` versus `transcode_failed`:
+
+- Unprobeable source, no video stream, or ffmpeg decode errors ("Invalid
+  data", moov atom): `unsupported_file`, no retry.
+- Output shorter than the source by more than max(1 s, 10%):
+  `unsupported_file`.
+- Timeout, kill or no disk space: `transcode_failed`, retryable.
+- Any other nonzero exit: `transcode_failed`, not retried automatically. A
+  manual retry works.
+- Output longer than `max_clip_s` + 0.5 s: `too_long`.
+
+Contracts:
+
+- `DeletionService.__init__` takes optional `uow_factory`, `storage` and
+  `settings` for the purge methods.
+- `app/services/_write_lock.py`: each lane P transaction issues a no-op write
+  first. A deferred SQLite transaction that reads, then writes after another
+  connection committed fails at once with "database is locked";
+  `busy_timeout` does not help. A global `BEGIN IMMEDIATE` in `engine.py` was
+  tried and reverted: 20 tests failed, because an outer transaction that
+  stays open (tests that hold a session, and `independent_session()`) blocks
+  the second writer. Phase 3: decide per call site, or start read-only
+  transactions deferred and writing ones immediate.
+
+Interpretations:
+
+1. The mock fixture key is the stem of the upload filename.
+2. Purge deletes all job rows of the dog, including its own (DEL-01 wins over
+   02 6.1).
+3. `purge_dog` on a dog that is not deleted refuses and does nothing (DEL-09).
+4. If another job for the same dog is running, the purge waits 30 s and its
+   attempts are restored.
+5. Missing frames at the draft step: `transcode_failed`, not retryable.
+6. A clip under 1 s becomes ready with 0 facts and no AI call.
+7. Merge touches only `merged=0` facts. If the worker stops between the merge
+   commit and complete, the check step is skipped. Known gap; phase 3.
+8. E2E-18 and E2E-19 partial cases cannot be reproduced with the 1-fact
+   fixture.
+9. The RET-02 test calls the private `_enqueue_daily_sweep`.

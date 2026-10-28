@@ -64,12 +64,14 @@ def test_ut_ai_13_base_ai_error_is_permanent():
     assert (j.code, j.retryable) == ("ai_failed", False)
 
 
-@pytest.mark.xfail(
-    reason="ffmpeg timeout / non-zero exit mapping (transcode_failed) belongs to lane D (pipeline/ffmpeg.py)",
-    strict=True,
-)
-def test_ut_ai_13_ffmpeg_cases_belong_to_lane_d():
-    pytest.fail("ffmpeg JobError mapping is lane D")
+def test_ut_ai_13_ffmpeg_cases_map_to_transcode_failed():
+    from app.pipeline.ffmpeg import FFmpegError, ffmpeg_error_to_job_error
+
+    for kind in ("timeout", "killed", "disk_full"):
+        err = ffmpeg_error_to_job_error(FFmpegError(kind, "x"))
+        assert (err.code, err.retryable) == ("transcode_failed", True), kind
+    err = ffmpeg_error_to_job_error(FFmpegError("exit", "bad", returncode=1))
+    assert (err.code, err.retryable) == ("transcode_failed", False)
 
 
 # --------------------------------------------------------------------- AI-14
@@ -86,12 +88,39 @@ def test_ut_ai_14_every_check_error_is_one_catchable_job_error(err):
     assert flag.severity == "info"
 
 
-@pytest.mark.xfail(
-    reason="the check handler (flags on failure, session continues) is lane P (pipeline/handlers/check.py)",
-    strict=True,
-)
 def test_ut_ai_14_check_handler_sets_check_unavailable():
-    pytest.fail("handler logic is lane P")
+    """The handler half: a checker failure never fails the session. The wording
+    service sets `check_unavailable` and the handler still marks `review_ready`;
+    after the retries are used up the final-failure hook does the same."""
+    from types import SimpleNamespace
+
+    from app.pipeline.handlers.check import CheckHandler
+    from app.services.views import JobView
+
+    calls: list[tuple] = []
+    wording = SimpleNamespace(
+        apply_model_flags=lambda sid, ids, checker: calls.append(("flags", sid, list(ids))),
+        mark_check_unavailable=lambda sid, ids: calls.append(("unavailable", sid, list(ids))),
+    )
+    sessions = SimpleNamespace(
+        mark_review_ready=lambda sid: calls.append(("ready", sid)),
+        mark_failed=lambda *a, **k: calls.append(("failed", a)),
+    )
+    ctx = SimpleNamespace(
+        services=SimpleNamespace(wording_service=wording, session_service=sessions),
+        ai=SimpleNamespace(checker=object()),
+    )
+    job = JobView(
+        id=1, type="check", payload={"session_id": "s1", "fact_ids": ["f1", "f2"]},
+        dog_id="d1", session_id="s1", clip_id=None, dedupe_key=None, attempts=1, max_attempts=2,
+    )
+    handler = CheckHandler()
+    handler.handle(job, ctx)
+    assert calls == [("flags", "s1", ["f1", "f2"]), ("ready", "s1")]
+    calls.clear()
+    handler.on_final_failure(job, JobError("ai_failed", False), ctx)
+    assert calls == [("unavailable", "s1", ["f1", "f2"]), ("ready", "s1")]
+    assert not any(c[0] == "failed" for c in calls)
 
 
 # ---------------------------------------------------------------- registry
