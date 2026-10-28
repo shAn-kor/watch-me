@@ -157,6 +157,17 @@ class FactReviewService:
             views.append(self._view(uow, principal, row))
         return views
 
+    def ensure_visible(self, uow: UnitOfWork, principal: Principal, fact_id: str) -> None:
+        """Raise `not_found` unless the fact is visible to the member. The router runs
+        this before body validation, so an id from another org is `not_found`
+        whatever the body holds (I-21)."""
+        self._load(FactRepository(uow.session), principal, fact_id)
+
+    def ensure_dog_visible(self, uow: UnitOfWork, principal: Principal, dog_id: str) -> None:
+        dog = FactRepository(uow.session).get_dog_in_org(dog_id, principal.org_id)
+        if dog is None or dog.status == "deleted":
+            raise NotFound()
+
     # --------------------------------------------------------------- playback
 
     def record_playback(
