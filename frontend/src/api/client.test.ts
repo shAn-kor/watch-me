@@ -21,8 +21,10 @@ class FakeTransport implements ApiTransport {
     this.uploads.push(req);
     return this.next;
   }
-  get last() {
-    return this.requests[this.requests.length - 1];
+  get last(): TransportRequest {
+    const r = this.requests[this.requests.length - 1];
+    if (!r) throw new Error("no request");
+    return r;
   }
 }
 
@@ -81,12 +83,12 @@ describe("FE-API ApiClient", () => {
     const c = new ApiClient(t, { getCsrfToken: () => "tok-1" });
     const file = new File(["x"], "a.mp4", { type: "video/mp4" });
     await c.uploadClip("s1", file, { clientRequestId: "r1" });
-    expect(t.uploads[0].headers?.["X-CSRF-Token"]).toBe("tok-1");
-    expect(t.uploads[0].field).toBe("file");
-    expect(t.uploads[0].fields).toEqual({ client_request_id: "r1" });
+    expect(t.uploads[0]!.headers?.["X-CSRF-Token"]).toBe("tok-1");
+    expect(t.uploads[0]!.field).toBe("file");
+    expect(t.uploads[0]!.fields).toEqual({ client_request_id: "r1" });
     await c.uploadDogPhoto("d1", file);
-    expect(t.uploads[1].field).toBe("photo");
-    expect(t.uploads[1].method).toBe("PUT");
+    expect(t.uploads[1]!.field).toBe("photo");
+    expect(t.uploads[1]!.method).toBe("PUT");
   });
 
   it("FE-API-01 JSON bodies are sent for body-less POSTs", async () => {

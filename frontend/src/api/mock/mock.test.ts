@@ -16,7 +16,7 @@ async function staff(scenario = "happy") {
 
 async function firstDog(c: ApiClient): Promise<DogDetailResponse> {
   const list = await c.listDogs();
-  return c.getDog(list.dogs[0].dog.id);
+  return c.getDog(list.dogs[0]!.dog.id);
 }
 
 const code = async (p: Promise<unknown>) =>
@@ -111,7 +111,7 @@ describe("FE-MCK-01 mock mode never touches fetch", () => {
     expect((await code(c.login("x@y.z", "nope")))?.code).toBe("invalid_credentials");
 
     await c.login(MOCK_ACCOUNTS.volunteer.email, MOCK_ACCOUNTS.volunteer.password);
-    const dogId = (await c.listDogs()).dogs[0].dog.id;
+    const dogId = (await c.listDogs()).dogs[0]!.dog.id;
     const body = { situations: ["handling" as const], capture_rules_ack: true };
     expect((await code(c.createSession(dogId, body)))?.code).toBe("consent_required");
     await c.acceptConsent("2026-10-28");
@@ -126,7 +126,7 @@ describe("FE-MCK-01 mock mode never touches fetch", () => {
   it("a volunteer cannot publish", async () => {
     const c = createMockClient();
     await c.login(MOCK_ACCOUNTS.volunteer.email, MOCK_ACCOUNTS.volunteer.password);
-    const dogId = (await c.listDogs()).dogs[0].dog.id;
+    const dogId = (await c.listDogs()).dogs[0]!.dog.id;
     expect((await code(c.publishDog(dogId)))?.code).toBe("forbidden_role");
   });
 });
@@ -221,11 +221,11 @@ describe("FE-MCK-02 mock scenarios", () => {
     const c = await staff("playback_required");
     const d = await firstDog(c);
     const fact = d.facts.find((f) => f.status === "draft" && f.evidence.length >= 1)!;
-    const ev = fact.evidence[0];
+    const ev = fact.evidence[0]!;
     const e = await code(
       c.playbackComplete(fact.id, { evidence_id: ev.id, position_s: ev.start_s, watched_s: 0 }),
     );
     expect(e?.code).toBe("validation_error");
-    expect(e?.details.fields?.[0].problem).toBe("range_not_completed");
+    expect(e?.details.fields?.[0]?.problem).toBe("range_not_completed");
   });
 });

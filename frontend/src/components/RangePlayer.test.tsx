@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RangePlayer } from "./RangePlayer";
 import {
@@ -60,7 +60,7 @@ describe("FE-PLY RangePlayer", () => {
     tick(v, 21);
     expect(fakeVideo.pause).toHaveBeenCalledTimes(1);
     expect(onRangeComplete).toHaveBeenCalledTimes(1);
-    const arg = onRangeComplete.mock.calls[0][0];
+    const arg = onRangeComplete.mock.calls[0]![0];
     expect(arg.positionS).toBeCloseTo(21, 1);
     expect(arg.watchedS).toBeCloseTo(9, 1);
   });
@@ -130,9 +130,9 @@ describe("FE-PLY RangePlayer", () => {
     const vb = video(b.container);
     fireEvent.loadedMetadata(va);
     fireEvent.loadedMetadata(vb);
-    fireEvent.click(a.getByRole("button", { name: "Play" }));
+    fireEvent.click(within(a.container).getByRole("button", { name: "Play" }));
     expect(va.paused).toBe(false);
-    fireEvent.click(b.getByRole("button", { name: "Play" }));
+    fireEvent.click(within(b.container).getByRole("button", { name: "Play" }));
     expect(va.paused).toBe(true);
     expect(vb.paused).toBe(false);
     expect(vb.currentTime).toBe(30);

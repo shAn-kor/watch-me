@@ -25,7 +25,7 @@ describe("HttpTransport.request", () => {
       body: { a: 1 },
       headers: { "X-CSRF-Token": "t" },
     });
-    const [url, init] = f.mock.calls[0];
+    const [url, init] = f.mock.calls[0]!;
     expect(url).toBe("/api/x");
     expect(init.method).toBe("POST");
     expect(init.credentials).toBe("same-origin");

@@ -24,7 +24,23 @@ const EDGE_S = 0.25;
  * Video element for one evidence range (05 section 4, 06 section 6.3). Own
  * controls only: the native scrubber could leave the range.
  */
-export function RangePlayer({
+export function RangePlayer(props: RangePlayerProps) {
+  // A new source or range gets a fresh tracker and fresh state.
+  return (
+    <RangePlayerInner key={`${props.src}|${props.startS}|${props.endS}`} {...props} />
+  );
+}
+
+function setTrackMode(v: HTMLVideoElement | null, on: boolean): void {
+  const tracks = v?.textTracks;
+  if (!tracks) return;
+  for (let i = 0; i < tracks.length; i++) {
+    const t = tracks[i];
+    if (t) t.mode = on ? "showing" : "hidden";
+  }
+}
+
+function RangePlayerInner({
   src,
   captionsSrc,
   startS,
@@ -34,11 +50,13 @@ export function RangePlayer({
   onProgress,
 }: RangePlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const tracker = useRef<RangeTracker>(new RangeTracker(startS, endS));
+  const [tracker] = useState(() => new RangeTracker(startS, endS));
   const stopped = useRef(false);
   const raf = useRef<number | null>(null);
   const cb = useRef({ onRangeComplete, onProgress });
-  cb.current = { onRangeComplete, onProgress };
+  useEffect(() => {
+    cb.current = { onRangeComplete, onProgress };
+  });
 
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -46,16 +64,6 @@ export function RangePlayer({
   const [position, setPosition] = useState(startS);
   const [captionsOn, setCaptionsOn] = useState(true);
   const [muted, setMuted] = useState(false);
-
-  // A new range or source starts a new tracker.
-  useEffect(() => {
-    tracker.current = new RangeTracker(startS, endS);
-    stopped.current = false;
-    setReady(false);
-    setPlaying(false);
-    setFinished(false);
-    setPosition(startS);
-  }, [src, startS, endS]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -70,7 +78,7 @@ export function RangePlayer({
     const v = videoRef.current;
     if (!v) return;
     const t = v.currentTime;
-    const tr = tracker.current;
+    const tr = tracker;
     tr.onTimeUpdate(t);
     setPosition(Math.min(Math.max(t, startS), endS));
     cb.current.onProgress?.(t);
@@ -83,7 +91,7 @@ export function RangePlayer({
       const done = tr.takeCompletion();
       if (done) cb.current.onRangeComplete?.(done);
     }
-  }, [startS, endS]);
+  }, [startS, endS, tracker]);
 
   // Frame-level stop check while playing (05 P3); timeupdate is the backup.
   useEffect(() => {
@@ -117,7 +125,7 @@ export function RangePlayer({
     if (t < startS - 0.05) target = startS;
     else if (t > endS + 0.05) target = endS;
     if (target !== t) v.currentTime = target;
-    tracker.current.onSeek(target);
+    tracker.onSeek(target);
     if (target < endS) stopped.current = false;
     setFinished(false);
     setPosition(target);
@@ -141,7 +149,7 @@ export function RangePlayer({
   };
 
   const onPause = () => {
-    tracker.current.onPause();
+    tracker.onPause();
     setPlaying(false);
   };
 
@@ -153,9 +161,9 @@ export function RangePlayer({
       return;
     }
     if (v.currentTime < startS - EDGE_S || v.currentTime >= endS - 0.05) {
-      if (finished) tracker.current.rearm();
+      if (finished) tracker.rearm();
       v.currentTime = startS;
-      tracker.current.onSeek(startS);
+      tracker.onSeek(startS);
       setFinished(false);
       setPosition(startS);
     }
@@ -166,12 +174,7 @@ export function RangePlayer({
   const toggleCaptions = () => {
     const next = !captionsOn;
     setCaptionsOn(next);
-    const tracks = videoRef.current?.textTracks;
-    if (tracks) {
-      for (let i = 0; i < tracks.length; i++) {
-        tracks[i].mode = next ? "showing" : "hidden";
-      }
-    }
+    setTrackMode(videoRef.current, next);
   };
 
   const toggleSound = () => {
@@ -186,7 +189,7 @@ export function RangePlayer({
     if (!v) return;
     const t = Math.min(Math.max(Number(e.target.value), startS), endS);
     v.currentTime = t;
-    tracker.current.onSeek(t);
+    tracker.onSeek(t);
     setPosition(t);
   };
 
