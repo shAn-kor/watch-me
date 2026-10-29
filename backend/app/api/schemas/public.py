@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.schemas.vocab import AskOutcome, FactSource, Sex, SituationCode, Size
 from app.services.public_profile_service import PublicProfile
@@ -93,10 +93,12 @@ class AskOut(BaseModel):
 
     outcome: AskOutcome
     heading: str
-    hint: str | None = None
+    # Absent (never null) unless the outcome defines it; the router dumps with
+    # `exclude_unset=True`, so the `None` defaults below are never serialized.
+    hint: str = Field(default=None)  # type: ignore[assignment]
     lines: list[AnswerLineOut]
     cited_fact_ids: list[str]
-    contact: ContactOut | None = None
+    contact: ContactOut = Field(default=None)  # type: ignore[assignment]
     limits: LimitsOut
 
     @classmethod

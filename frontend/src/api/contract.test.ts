@@ -17,29 +17,13 @@ type Widen<T> = T extends string
     : T extends object
       ? { [K in keyof T]: Widen<T[K]> }
       : T;
-/**
- * KNOWN DRIFT (backend side): `created_at`, `as_of` and `confirmed.at` are typed `str | None`
- * in the backend schemas, but 01 and 02 say they are always set and the data
- * never holds null. We compare without that null so the rest stays strict.
- * Remove the patch once the backend types them `str` (reported to the lead).
- */
-type NonNullKeys = "created_at" | "as_of" | "at";
-type Patched<T> = T extends readonly (infer U)[]
-  ? Patched<U>[]
-  : T extends object
-    ? {
-        [K in keyof T]: K extends NonNullKeys
-          ? Patched<NonNullable<T[K]>>
-          : Patched<T[K]>;
-      }
-    : T;
 type Eq<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 /**
  * `H` is the hand-written type, `G` the generated one. Same keys, optionality,
  * nullability and nesting (enums widened), and every `H` value is a valid `G`
  * value (so a backend `Literal` that lacks one of our values fails).
  */
-type Same<H, G0, G = Patched<G0>> = Eq<Widen<H>, Widen<G>> extends true
+type Same<H, G> = Eq<Widen<H>, Widen<G>> extends true
   ? [H] extends [G]
     ? true
     : false
@@ -86,6 +70,9 @@ describe("FE-API-05 contract drift (checked by tsc)", () => {
     ok<Same<T.FactResponse, Ok<Get<"/api/facts/{fact_id}", "patch">>>>();
     ok<Same<T.MetricsResponse, Ok<Get<"/api/admin/metrics", "get">>>>();
     ok<Same<T.HealthResponse, Ok<Get<"/healthz", "get">>>>();
+    ok<Same<T.PublicProfile, Ok<Get<"/api/public/dogs/{slug}", "get">>>>();
+    ok<Same<T.QaAnswer, Ok<Get<"/api/public/dogs/{slug}/ask", "post">>>>();
+    ok<Same<T.SessionDetailResponse, Ok<Get<"/api/sessions/{session_id}", "get">>>>();
     expect(true).toBe(true);
   });
 
