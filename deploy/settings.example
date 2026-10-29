@@ -1,0 +1,125 @@
+# Watch Me! settings. Copy to deploy/settings (git-ignored, never commit it) and replace every placeholder.
+# Source of truth: backend/app/config.py (class Settings). Names are case-insensitive.
+# Values shown are the code defaults unless marked REQUIRED or CHANGE.
+# Format: KEY=value, one per line, no quotes (docker compose env_file).
+
+# --- proxy (read by docker-compose.yml and deploy/Caddyfile, not by the app)
+SITE_ADDRESS=watchme.example.org
+
+# --- runtime
+APP_ENV=prod
+# REQUIRED. At least 32 bytes. Generate: python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+SECRET_KEY=CHANGE_ME_at_least_32_bytes_random
+# REQUIRED. Non-empty random string used to hash client IPs.
+IP_HASH_KEY=CHANGE_ME_random_string
+# The image sets these two so the data lands on the /data volume. Keep as is.
+DATABASE_URL=sqlite:////data/watchme.db
+STORAGE_ROOT=/data/storage
+PUBLIC_BASE_URL=https://watchme.example.org
+# Must be true when APP_ENV=prod.
+COOKIE_SECURE=true
+SESSION_MAX_AGE_S=604800
+# true behind Caddy: the api then reads the last X-Forwarded-For hop.
+TRUSTED_PROXY=true
+CONSENT_VERSION=2026-10-28
+LOG_LEVEL=INFO
+
+# --- uploads and media
+MAX_CLIP_BYTES=209715200
+MAX_CLIP_S=120.0
+CLIP_DURATION_TOLERANCE_S=0.5
+MAX_CLIPS_PER_SESSION=3
+ALLOWED_EXTENSIONS=.mp4,.mov
+MAX_PHOTO_BYTES=8388608
+PHOTO_MAX_SIDE_PX=1600
+FFMPEG_BIN=ffmpeg
+FFPROBE_BIN=ffprobe
+FFPROBE_TIMEOUT_S=10
+KEEP_ORIGINALS=false
+
+# --- job timeouts (seconds)
+TRANSCODE_TIMEOUT_S=600
+TRANSCRIBE_TIMEOUT_S=180
+SAMPLE_TIMEOUT_S=180
+DRAFT_TIMEOUT_S=180
+CHECK_TIMEOUT_S=180
+MERGE_TIMEOUT_S=60
+PURGE_CLIP_TIMEOUT_S=120
+PURGE_DOG_TIMEOUT_S=300
+SWEEP_TIMEOUT_S=60
+
+# --- drafting
+DRAFT_MODE=frames
+FRAME_MAX_COUNT=48
+SEGMENT_LEN_S=10
+
+# --- AI adapters
+# transcriber: mock | local_whisper | muse_transcribe
+AI_TRANSCRIBER=mock
+# drafter: mock | openai_compat
+AI_DRAFTER=mock
+# checker: mock | rules | openai_compat
+AI_CHECKER=rules
+# selector: mock | openai_compat
+AI_SELECTOR=mock
+AI_BASE_URL=https://api.meta.ai/v1
+AI_MODEL=muse-spark-1.3
+# Needed when any adapter above is not mock/rules. Leave empty while all are mock/rules.
+# AI_API_KEY=
+# Per-role overrides. Uncomment and set only to override the shared values.
+# AI_TRANSCRIBER_BASE_URL=
+# AI_TRANSCRIBER_MODEL=
+# AI_TRANSCRIBER_API_KEY=
+# AI_DRAFTER_BASE_URL=
+# AI_DRAFTER_MODEL=
+# AI_DRAFTER_API_KEY=
+# AI_CHECKER_BASE_URL=
+# AI_CHECKER_MODEL=
+# AI_CHECKER_API_KEY=
+# AI_SELECTOR_BASE_URL=
+# AI_SELECTOR_MODEL=
+# AI_SELECTOR_API_KEY=
+AI_TIMEOUT_S=75
+AI_STREAM=false
+AI_SCHEMA_STRICT=true
+AI_ALLOW_CONTRIBUTOR_MODEL=false
+# File settings default to paths inside the image. Uncomment only to override.
+# AI_PRICES_FILE=/app/backend/app/ai/prices.json
+# AI_MOCK_FIXTURES_DIR=fixtures/
+# BANNED_WORDS_FILE=/app/backend/config/banned_words.txt
+# HEALTH_KEYWORDS_FILE=/app/backend/config/health_keywords.txt
+
+# --- Q&A
+QA_DAILY_USD_CAP=3.00
+QA_MAX_FACTS=5
+QA_QUESTION_MIN_CHARS=3
+QA_QUESTION_MAX_CHARS=300
+QA_LIMIT_PER_HOUR=10
+
+# --- rate limits
+RATE_LOGIN_PER_IP=10
+RATE_LOGIN_PER_EMAIL=5
+RATE_WRITES_PER_MEMBER_MIN=120
+RATE_UPLOADS_PER_MEMBER_HOUR=20
+RATE_PUBLIC_PER_IP_MIN=120
+RATE_MEDIA_PER_IP_MIN=600
+
+# --- worker and retention
+WORKER_POLL_S=2.0
+JOB_STALE_S=600
+JOB_RETENTION_DAYS=14
+QA_QUESTION_RETENTION_DAYS=30
+QA_ROW_RETENTION_DAYS=90
+TMP_MAX_AGE_H=6
+
+# --- seed tool only (backend/tools/seed.py). Used once; remove the two passwords afterwards.
+SEED_ORG_NAME=Example Shelter
+SEED_ORG_COUNTRY=KR
+SEED_ORG_LOCATION=Seoul
+# SEED_ORG_CONTACT_URL=https://example.org/contact  (at least one contact is needed)
+SEED_ORG_CONTACT_EMAIL=contact@example.org
+# SEED_ORG_CONTACT_PHONE=
+SEED_STAFF_EMAIL=staff@example.org
+SEED_STAFF_PASSWORD=CHANGE_ME_staff_password
+SEED_VOLUNTEER_EMAIL=volunteer@example.org
+SEED_VOLUNTEER_PASSWORD=CHANGE_ME_volunteer_password

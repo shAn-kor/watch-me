@@ -1,0 +1,39 @@
+# ADR-0027: one app container (api + worker), one data volume, Caddy for TLS.
+# Usage: copy deploy/settings.example to deploy/settings, fill it in, then
+#   docker compose --env-file deploy/settings up -d
+services:
+  app:
+    image: watch-me:latest
+    build:
+      context: .
+      platforms:
+        - linux/arm64
+    restart: unless-stopped
+    env_file: deploy/settings
+    volumes:
+      - watchme-data:/data
+    expose:
+      - "8000"
+    init: false # the image already runs tini
+    stop_grace_period: 30s
+
+  caddy:
+    image: caddy:2.10.0-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?run docker compose with --env-file deploy/settings}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  watchme-data:
+  caddy-data:
+  caddy-config:

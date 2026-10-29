@@ -1,0 +1,24 @@
+# TLS reverse proxy (ADR-0027 host: one VM). Caddy gets and renews the certificate itself.
+# SITE_ADDRESS is a DNS name that points at the VM (for example watchme.example.org).
+# For a local smoke test use SITE_ADDRESS=:80 (plain HTTP, no certificate).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# 01 section 5.3: clip limit is 200 MiB, so the proxy must accept at least 210 MiB.
+	# Without this the proxy would answer its own 413 before the api can.
+	request_body {
+		max_size 220MiB
+	}
+
+	reverse_proxy app:8000 {
+		# The api reads the last X-Forwarded-For hop when TRUSTED_PROXY=true.
+		header_up X-Forwarded-For {remote_host}
+		health_uri /healthz
+		health_interval 30s
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
