@@ -440,8 +440,8 @@ export interface SessionResponse {
 export interface SessionDetailResponse {
   session: Session;
   clips: Clip[];
-  /** Absent when requested with `include=none`. */
-  facts?: Fact[];
+  /** Empty when requested with `include=none`. */
+  facts: Fact[];
   progress: {
     clips_total: number;
     clips_ready: number;
@@ -522,7 +522,7 @@ export interface PublicDog {
   sex: DogSex;
   age_estimate: string;
   size: DogSize;
-  location: string;
+  location: string | null;
   photo_url: string | null;
   published_at: Timestamp;
 }
