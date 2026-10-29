@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer
 
-from app.api.schemas.auth import iso_z
+from app.api.schemas.auth import iso_z, iso_z_required
+from app.api.schemas.vocab import ClipFailCode, ClipStatus, ClipStep
 from app.services.clip_service import ClipDeleteResult
 from app.services.clip_upload_service import UploadResult
 from app.services.views import ClipView
@@ -15,6 +16,12 @@ from app.services.views import ClipView
 UtcZ = Annotated[
     datetime | None,
     PlainSerializer(iso_z, return_type=str | None, when_used="always"),
+]
+
+
+UtcZRequired = Annotated[
+    datetime,
+    PlainSerializer(iso_z_required, return_type=str, when_used="always"),
 ]
 
 
@@ -35,13 +42,13 @@ class ClipOut(BaseModel):
     original_size_bytes: int
     duration_s: float
     has_audio: bool
-    status: str
-    step: str | None
-    fail_code: str | None
+    status: ClipStatus
+    step: ClipStep | None
+    fail_code: ClipFailCode | None
     error: ClipErrorOut | None
     media_url: str | None
     captions_url: str | None
-    created_at: UtcZ
+    created_at: UtcZRequired
     ready_at: UtcZ
 
     @classmethod
@@ -68,7 +75,7 @@ class UploadOut(BaseModel):
 
 class ClipDeleteOut(BaseModel):
     clip_id: str
-    purge: str
+    purge: Literal["queued"]
     facts_deleted: int
     facts_demoted: int
 

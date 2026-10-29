@@ -6,9 +6,22 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-from app.api.schemas.auth import iso_z
+from app.api.schemas.auth import iso_z, iso_z_required
 from app.api.schemas.clips import ClipOut
 from app.api.schemas.facts import ClipLengthOut, EvidenceOut, FlagOut
+from app.api.schemas.vocab import (
+    BlockedReason,
+    DogStatus,
+    FactOrigin,
+    FactSource,
+    FactStatus,
+    RoleName,
+    SessionFailCode,
+    SessionStatus,
+    Sex,
+    SituationCode,
+    Size,
+)
 from app.domain.coverage import Coverage
 from app.services.coverage_service import ShortCoverage
 from app.services.dog_service import (
@@ -20,8 +33,6 @@ from app.services.dog_service import (
 from app.services.publish_service import ChecklistView, PublishResult
 from app.services.views import FactView
 
-Sex = Literal["male", "female", "unknown"]
-Size = Literal["small", "medium", "large"]
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
 Age = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
 Location = Annotated[str, StringConstraints(max_length=120)]
@@ -71,16 +82,16 @@ class ChecklistIn(BaseModel):
 class DogOut(BaseModel):
     id: str
     name: str
-    sex: str
+    sex: Sex
     age_estimate: str
-    size: str
+    size: Size
     location: str | None
     photo_url: str | None
-    status: str
+    status: DogStatus
     public_slug: str | None
     public_path: str | None
     created_by: str
-    created_at: str | None
+    created_at: str
     published_at: str | None
     adopted_at: str | None
 
@@ -98,7 +109,7 @@ class DogOut(BaseModel):
             public_slug=v.public_slug,
             public_path=v.public_path,
             created_by=v.created_by,
-            created_at=iso_z(v.created_at),
+            created_at=iso_z_required(v.created_at),
             published_at=iso_z(v.published_at),
             adopted_at=iso_z(v.adopted_at),
         )
@@ -148,7 +159,7 @@ class DogListOut(BaseModel):
 
 
 class SituationCoverageOut(BaseModel):
-    situation: str
+    situation: SituationCode
     label: str
     covered: bool
     clip_count: int
@@ -157,7 +168,7 @@ class SituationCoverageOut(BaseModel):
 
 
 class NotObservedOut(BaseModel):
-    situation: str
+    situation: SituationCode
     label: str
 
 
@@ -219,11 +230,11 @@ class SessionOut(BaseModel):
     dog_id: str
     member_id: str
     owner_name: str
-    situations: list[str]
+    situations: list[SituationCode]
     observed_on: str
-    status: str
-    fail_code: str | None
-    created_at: str | None
+    status: SessionStatus
+    fail_code: SessionFailCode | None
+    created_at: str
     submitted_at: str | None
     review_ready_at: str | None
     clip_count: int
@@ -241,7 +252,7 @@ class SessionOut(BaseModel):
             observed_on=v.observed_on.isoformat(),
             status=v.status,
             fail_code=v.fail_code,
-            created_at=iso_z(v.created_at),
+            created_at=iso_z_required(v.created_at),
             submitted_at=iso_z(v.submitted_at),
             review_ready_at=iso_z(v.review_ready_at),
             clip_count=v.clip_count,
@@ -253,19 +264,19 @@ class SessionOut(BaseModel):
 class ConfirmedOut(BaseModel):
     by_member_id: str
     by_name: str
-    role: str
-    at: str | None
+    role: RoleName
+    at: str
 
 
 class FactOut(BaseModel):
     id: str
     dog_id: str
     session_id: str | None
-    situation: str
+    situation: SituationCode
     behavior: str
-    source: str
-    origin: str
-    status: str
+    source: FactSource
+    origin: FactOrigin
+    status: FactStatus
     flags: list[FlagOut]
     observed_on: str
     evidence: list[EvidenceOut]
@@ -273,7 +284,7 @@ class FactOut(BaseModel):
     confirmed: ConfirmedOut | None
     created_by: str | None
     can_confirm: bool
-    blocked_reason: str | None
+    blocked_reason: BlockedReason | None
 
     @classmethod
     def from_view(cls, v: FactView) -> FactOut:
@@ -295,7 +306,7 @@ class FactOut(BaseModel):
                     by_member_id=v.confirmed.by_member_id,
                     by_name=v.confirmed.by_name,
                     role=v.confirmed.role,
-                    at=iso_z(v.confirmed.at),
+                    at=iso_z_required(v.confirmed.at),
                 )
                 if v.confirmed
                 else None
@@ -337,5 +348,5 @@ class PublishOut(BaseModel):
 
 class DeleteOut(BaseModel):
     dog_id: str
-    status: str
-    purge: str
+    status: Literal["deleted"]
+    purge: Literal["queued"]

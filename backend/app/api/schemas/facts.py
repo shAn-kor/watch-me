@@ -8,7 +8,17 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.api.schemas.auth import iso_z
+from app.api.schemas.auth import iso_z_required
+from app.api.schemas.vocab import (
+    BlockedReason,
+    FactOrigin,
+    FactSource,
+    FactStatus,
+    FlagCode,
+    FlagSeverity,
+    FlagSource,
+    RoleName,
+)
 from app.services.fact_review_service import PlaybackResult
 from app.services.views import FactView
 
@@ -35,7 +45,7 @@ class PlaybackOut(BaseModel):
         return cls(
             fact_id=r.fact_id,
             evidence_id=r.evidence_id,
-            completed_at=iso_z(r.completed_at) or "",
+            completed_at=iso_z_required(r.completed_at),
             all_ranges_played=r.all_ranges_played,
         )
 
@@ -82,9 +92,9 @@ class FactCreateIn(BaseModel):
 class FlagOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    code: str
-    severity: str
-    source: str
+    code: FlagCode
+    severity: FlagSeverity
+    source: FlagSource
     detail: str
 
 
@@ -111,7 +121,7 @@ class ClipLengthOut(BaseModel):
 class ConfirmedOut(BaseModel):
     by_member_id: str
     by_name: str
-    role: str
+    role: RoleName
     at: str
 
 
@@ -119,11 +129,11 @@ class FactOut(BaseModel):
     id: str
     dog_id: str
     session_id: str | None
-    situation: str
+    situation: SituationCode
     behavior: str
-    source: str
-    origin: str
-    status: str
+    source: FactSource
+    origin: FactOrigin
+    status: FactStatus
     flags: list[FlagOut]
     observed_on: str
     evidence: list[EvidenceOut]
@@ -131,7 +141,7 @@ class FactOut(BaseModel):
     confirmed: ConfirmedOut | None
     created_by: str | None
     can_confirm: bool
-    blocked_reason: str | None
+    blocked_reason: BlockedReason | None
 
     @classmethod
     def from_view(cls, v: FactView) -> FactOut:
@@ -151,7 +161,7 @@ class FactOut(BaseModel):
             confirmed=(
                 ConfirmedOut(
                     by_member_id=v.confirmed.by_member_id, by_name=v.confirmed.by_name,
-                    role=v.confirmed.role, at=iso_z(v.confirmed.at) or "",
+                    role=v.confirmed.role, at=iso_z_required(v.confirmed.at),
                 )
                 if v.confirmed
                 else None

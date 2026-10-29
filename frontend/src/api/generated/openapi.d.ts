@@ -492,10 +492,68 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnswerLineOut */
+        AnswerLineOut: {
+            clip_length: components["schemas"]["ClipLengthOut"];
+            /** Confirmed By Label */
+            confirmed_by_label: string;
+            /** Evidence */
+            evidence: components["schemas"]["app__api__schemas__public__EvidenceOut"][];
+            /** Fact Id */
+            fact_id: string;
+            notice: components["schemas"]["NoticeOut"] | null;
+            /**
+             * Observed On
+             * Format: date
+             */
+            observed_on: string;
+            /**
+             * Situation
+             * @enum {string}
+             */
+            situation: "new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats";
+            /** Situation Label */
+            situation_label: string;
+            /** Source Label */
+            source_label: string;
+            /** Text */
+            text: string;
+        };
         /** AskIn */
         AskIn: {
             /** Question */
             question: string;
+        };
+        /** AskInfoOut */
+        AskInfoOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Limit Per Hour */
+            limit_per_hour: number;
+            /** Max Question Chars */
+            max_question_chars: number;
+        };
+        /**
+         * AskOut
+         * @description `hint` and `contact` exist only for the outcomes that define them, so the
+         *     router dumps with `exclude_unset=True`.
+         */
+        AskOut: {
+            /** Cited Fact Ids */
+            cited_fact_ids: string[];
+            contact?: components["schemas"]["ContactOut"];
+            /** Heading */
+            heading: string;
+            /** Hint */
+            hint?: string;
+            limits: components["schemas"]["app__api__schemas__public__LimitsOut"];
+            /** Lines */
+            lines: components["schemas"]["AnswerLineOut"][];
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "answered" | "not_observed" | "health_redirect";
         };
         /** Body_put_photo_api_dogs__dog_id__photo_put */
         Body_put_photo_api_dogs__dog_id__photo_put: {
@@ -546,8 +604,11 @@ export interface components {
             facts_deleted: number;
             /** Facts Demoted */
             facts_demoted: number;
-            /** Purge */
-            purge: string;
+            /**
+             * Purge
+             * @constant
+             */
+            purge: "queued";
         };
         /** ClipEnvelope */
         ClipEnvelope: {
@@ -574,12 +635,12 @@ export interface components {
             /** Captions Url */
             captions_url: string | null;
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Duration S */
             duration_s: number;
             error: components["schemas"]["ClipErrorOut"] | null;
             /** Fail Code */
-            fail_code: string | null;
+            fail_code: ("unsupported_file" | "too_long" | "transcode_failed" | "ai_failed" | "ai_invalid_output") | null;
             /** Has Audio */
             has_audio: boolean;
             /** Id */
@@ -596,10 +657,13 @@ export interface components {
             ready_at: string | null;
             /** Session Id */
             session_id: string;
-            /** Status */
-            status: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uploaded" | "processing" | "ready" | "failed";
             /** Step */
-            step: string | null;
+            step: ("transcode" | "transcribe" | "sample" | "draft") | null;
         };
         /** ConfirmIn */
         ConfirmIn: {
@@ -608,6 +672,20 @@ export interface components {
              * @default false
              */
             acknowledge_flags: boolean;
+        };
+        /** ConfirmedOut */
+        ConfirmedOut: {
+            /** At */
+            at: string;
+            /** By Member Id */
+            by_member_id: string;
+            /** By Name */
+            by_name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "staff" | "volunteer";
         };
         /** ConsentIn */
         ConsentIn: {
@@ -669,10 +747,16 @@ export interface components {
         DeleteOut: {
             /** Dog Id */
             dog_id: string;
-            /** Purge */
-            purge: string;
-            /** Status */
-            status: string;
+            /**
+             * Purge
+             * @constant
+             */
+            purge: "queued";
+            /**
+             * Status
+             * @constant
+             */
+            status: "deleted";
         };
         /** DogCostOut */
         DogCostOut: {
@@ -708,7 +792,7 @@ export interface components {
             coverage: components["schemas"]["CoverageOut"];
             dog: components["schemas"]["DogOut"];
             /** Facts */
-            facts: components["schemas"]["app__api__schemas__dogs__FactOut"][];
+            facts: components["schemas"]["FactOut"][];
             /** Sessions */
             sessions: components["schemas"]["app__api__schemas__dogs__SessionOut"][];
         };
@@ -734,7 +818,7 @@ export interface components {
             /** Age Estimate */
             age_estimate: string;
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Created By */
             created_by: string;
             /** Id */
@@ -751,12 +835,21 @@ export interface components {
             public_slug: string | null;
             /** Published At */
             published_at: string | null;
-            /** Sex */
-            sex: string;
-            /** Size */
-            size: string;
-            /** Status */
-            status: string;
+            /**
+             * Sex
+             * @enum {string}
+             */
+            sex: "male" | "female" | "unknown";
+            /**
+             * Size
+             * @enum {string}
+             */
+            size: "small" | "medium" | "large";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "published" | "adopted" | "deleted";
         };
         /**
          * DogPatchIn
@@ -794,23 +887,6 @@ export interface components {
             /** Start S */
             start_s: number;
         };
-        /** EvidenceOut */
-        EvidenceOut: {
-            /** Captions Url */
-            captions_url: string | null;
-            /** Clip Id */
-            clip_id: string;
-            /** End S */
-            end_s: number;
-            /** Id */
-            id: string;
-            /** Media Url */
-            media_url: string | null;
-            /** Played By Me */
-            played_by_me: boolean;
-            /** Start S */
-            start_s: number;
-        };
         /** FactCreateIn */
         FactCreateIn: {
             /** Behavior */
@@ -827,7 +903,64 @@ export interface components {
         };
         /** FactEnvelope */
         FactEnvelope: {
-            fact: components["schemas"]["app__api__schemas__facts__FactOut"];
+            fact: components["schemas"]["FactOut"];
+        };
+        /** FactGroupOut */
+        FactGroupOut: {
+            /** Facts */
+            facts: components["schemas"]["ProfileFactOut"][];
+            /** Label */
+            label: string;
+            /**
+             * Situation
+             * @enum {string}
+             */
+            situation: "new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats";
+        };
+        /** FactOut */
+        FactOut: {
+            /** Behavior */
+            behavior: string;
+            /** Blocked Reason */
+            blocked_reason: ("not_found" | "consent_required" | "invalid_state" | "staff_only_situation" | "not_own_session" | "forbidden_role" | "playback_required" | "flags_unacknowledged" | "publish_checklist_incomplete") | null;
+            /** Can Confirm */
+            can_confirm: boolean;
+            clip_length: components["schemas"]["ClipLengthOut"];
+            confirmed: components["schemas"]["ConfirmedOut"] | null;
+            /** Created By */
+            created_by: string | null;
+            /** Dog Id */
+            dog_id: string;
+            /** Evidence */
+            evidence: components["schemas"]["app__api__schemas__facts__EvidenceOut"][];
+            /** Flags */
+            flags: components["schemas"]["FlagOut"][];
+            /** Id */
+            id: string;
+            /** Observed On */
+            observed_on: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "ai_unchanged" | "human_edited" | "human_added";
+            /** Session Id */
+            session_id: string | null;
+            /**
+             * Situation
+             * @enum {string}
+             */
+            situation: "new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "clip" | "narration" | "staff_note";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "confirmed";
         };
         /** FactPatchIn */
         FactPatchIn: {
@@ -851,14 +984,23 @@ export interface components {
         };
         /** FlagOut */
         FlagOut: {
-            /** Code */
-            code: string;
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "banned_word" | "trait_claim" | "check_unavailable";
             /** Detail */
             detail: string;
-            /** Severity */
-            severity: string;
-            /** Source */
-            source: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "warn" | "info";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "rules" | "model" | "system";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -873,21 +1015,12 @@ export interface components {
              */
             status: "ok" | "unavailable";
         };
-        /** LimitsOut */
-        LimitsOut: {
-            /** Allowed Extensions */
-            allowed_extensions: string[];
-            /** Max Clip Bytes */
-            max_clip_bytes: number;
-            /** Max Clip S */
-            max_clip_s: number;
-            /** Max Clips Per Session */
-            max_clips_per_session: number;
-            /**
-             * Wording Check
-             * @enum {string}
-             */
-            wording_check: "model" | "rules_only";
+        /** KnownConcernsOut */
+        KnownConcernsOut: {
+            /** None Known */
+            none_known: boolean;
+            /** Text */
+            text: string | null;
         };
         /** LoginIn */
         LoginIn: {
@@ -907,7 +1040,7 @@ export interface components {
         MeOut: {
             /** Csrf Token */
             csrf_token: string;
-            limits: components["schemas"]["LimitsOut"];
+            limits: components["schemas"]["app__api__schemas__me__LimitsOut"];
             member: components["schemas"]["MemberOut"];
             org: components["schemas"]["OrgOut"];
         };
@@ -923,15 +1056,18 @@ export interface components {
             email: string;
             /** Id */
             id: string;
-            /** Role */
-            role: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "staff" | "volunteer";
         };
         /** MetricsOut */
         MetricsOut: {
             /** Alerts */
             alerts: string[];
             /** As Of */
-            as_of: string | null;
+            as_of: string;
             cost: components["schemas"]["CostOut"];
             draft_acceptance: components["schemas"]["DraftAcceptanceOut"];
             facts: components["schemas"]["FactsOut"];
@@ -943,8 +1079,18 @@ export interface components {
         NotObservedOut: {
             /** Label */
             label: string;
-            /** Situation */
-            situation: string;
+            /**
+             * Situation
+             * @enum {string}
+             */
+            situation: "new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats";
+        };
+        /** NoticeOut */
+        NoticeOut: {
+            /** Code */
+            code: string;
+            /** Text */
+            text: string;
         };
         /** OrgOut */
         OrgOut: {
@@ -978,6 +1124,101 @@ export interface components {
             /** Fact Id */
             fact_id: string;
         };
+        /** ProfileCoverageOut */
+        ProfileCoverageOut: {
+            /** By Situation */
+            by_situation: components["schemas"]["SituationCoverageOut"][];
+            /** Situations Covered */
+            situations_covered: number;
+            /** Situations Total */
+            situations_total: number;
+            /** Summary */
+            summary: string;
+        };
+        /** ProfileDogOut */
+        ProfileDogOut: {
+            /** Age Estimate */
+            age_estimate: string;
+            /** Location */
+            location: string;
+            /** Name */
+            name: string;
+            /** Photo Url */
+            photo_url: string | null;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /**
+             * Sex
+             * @enum {string}
+             */
+            sex: "male" | "female" | "unknown";
+            /**
+             * Size
+             * @enum {string}
+             */
+            size: "small" | "medium" | "large";
+            /** Slug */
+            slug: string;
+        };
+        /** ProfileFactOut */
+        ProfileFactOut: {
+            /** Behavior */
+            behavior: string;
+            clip_length: components["schemas"]["ClipLengthOut"];
+            /** Confirmed By Label */
+            confirmed_by_label: string;
+            /** Evidence */
+            evidence: components["schemas"]["app__api__schemas__public__EvidenceOut"][];
+            /** Id */
+            id: string;
+            notice: components["schemas"]["NoticeOut"] | null;
+            /**
+             * Observed On
+             * Format: date
+             */
+            observed_on: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "clip" | "narration" | "staff_note";
+            /** Source Label */
+            source_label: string;
+        };
+        /** ProfileOrgOut */
+        ProfileOrgOut: {
+            /** Country */
+            country: string;
+            /** Name */
+            name: string;
+        };
+        /** ProfileOut */
+        ProfileOut: {
+            ask: components["schemas"]["AskInfoOut"];
+            /** Banner Id */
+            banner_id: string;
+            contact: components["schemas"]["ContactOut"];
+            coverage: components["schemas"]["ProfileCoverageOut"];
+            dog: components["schemas"]["ProfileDogOut"];
+            /** Facts By Situation */
+            facts_by_situation: components["schemas"]["FactGroupOut"][];
+            known_concerns: components["schemas"]["KnownConcernsOut"];
+            /** Not Observed */
+            not_observed: components["schemas"]["NotObservedOut"][];
+            org: components["schemas"]["ProfileOrgOut"];
+        };
+        /** ProgressOut */
+        ProgressOut: {
+            /** Clips Failed */
+            clips_failed: number;
+            /** Clips Ready */
+            clips_ready: number;
+            /** Clips Total */
+            clips_total: number;
+        };
         /** PublishOut */
         PublishOut: {
             dog: components["schemas"]["DogOut"];
@@ -992,6 +1233,19 @@ export interface components {
             observed_on?: string | null;
             /** Situations */
             situations?: string[];
+        };
+        /**
+         * SessionDetailOut
+         * @description Body of `GET /api/sessions/{id}`. `facts` is absent (not empty) for `include=none`;
+         *     the route sends `bundle_body` as is, so this model only describes it.
+         */
+        SessionDetailOut: {
+            /** Clips */
+            clips: components["schemas"]["ClipOut"][];
+            /** Facts */
+            facts?: components["schemas"]["FactOut"][];
+            progress: components["schemas"]["ProgressOut"];
+            session: components["schemas"]["app__api__schemas__sessions__SessionOut"];
         };
         /** SessionEnvelope */
         SessionEnvelope: {
@@ -1016,8 +1270,11 @@ export interface components {
             filmed_s: number;
             /** Label */
             label: string;
-            /** Situation */
-            situation: string;
+            /**
+             * Situation
+             * @enum {string}
+             */
+            situation: "new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats";
         };
         /** TimeOut */
         TimeOut: {
@@ -1045,62 +1302,18 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** ConfirmedOut */
-        app__api__schemas__dogs__ConfirmedOut: {
-            /** At */
-            at: string | null;
-            /** By Member Id */
-            by_member_id: string;
-            /** By Name */
-            by_name: string;
-            /** Role */
-            role: string;
-        };
-        /** FactOut */
-        app__api__schemas__dogs__FactOut: {
-            /** Behavior */
-            behavior: string;
-            /** Blocked Reason */
-            blocked_reason: string | null;
-            /** Can Confirm */
-            can_confirm: boolean;
-            clip_length: components["schemas"]["ClipLengthOut"];
-            confirmed: components["schemas"]["app__api__schemas__dogs__ConfirmedOut"] | null;
-            /** Created By */
-            created_by: string | null;
-            /** Dog Id */
-            dog_id: string;
-            /** Evidence */
-            evidence: components["schemas"]["EvidenceOut"][];
-            /** Flags */
-            flags: components["schemas"]["FlagOut"][];
-            /** Id */
-            id: string;
-            /** Observed On */
-            observed_on: string;
-            /** Origin */
-            origin: string;
-            /** Session Id */
-            session_id: string | null;
-            /** Situation */
-            situation: string;
-            /** Source */
-            source: string;
-            /** Status */
-            status: string;
-        };
         /** SessionOut */
         app__api__schemas__dogs__SessionOut: {
             /** Clip Count */
             clip_count: number;
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Dog Id */
             dog_id: string;
             /** Draft Fact Count */
             draft_fact_count: number;
             /** Fail Code */
-            fail_code: string | null;
+            fail_code: ("no_usable_clip" | "merge_failed") | null;
             /** Id */
             id: string;
             /** Member Id */
@@ -1114,64 +1327,74 @@ export interface components {
             /** Review Ready At */
             review_ready_at: string | null;
             /** Situations */
-            situations: string[];
-            /** Status */
-            status: string;
+            situations: ("new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats")[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "processing" | "review" | "failed";
             /** Submitted At */
             submitted_at: string | null;
         };
-        /** ConfirmedOut */
-        app__api__schemas__facts__ConfirmedOut: {
-            /** At */
-            at: string;
-            /** By Member Id */
-            by_member_id: string;
-            /** By Name */
-            by_name: string;
-            /** Role */
-            role: string;
-        };
-        /** FactOut */
-        app__api__schemas__facts__FactOut: {
-            /** Behavior */
-            behavior: string;
-            /** Blocked Reason */
-            blocked_reason: string | null;
-            /** Can Confirm */
-            can_confirm: boolean;
-            clip_length: components["schemas"]["ClipLengthOut"];
-            confirmed: components["schemas"]["app__api__schemas__facts__ConfirmedOut"] | null;
-            /** Created By */
-            created_by: string | null;
-            /** Dog Id */
-            dog_id: string;
-            /** Evidence */
-            evidence: components["schemas"]["EvidenceOut"][];
-            /** Flags */
-            flags: components["schemas"]["FlagOut"][];
+        /** EvidenceOut */
+        app__api__schemas__facts__EvidenceOut: {
+            /** Captions Url */
+            captions_url: string | null;
+            /** Clip Id */
+            clip_id: string;
+            /** End S */
+            end_s: number;
             /** Id */
             id: string;
-            /** Observed On */
-            observed_on: string;
-            /** Origin */
-            origin: string;
-            /** Session Id */
-            session_id: string | null;
-            /** Situation */
-            situation: string;
-            /** Source */
-            source: string;
-            /** Status */
-            status: string;
+            /** Media Url */
+            media_url: string | null;
+            /** Played By Me */
+            played_by_me: boolean;
+            /** Start S */
+            start_s: number;
+        };
+        /** LimitsOut */
+        app__api__schemas__me__LimitsOut: {
+            /** Allowed Extensions */
+            allowed_extensions: string[];
+            /** Max Clip Bytes */
+            max_clip_bytes: number;
+            /** Max Clip S */
+            max_clip_s: number;
+            /** Max Clips Per Session */
+            max_clips_per_session: number;
+            /**
+             * Wording Check
+             * @enum {string}
+             */
+            wording_check: "model" | "rules_only";
+        };
+        /** EvidenceOut */
+        app__api__schemas__public__EvidenceOut: {
+            /** Captions Url */
+            captions_url: string | null;
+            /** Clip Id */
+            clip_id: string;
+            /** End S */
+            end_s: number;
+            /** Media Url */
+            media_url: string;
+            /** Start S */
+            start_s: number;
+        };
+        /** LimitsOut */
+        app__api__schemas__public__LimitsOut: {
+            /** Remaining This Hour */
+            remaining_this_hour: number;
         };
         /** SessionOut */
         app__api__schemas__sessions__SessionOut: {
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Dog Id */
             dog_id: string;
             /** Fail Code */
-            fail_code: string | null;
+            fail_code: ("no_usable_clip" | "merge_failed") | null;
             /** Id */
             id: string;
             /** Member Id */
@@ -1186,9 +1409,12 @@ export interface components {
             /** Review Ready At */
             review_ready_at: string | null;
             /** Situations */
-            situations: string[];
-            /** Status */
-            status: string;
+            situations: ("new_person" | "handling" | "leash_walk" | "other_dog" | "food_toys" | "alone_time" | "indoors_rest" | "children_cats")[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "processing" | "review" | "failed";
             /** Submitted At */
             submitted_at: string | null;
         };
@@ -1952,7 +2178,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ProfileOut"];
                 };
             };
             /** @description Validation Error */
@@ -1987,7 +2213,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AskOut"];
                 };
             };
             /** @description Validation Error */
@@ -2020,8 +2246,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionDetailOut"];
                 };
+            };
+            /** @description Not modified (`If-None-Match` matched) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

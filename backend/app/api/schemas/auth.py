@@ -7,7 +7,13 @@ from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
+from app.api.schemas.vocab import RoleName
 from app.services.auth_service import LoginResult, MemberView, OrgView
+
+
+def iso_z_required(value: datetime) -> str:
+    """`iso_z` for a timestamp the data model guarantees (never null)."""
+    return iso_z(value) or ""
 
 
 def iso_z(value: datetime | None) -> str | None:
@@ -28,7 +34,7 @@ class MemberOut(BaseModel):
     id: str
     email: str
     display_name: str
-    role: str
+    role: RoleName
     consented_at: str | None
     consent_version: str | None
 
