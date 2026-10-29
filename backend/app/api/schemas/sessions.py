@@ -7,8 +7,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.api.schemas.clips import ClipOut, UtcZ
+from app.api.schemas.clips import ClipOut, UtcZ, UtcZRequired
 from app.api.schemas.facts import FactOut
+from app.api.schemas.vocab import SessionFailCode, SessionStatus, SituationCode
 from app.services.session_service import SessionBundle, SessionView
 
 
@@ -27,11 +28,11 @@ class SessionOut(BaseModel):
     dog_id: str
     member_id: str
     owner_name: str
-    situations: list[str]
+    situations: list[SituationCode]
     observed_on: date
-    status: str
-    fail_code: str | None
-    created_at: UtcZ
+    status: SessionStatus
+    fail_code: SessionFailCode | None
+    created_at: UtcZRequired
     submitted_at: UtcZ
     review_ready_at: UtcZ
 
@@ -54,6 +55,16 @@ class ProgressOut(BaseModel):
     clips_total: int
     clips_ready: int
     clips_failed: int
+
+
+class SessionDetailOut(BaseModel):
+    """Body of `GET /api/sessions/{id}`. `facts` is absent (not empty) for `include=none`;
+    the route sends `bundle_body` as is, so this model only describes it."""
+
+    session: SessionOut
+    clips: list[ClipOut]
+    facts: list[FactOut] = Field(default_factory=list)
+    progress: ProgressOut
 
 
 def bundle_body(bundle: SessionBundle) -> dict[str, Any]:

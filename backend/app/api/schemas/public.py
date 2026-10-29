@@ -6,6 +6,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.api.schemas.vocab import AskOutcome, FactSource, Sex, SituationCode, Size
 from app.services.public_profile_service import PublicProfile
 from app.services.qa_render import QaAnswer, QaLine
 
@@ -36,7 +37,7 @@ class EvidenceOut(BaseModel):
 class AnswerLineOut(BaseModel):
     fact_id: str
     text: str
-    situation: str
+    situation: SituationCode
     situation_label: str
     source_label: str
     observed_on: date
@@ -90,7 +91,7 @@ class AskOut(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    outcome: str
+    outcome: AskOutcome
     heading: str
     hint: str | None = None
     lines: list[AnswerLineOut]
@@ -122,12 +123,12 @@ class AskOut(BaseModel):
 class ProfileDogOut(BaseModel):
     slug: str
     name: str
-    sex: str
+    sex: Sex
     age_estimate: str
-    size: str
+    size: Size
     location: str
     photo_url: str | None
-    published_at: datetime | None
+    published_at: datetime
 
 
 class ProfileOrgOut(BaseModel):
@@ -136,7 +137,7 @@ class ProfileOrgOut(BaseModel):
 
 
 class SituationCoverageOut(BaseModel):
-    situation: str
+    situation: SituationCode
     label: str
     covered: bool
     clip_count: int
@@ -159,7 +160,7 @@ class KnownConcernsOut(BaseModel):
 class ProfileFactOut(BaseModel):
     id: str
     behavior: str
-    source: str
+    source: FactSource
     source_label: str
     observed_on: date
     confirmed_by_label: str
@@ -169,13 +170,13 @@ class ProfileFactOut(BaseModel):
 
 
 class FactGroupOut(BaseModel):
-    situation: str
+    situation: SituationCode
     label: str
     facts: list[ProfileFactOut]
 
 
 class NotObservedOut(BaseModel):
-    situation: str
+    situation: SituationCode
     label: str
 
 

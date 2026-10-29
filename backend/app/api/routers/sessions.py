@@ -10,7 +10,12 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 
 from app.api import deps
-from app.api.schemas.sessions import SessionCreateIn, SessionEnvelope, bundle_body
+from app.api.schemas.sessions import (
+    SessionCreateIn,
+    SessionDetailOut,
+    SessionEnvelope,
+    bundle_body,
+)
 from app.db.uow import UnitOfWork
 from app.services.views import Principal
 
@@ -41,7 +46,11 @@ def create_session(
     return SessionEnvelope.from_view(view)
 
 
-@router.get("/api/sessions/{session_id}")
+@router.get(
+    "/api/sessions/{session_id}",
+    response_model=SessionDetailOut,
+    responses={304: {"description": "Not modified (`If-None-Match` matched)"}},
+)
 def get_session(
     session_id: str,
     request: Request,

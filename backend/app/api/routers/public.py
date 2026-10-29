@@ -26,7 +26,7 @@ from app.services.qa_service import Visitor
 router = APIRouter(prefix="/api/public", tags=["public"])
 
 
-@router.get("/dogs/{slug}", dependencies=[Depends(deps.limit("public"))])
+@router.get("/dogs/{slug}", response_model=ProfileOut, dependencies=[Depends(deps.limit("public"))])
 def profile(
     slug: str,
     unit: UnitOfWork = Depends(deps.uow),
@@ -40,7 +40,7 @@ def profile(
     )
 
 
-@router.post("/dogs/{slug}/ask")
+@router.post("/dogs/{slug}/ask", response_model=AskOut, response_model_exclude_unset=True)
 def ask(
     slug: str,
     body: AskIn,

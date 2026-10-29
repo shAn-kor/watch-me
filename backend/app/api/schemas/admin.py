@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from app.api.schemas.clips import UtcZ
+from app.api.schemas.clips import UtcZRequired
 from app.services.metrics_service import MetricsView
 
 
@@ -39,7 +39,7 @@ class CostOut(BaseModel):
 
 
 class MetricsOut(BaseModel):
-    as_of: UtcZ
+    as_of: UtcZRequired
     draft_acceptance: DraftAcceptanceOut
     facts: FactsOut
     time: TimeOut
