@@ -452,3 +452,45 @@ lint-imports: 11 kept. `pnpm contract` leaves no diff.
   `backend/pyproject.toml` ignores F811, RUF059 and B008 in `tests/**` only.
 - The media routes' `operationId` (HEAD versus GET) changes with the Python
   hash seed. `dump_openapi.py` drops HEAD routes, so the dump is stable.
+
+## 13. Phase 3 lanes C and T result (2026-10-29)
+
+Backend: 833 passed, 3 xfail (UT-AI-06). Frontend: 254 passed.
+lint-imports: 11 kept. `pnpm contract` leaves no diff.
+
+### Lane C (container)
+
+- Root `Dockerfile` (linux/arm64, multi-stage), `.dockerignore`,
+  `docker-compose.yml`, and `deploy/` (`start.sh`, `Caddyfile`,
+  `settings.example`, `README.md` runbook).
+- `deploy/start.sh` runs `alembic upgrade head`, then uvicorn and
+  `python -m app.worker` side by side. If one exits, it stops the other and
+  exits non-zero. `tini` is PID 1; the user is `watchme` (uid 10001); `/data`
+  holds the SQLite file and the storage root; `HEALTHCHECK` calls `/healthz`.
+- ADR-0027 names no proxy. Caddy is a second compose service for TLS, with
+  `max_size 220MiB` (01 5.3 needs at least 210 MiB). The app runs with
+  `TRUSTED_PROXY=true`.
+- Base images: `node:22.17.0-bookworm-slim`, `python:3.12.11-slim-bookworm`,
+  `ghcr.io/astral-sh/uv:0.12.19`, `caddy:2.10.0-alpine`; pnpm 10.33.2 via
+  corepack.
+- Settings: `deploy/settings.example` lists every `Settings` field with
+  placeholders. The real file is `deploy/settings` (git-ignored).
+- Verified without docker: the start sequence (migrate, api, worker),
+  `/healthz`, the SPA, the seed tool, clean shutdown. Not yet run: a real
+  `docker build`, the base image tags, Caddy and compose.
+
+### Lane T (response types)
+
+- Public profile, public ask and session detail have `response_model`. Ask
+  uses `response_model_exclude_unset`, so `hint` and `contact` appear only for
+  the outcomes that define them. Existing API tests are unchanged and pass.
+- Non-null: `created_at` (clip, session, dog), `as_of`, `confirmed.at` (facts
+  and dogs schemas), `ProfileDogOut.published_at`.
+- `Literal` aliases live in `app/api/schemas/vocab.py`;
+  `tests/unit/test_schema_vocab.py` checks each against `app.domain.enums`.
+  `NoticeOut.code` stays `str`.
+- Open drift in `types.ts` (follow-up; `contract.test.ts` carries two
+  documented patches): session detail `facts` is absent with `include=none`
+  but typed `Fact[]`; public `dog.location` is never null but typed
+  `string | null`. Fixing them touches `ReviewPage`, `SessionPage` and
+  `mockTransport`.
