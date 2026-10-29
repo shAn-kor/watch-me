@@ -494,3 +494,11 @@ lint-imports: 11 kept. `pnpm contract` leaves no diff.
   but typed `Fact[]`; public `dog.location` is never null but typed
   `string | null`. Fixing them touches `ReviewPage`, `SessionPage` and
   `mockTransport`.
+
+Image build check (2026-10-29, Mac mini, colima `perf`, docker 29.2.1,
+aarch64, no buildx): the legacy builder rejected `RUN --mount=type=cache`, so
+the Dockerfile has no BuildKit-only syntax now. The image `watchme:a1ba172`
+built (909 MB). A container on a fresh named volume ran migrations as uid
+10001, became `healthy`, served `/healthz` 200 and the SPA 200, ran the seed
+tool twice (second run "exists"), accepted the staff login, and exited 0 on
+SIGTERM. Caddy and compose are not run yet.
