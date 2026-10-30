@@ -554,3 +554,30 @@ child_safety 30/30, health 30/30, injection 36/36, answerable 30/30; no hard
 failure, no error. The only failure is ne-18 ("vet's waiting room", 3/3). Its
 own note says "vet" matches the health keyword list, so the health redirect
 probably answers it before the model does (not checked).
+
+Real clip pipeline run (2026-10-30). Local api + worker, the 10 dog clips in
+`data/clips-raw/` (8 HEVC mp4, 2 iPhone MOV, 7.8-27.4 s), four sessions of
+3, 3, 3 and 1 clips. Drafter `muse-spark-1.3`, checker `rules`. Transcriber:
+`mock` with an empty `default.json`, because `muse_transcribe` is not built
+(`app/ai/registry.py` raises `AiConfigError`). With the stock mock and no
+fixture, every clip failed as `ai_failed` with an empty `fail_detail`.
+
+- All four sessions reached `review` in 101 s. 9 of 10 clips `ready`;
+  21 draft facts. Cost: 9 draft calls, 51,158 tokens in, 8,390 out,
+  $0.0996.
+- Bug: one clip failed at `sample` with `transcode_failed`, "expected 11
+  frames, got 10". Its video stream is 10.002 s (300 frames) but the format
+  duration is 10.034 s (the audio is longer). `parse_probe` uses the format
+  duration, so `frame_times` asks for t=10 and no video frame exists there.
+  Fix: sample from the video stream duration (or the last frame time).
+- Draft quality, three clips checked against contact sheets: behaviors are
+  observable and the evidence times match (door clip: lying at the door,
+  head down later; leash clip: walking, looks up at 2 s). No trait label and
+  no health claim; the rules checker set no flag.
+- Defects: (1) four behaviors end with "across N frames", a sampling detail
+  that leaks into the user text; (2) the model calls the person in one clip
+  "a child" and puts the facts under `children_cats`, but the frames show
+  only legs and pink shoes, so the age is a guess; (3) active play (running,
+  circling a person's feet) is filed under `indoors_rest`.
+- Next: fix the duration bug; add drafter rules against frame-count wording
+  and against age guesses without clear evidence; build `muse_transcribe`.
