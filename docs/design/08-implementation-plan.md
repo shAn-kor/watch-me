@@ -599,3 +599,9 @@ calls, $0.1045. The five couch facts are back; play around a person stays
 `new_person`; no frame wording. The age rule is not stable: run `d2` wrote "a
 person" for the pink-shoe clip, run `d3` wrote "a child" (`children_cats`)
 again. Whether that person is a child is not settled from the frames.
+
+Correction (2026-10-31): the clip owner confirms the person in pink shoes is a
+child. So "a child" and `children_cats` were correct in the first run and in
+`d3`; defect (2) of the first run was a wrong call by the lead, and `d2`'s "a
+person" was the over-cautious answer. The age rule in the prompt stays (it
+still blocks guesses from unclear frames); no checker flag is added.
