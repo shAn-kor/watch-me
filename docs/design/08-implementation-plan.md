@@ -591,3 +591,11 @@ and rolling on the couch, no person) now give no fact, because indoor play
 fits no situation and the new rule says "or write no fact". Before, they gave
 five `indoors_rest` facts. Open: restore "moves around indoors" in
 `indoors_rest` as the fallback for indoor activity with no other situation.
+
+Re-run with prompt `d3` (47ca380, 2026-10-30): `indoors_rest` again covers
+indoor activity when no other situation fits; play with a person goes to
+`new_person` or `handling`. 10 of 10 clips `ready`, 126 s, 21 facts, 10 draft
+calls, $0.1045. The five couch facts are back; play around a person stays
+`new_person`; no frame wording. The age rule is not stable: run `d2` wrote "a
+person" for the pink-shoe clip, run `d3` wrote "a child" (`children_cats`)
+again. Whether that person is a child is not settled from the frames.
