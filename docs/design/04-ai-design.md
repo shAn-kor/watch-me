@@ -1043,8 +1043,8 @@ OpenAI Chat Completions format with the `openai` Python SDK
 | Key               | `AI_API_KEY` (or `AI_{ROLE}_API_KEY`) env var; never logged                                                        |
 | Timeout per call  | 75 s (`AI_TIMEOUT_S`), so two calls fit the 3 min job timeout                                                      |
 | Temperature       | 0 for check and select; 0.2 for draft (verify that the model accepts it)                                           |
-| Max output tokens | draft 1,500; check 600; select 100 (the exact parameter name is "verify": `max_tokens` or `max_completion_tokens`) |
-| Reasoning         | lowest available effort, via `reasoning_effort` (values: verify)                                                   |
+| Max output tokens | draft 6,000; check 2,000; select 1,500 via `max_tokens`. `completion_tokens` includes reasoning tokens, so the cap covers both (verified 2026-10-30) |
+| Reasoning         | `reasoning_effort` per role: `AI_DRAFTER_REASONING_EFFORT=low`, `AI_CHECKER_`/`AI_SELECTOR_REASONING_EFFORT=minimal`; empty omits it. `muse-spark-1.3` accepts minimal, low, medium, high, xhigh, max; `none` is a 400 (verified 2026-10-30) |
 | Streaming         | off; `AI_STREAM=true` switches the draft call to a streamed read for 504s                                          |
 
 Request example (FactDrafter, frames mode, shortened):
@@ -1774,14 +1774,15 @@ order (02 and 01 first); each deviation names what it changes.
 
 ### Open questions
 
-1. **Provider access.** Open (user-side, D11). Is there a working Meta key and credit for development
+1. **Provider access.** Resolved 2026-10-30: key and $150 credit work (user-side, D11). Is there a working Meta key and credit for development
    (ADR-0029 open issue)? Without it only `mock` and `local_whisper` run, and
    the 80% bar cannot be measured.
 2. **Strict-mode details.** Open (D11, day-1 spike). Does Muse enforce `minLength`, `maxLength`,
    `minItems`, `maxItems` in strict mode, and what are the exact parameter names
    for the output cap (`max_tokens` or `max_completion_tokens`) and
    `reasoning_effort` values? The design does not depend on the answers
-   (post-processing repeats every check).
+   (post-processing repeats every check). Partly resolved 2026-10-30: `max_tokens`
+   works; effort values are in section 8.2. The strict-mode limits are still open.
 3. **F2 in 02.** Resolved (D3, ADR-0044): 02 F2 now merges evidence across
    clips (item 3 above).
 4. **Dropped-facts policy.** Resolved (D4): the clip is `ready` with zero facts

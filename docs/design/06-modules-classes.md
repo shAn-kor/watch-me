@@ -1288,6 +1288,7 @@ never appear in logs.
 | `AI_{ROLE}_BASE_URL`, `AI_{ROLE}_MODEL`, `AI_{ROLE}_API_KEY` | str, str, secret | the shared values | Per-role override (`DRAFTER`, `CHECKER`, `SELECTOR`, `TRANSCRIBER`). The transcriber model defaults to `muse-voice-transcribe-1.0`, never to `AI_MODEL` |
 | `AI_TIMEOUT_S` | int | `75` | Per provider call; the first try and the schema retry fit the 3 min job timeout |
 | `AI_STREAM`, `AI_SCHEMA_STRICT` | bool | `false`, `true` | Streamed draft read for HTTP 504; strict `response_format` |
+| `AI_{DRAFTER,CHECKER,SELECTOR}_REASONING_EFFORT` | `minimal`/`low`/`medium`/`high`/`xhigh`/`max`/empty | `low` / `minimal` / `minimal` | Sent as `reasoning_effort`; empty omits it (04 section 8.2) |
 | `AI_ALLOW_CONTRIBUTOR_MODEL`                                                                               | bool                                         | `false`                                           | Registry refuses `*-contributor` models unless true (NFR-5)                            |
 | `AI_PRICES_FILE`                                                                                           | path                                         | `app/ai/prices.json`                              | USD per 1M tokens and per audio hour, by provider and model (Muse: 1.25 in, 4.25 out, 0.18 per audio hour); converted to `usd_micros`. File name is a proposal; 04 section 9.1 only says the constants live in config |
 | `AI_MOCK_FIXTURES_DIR` | path | `fixtures/` | Mock fixtures `{fixture_key}.json`, fallback `default.json` (04 section 8.1) |
