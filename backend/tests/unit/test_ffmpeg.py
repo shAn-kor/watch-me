@@ -240,3 +240,47 @@ def test_ut_ffm_04_extract_frames_names_files_by_second_with_3_min_timeout(tmp_p
     assert all(f.exists() for f in files)
     assert list(out.glob("_f*")) == []  # temp names are gone
     assert runner.calls[0][1] == 180
+
+
+LONG_AUDIO_JSON = {
+    "streams": [
+        {"codec_type": "video", "codec_name": "h264", "width": 1080, "height": 1920,
+         "duration": "10.001667", "avg_frame_rate": "30/1", "r_frame_rate": "30/1"},
+        {"codec_type": "audio", "codec_name": "aac", "duration": "10.033991"},
+    ],
+    "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "10.033991"},
+}
+
+
+def test_probe_exposes_video_duration_and_frame_step():
+    p = parse_probe(LONG_AUDIO_JSON)
+    assert p.duration_s == pytest.approx(10.033991)  # clip duration is unchanged
+    assert p.video_duration_s == pytest.approx(10.001667)
+    assert p.frame_step_s == pytest.approx(1 / 30)
+
+
+def test_probe_video_without_duration_or_rate_falls_back_to_none():
+    p = parse_probe({
+        "streams": [{"codec_type": "video", "codec_name": "h264", "avg_frame_rate": "0/0"}],
+        "format": {"format_name": "mp4", "duration": "10.0"},
+    })
+    assert p.video_duration_s is None
+    assert p.frame_step_s is None
+
+
+def test_frame_times_skip_times_without_a_video_frame():
+    p = parse_probe(LONG_AUDIO_JSON)
+    assert len(frame_times(p.duration_s)) == 11  # old behavior asks for t=10
+    times = frame_times(p.duration_s, p.video_duration_s, p.frame_step_s)
+    assert times == list(range(10))
+
+
+def test_frame_times_video_ending_exactly_on_a_grid_second():
+    assert frame_times(10.0, 10.0, 1 / 30) == list(range(10))
+    assert frame_times(10.0, None, None) == list(range(10))
+    # fps unknown: a conservative default step still drops the t=10 slot
+    assert frame_times(10.03, 10.0, None) == list(range(10))
+
+
+def test_frame_times_keep_t0_when_video_is_very_short():
+    assert frame_times(2.0, 0.5, 1 / 30) == [0]

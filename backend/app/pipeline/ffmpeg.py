@@ -65,6 +65,9 @@ class ProbeResult:
     width: int | None = None
     height: int | None = None
     audio_codec: str | None = None
+    # Video stream duration and one frame's length; `None` when not reported.
+    video_duration_s: float | None = None
+    frame_step_s: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,6 +171,10 @@ def parse_probe(data: dict[str, Any]) -> ProbeResult:
     if duration is None:
         candidates = [d for s in streams if (d := _num(s.get("duration"))) is not None]
         duration = max(candidates) if candidates else 0.0
+    video_duration = _num(video.get("duration")) if video else None
+    if video_duration is not None and video_duration <= 0:
+        video_duration = None
+    frame_step = _frame_step(video) if video else None
     return ProbeResult(
         duration_s=duration,
         has_video=video is not None,
@@ -177,7 +184,23 @@ def parse_probe(data: dict[str, Any]) -> ProbeResult:
         width=video.get("width") if video else None,
         height=video.get("height") if video else None,
         audio_codec=audio.get("codec_name") if audio else None,
+        video_duration_s=video_duration,
+        frame_step_s=frame_step,
     )
+
+
+def _frame_step(video: dict[str, Any]) -> float | None:
+    """Seconds per video frame from `avg_frame_rate` / `r_frame_rate` ("30/1")."""
+    for key in ("avg_frame_rate", "r_frame_rate"):
+        raw = str(video.get(key) or "")
+        num, _, den = raw.partition("/")
+        try:
+            rate = float(num) / float(den or 1)
+        except (ValueError, ZeroDivisionError):
+            continue
+        if rate > 0:
+            return 1.0 / rate
+    return None
 
 
 def sanitize_display_name(name: str) -> str:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.pipeline import sampling
+from app.pipeline.ffmpeg import FFmpegError
 from app.services.views import JobSpec, JobView
 
 
@@ -33,3 +35,20 @@ def fail_clip(job: JobView, error: Exception, ctx) -> None:
     code = getattr(error, "code", "transcode_failed")
     detail = getattr(error, "detail", None)
     ctx.services.clip_pipeline_service.mark_failed(clip_id_of(job), code, detail)
+
+
+def clip_frame_times(ctx, info) -> list[int]:
+    """Frame times for a clip, limited to times that have a video frame.
+
+    The audio can run past the video, so the clip duration alone may ask for a
+    time with no frame. Both `sample` and `draft` call this so they agree. When
+    the probe is not available the plain clip-duration grid is used."""
+    source_key = info.playback_path or info.original_path
+    video_duration = frame_step = None
+    if source_key and ctx.storage.exists(source_key):
+        try:
+            probe = ctx.ffmpeg.probe(ctx.storage.open_path(source_key))
+            video_duration, frame_step = probe.video_duration_s, probe.frame_step_s
+        except FFmpegError:
+            pass
+    return sampling.frame_times(info.duration_s, video_duration, frame_step)

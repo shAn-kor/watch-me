@@ -11,7 +11,12 @@ from app.config import Settings
 from app.errors import JobError
 from app.pipeline import sampling
 from app.pipeline.ffmpeg import FFmpegError, ffmpeg_error_to_job_error
-from app.pipeline.handlers._util import clip_id_of, fail_clip, step_job
+from app.pipeline.handlers._util import (
+    clip_frame_times,
+    clip_id_of,
+    fail_clip,
+    step_job,
+)
 from app.pipeline.handlers.base import HandlerContext, HandlerResult
 from app.services.views import JobView
 
@@ -32,7 +37,7 @@ class SampleHandler:
             raise JobError("transcode_failed", False)
         frames_prefix = f"{info.prefix}frames"
         ctx.storage.delete_prefix(f"{frames_prefix}/")
-        times = sampling.frame_times(info.duration_s)
+        times = clip_frame_times(ctx, info)
         if times:
             try:
                 ctx.ffmpeg.extract_frames(

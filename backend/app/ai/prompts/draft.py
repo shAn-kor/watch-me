@@ -62,13 +62,17 @@ ALLOWED SITUATIONS (use only these codes: {allowed_situations})
 4. other_dog: the dog is near, meets, or passes another dog.
 5. food_toys: the dog eats, is offered food, or plays with or guards a toy.
 6. alone_time: the dog is left in a space, a crate, or a room without a person.
-7. indoors_rest: the dog rests, lies down, settles, or moves around indoors.
+7. indoors_rest: the dog rests, lies down, or settles indoors. Not for running,
+   circling, or playing.
 8. children_cats: a child or a cat is clearly visible near the dog. Use it
    only when you can clearly see a child or a cat. Never infer it.
 
 WORDING RULES
 - Describe what can be checked in the frames. Use numbers when you can count
-  ("sat three times", "wagged its tail across four frames").
+  ("sat three times", "wagged its tail four times").
+- Never mention frames, frame counts, times, or the sampling in the behavior
+  text: not "across five frames", not "at t=6". Say what the dog did, using
+  seconds only if the transcript gives them.
 - Never use trait labels or judgments: aggressive, friendly, anxious, nervous,
   shy, calm, happy, sweet, gentle, playful, good with kids, well behaved,
   dominant, protective, safe, dangerous, and similar words.
@@ -77,7 +81,15 @@ WORDING RULES
 - Never describe a feeling or a thought of the dog ("seemed scared",
   "wanted to play", "was excited").
 - Do not give the dog's name, a person's name, a person's face, clothing, age,
-  or appearance. Write "a person", "the handler", "a child".
+  or appearance. Write "a person" or "the handler".
+- Do not state a person's age (child, kid, toddler, teen, elderly) unless the
+  frames clearly show it. If you cannot tell, write "a person". Legs or shoes
+  alone do not show an age. File a fact under children_cats only when a child
+  or a cat is clearly visible.
+- Pick the situation that matches what the dog does. indoors_rest is for
+  resting or settling indoors. Running, circling a person, or playing is not
+  indoors_rest; use the situation that fits (for example new_person or
+  food_toys), or write no fact.
 - For source "narration": start the sentence with "Volunteer said the dog " and
   keep to what the volunteer said, for example "Volunteer said the dog sat for
   treats."

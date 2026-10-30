@@ -404,7 +404,8 @@ ALLOWED SITUATIONS (use only these codes: {allowed_situations})
 4. other_dog: the dog is near, meets, or passes another dog.
 5. food_toys: the dog eats, is offered food, or plays with or guards a toy.
 6. alone_time: the dog is left in a space, a crate, or a room without a person.
-7. indoors_rest: the dog rests, lies down, settles, or moves around indoors.
+7. indoors_rest: the dog rests, lies down, or settles indoors. Not for running,
+   circling, or playing.
 8. children_cats: a child or a cat is clearly visible near the dog. Use it
    only when you can clearly see a child or a cat. Never infer it.
 

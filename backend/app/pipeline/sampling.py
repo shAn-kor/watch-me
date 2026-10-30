@@ -13,9 +13,17 @@ from app.domain.ranges import SegmentWindow
 frame_interval = ranges.frame_interval
 
 
-def frame_times(duration_s: float) -> list[int]:
-    """`t_i = i * k` for `i = 0 .. ceil(duration / k) - 1`; empty under 1 s (D4)."""
-    return list(ranges.frame_times(duration_s))
+def frame_times(
+    duration_s: float,
+    video_duration_s: float | None = None,
+    frame_step_s: float | None = None,
+) -> list[int]:
+    """`t_i = i * k` for `i = 0 .. ceil(duration / k) - 1`; empty under 1 s (D4).
+
+    Pass the probed video stream duration (and frame step) so times past the last
+    video frame are dropped when the audio is longer than the video."""
+    step = frame_step_s if frame_step_s else ranges.DEFAULT_FRAME_STEP_S
+    return list(ranges.frame_times(duration_s, video_duration_s, step))
 
 
 def segment_windows(duration_s: float) -> list[tuple[float, float]]:

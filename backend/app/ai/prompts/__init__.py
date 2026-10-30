@@ -2,4 +2,4 @@
 
 # Stored in `fact.ai_model` as `model@PROMPT_VERSION` (04 section 1, rule 5).
 # Bump it whenever a prompt or schema changes.
-PROMPT_VERSION = "d1"
+PROMPT_VERSION = "d2"

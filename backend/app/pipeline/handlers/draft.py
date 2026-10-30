@@ -39,11 +39,11 @@ class DraftHandler:
         if svc.begin_step(info.id, "draft") is None:
             return HandlerResult()
         mode = ctx.settings.draft_mode
-        times = sampling.frame_times(info.duration_s)
+        grid = sampling.frame_times(info.duration_s)
         k = sampling.frame_interval(info.duration_s)
         ingest = ctx.services.draft_ingest_service
 
-        if not times:
+        if not grid:
             ingest.store_drafts(
                 clip_id=info.id,
                 output=DraftOutput(facts=[]),
@@ -56,9 +56,17 @@ class DraftHandler:
             return HandlerResult()
 
         frames_prefix = f"{info.prefix}frames"
-        for t in times:
+        # `sample` drops grid times past the last video frame (audio longer than
+        # video), so the frames to use are the leading grid times that exist.
+        times = []
+        for t in grid:
             if not ctx.storage.exists(f"{frames_prefix}/t{t}.jpg"):
-                raise JobError("transcode_failed", False)
+                break
+            times.append(t)
+        if not times or any(
+            ctx.storage.exists(f"{frames_prefix}/t{t}.jpg") for t in grid[len(times) :]
+        ):
+            raise JobError("transcode_failed", False)
         windows = pipeline_ctx.segments
         frames = []
         for t in times:

@@ -22,6 +22,8 @@ SEGMENT_S = 10
 MIN_LAST_SEGMENT_S = 3
 MIN_NARRATION_OVERLAP_S = 0.5
 _EPS = 1e-9
+# Assumed gap between video frames when the stream reports no frame rate.
+DEFAULT_FRAME_STEP_S = 0.1
 
 
 @dataclass(frozen=True)
@@ -52,12 +54,27 @@ def frame_interval(duration_s: float) -> int:
     return max(1, math.ceil(duration_s / MAX_FRAMES))
 
 
-def frame_times(duration_s: float) -> tuple[int, ...]:
-    """Frame times t_i = i * k. A clip under 1 s has no frames (D4)."""
+def frame_times(
+    duration_s: float,
+    video_duration_s: float | None = None,
+    frame_step_s: float = DEFAULT_FRAME_STEP_S,
+) -> tuple[int, ...]:
+    """Frame times t_i = i * k. A clip under 1 s has no frames (D4).
+
+    `k` and the grid come from `duration_s` (the clip duration the rest of the
+    pipeline uses). When the video stream is shorter than the clip (audio runs
+    on), `video_duration_s` drops the tail times that have no video frame: a
+    time t is kept only while a whole frame still fits, `t + frame_step_s <=
+    video_duration_s`. `t = 0` is always kept for a clip of 1 s or more."""
     if duration_s < 1.0:
         return ()
     k = frame_interval(duration_s)
-    return tuple(i * k for i in range(math.ceil(duration_s / k)))
+    times = tuple(i * k for i in range(math.ceil(duration_s / k)))
+    if video_duration_s is None:
+        return times
+    limit = video_duration_s - frame_step_s + _EPS
+    kept = tuple(t for t in times if t <= limit)
+    return kept or times[:1]
 
 
 def last_frame_t(duration_s: float, grid: int) -> int:
