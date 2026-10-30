@@ -200,7 +200,7 @@ class MuseTranscriber:
             or audio_ms < 0
         ):
             audio_ms = req.duration_s * 1000
-        audio_ms = int(round(audio_ms))
+        audio_ms = round(audio_ms)
         usage = Usage(
             provider=PROVIDER,
             model=self._conn.model,
