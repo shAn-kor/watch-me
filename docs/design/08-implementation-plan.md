@@ -494,6 +494,12 @@ lint-imports: 11 kept. `pnpm contract` leaves no diff.
   but typed `Fact[]`; public `dog.location` is never null but typed
   `string | null`. Fixing them touches `ReviewPage`, `SessionPage` and
   `mockTransport`.
+- Fixed 2026-10-30 (lane FE-drift): `pollSession` and
+  `getSession(id, {include: "none"})` return `SessionSummaryResponse` (no
+  `facts`); the default `getSession` returns `SessionDetailResponse` with
+  `facts: Fact[]` (overloads). `SessionDetailBody` (optional `facts`) is
+  compared with the generated type directly. `PublicProfile.dog.location` is
+  `string`. Both `contract.test.ts` patches are removed; frontend 256 tests.
 
 Image build check (2026-10-29, Mac mini, colima `perf`, docker 29.2.1,
 aarch64, no buildx): the legacy builder rejected `RUN --mount=type=cache`, so
