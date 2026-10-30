@@ -5,13 +5,13 @@
 from __future__ import annotations
 
 from app.ai.adapters.mock import MockAdapter
+from app.ai.adapters.muse_transcribe import MuseTranscriber
 from app.ai.adapters.openai_compat import (
     OpenAICompatChecker,
     OpenAICompatDrafter,
     OpenAICompatSelector,
     build_chat_client,
 )
-from app.ai.adapters.muse_transcribe import MuseTranscriber
 from app.ai.adapters.rules import RulesChecker
 from app.ai.cost import PriceTable
 from app.ai.protocols import FactDrafter, FactSelector, Transcriber, WordingChecker
