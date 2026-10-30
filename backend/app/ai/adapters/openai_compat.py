@@ -43,11 +43,11 @@ from app.ai.types import (
 from app.config import AiConnection
 
 PROVIDER = "muse"
-# 04 section 8.2 asks for the lowest effort. The accepted values are "(verify)"
-# (D11), and a wrong value is a 400 that fails every call, so it is off until the
-# day-1 spike names one.
-REASONING_EFFORT: str | None = None
-MAX_TOKENS = {"draft": 1500, "check": 600, "qa_select": 100}
+# `reasoning_effort` is a per-role setting (AI_<ROLE>_REASONING_EFFORT), sent only
+# when set. muse-spark-1.3 reasons by default and rejects "none".
+# `max_tokens` covers reasoning plus the answer: `completion_tokens` includes
+# reasoning tokens, so a small budget ends with finish_reason="length" and no content.
+MAX_TOKENS = {"draft": 6000, "check": 2000, "qa_select": 1500}
 TEMPERATURE = {"draft": 0.2, "check": 0.0, "qa_select": 0.0}
 
 
@@ -60,9 +60,17 @@ def _retry_after(headers: Any) -> float | None:
 
 
 class ChatClient:
-    def __init__(self, sdk: Any, model: str, *, stream: bool = False):
+    def __init__(
+        self,
+        sdk: Any,
+        model: str,
+        *,
+        stream: bool = False,
+        reasoning_effort: str | None = None,
+    ):
         self._sdk = sdk
         self.model = model
+        self._reasoning_effort = reasoning_effort or None
         self._stream = stream
 
     def complete(
@@ -81,8 +89,8 @@ class ChatClient:
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
-        if REASONING_EFFORT:
-            kwargs["reasoning_effort"] = REASONING_EFFORT
+        if self._reasoning_effort:
+            kwargs["reasoning_effort"] = self._reasoning_effort
         use_stream = self._stream if stream is None else stream
         try:
             if use_stream:
@@ -148,7 +156,7 @@ def build_chat_client(conn: AiConnection, *, timeout_s: float, stream: bool = Fa
     sdk = openai.OpenAI(
         base_url=conn.base_url, api_key=conn.api_key, timeout=timeout_s, max_retries=0
     )
-    return ChatClient(sdk, conn.model, stream=stream)
+    return ChatClient(sdk, conn.model, stream=stream, reasoning_effort=conn.reasoning_effort)
 
 
 class _Base:

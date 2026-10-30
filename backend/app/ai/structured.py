@@ -47,7 +47,8 @@ def error_summary(error: ValidationError | ValueError, limit: int = 5) -> str:
             for e in error.errors(include_input=False, include_url=False)[:limit]
         ]
         return "; ".join(parts)
-    return "the answer is not valid JSON"
+    # `_parse` messages ("finish_reason=length", "empty content") hold no input values.
+    return str(error) or "the answer is not valid JSON"
 
 
 class StructuredCaller:

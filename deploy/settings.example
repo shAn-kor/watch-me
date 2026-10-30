@@ -79,6 +79,10 @@ AI_MODEL=muse-spark-1.3
 # AI_SELECTOR_BASE_URL=
 # AI_SELECTOR_MODEL=
 # AI_SELECTOR_API_KEY=
+# reasoning_effort per role: minimal|low|medium|high|xhigh|max, or empty to not send it.
+AI_DRAFTER_REASONING_EFFORT=low
+AI_CHECKER_REASONING_EFFORT=minimal
+AI_SELECTOR_REASONING_EFFORT=minimal
 AI_TIMEOUT_S=75
 AI_STREAM=false
 AI_SCHEMA_STRICT=true

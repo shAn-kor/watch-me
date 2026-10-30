@@ -52,10 +52,16 @@ def to_job_error(error: AiError, purpose: Purpose) -> JobError:
 
     `JobError.usages` carries `error.usages`.
     """
-    detail = str(error)[:200] if isinstance(error, (AiTransientError, AiPermanentError)) else ""
+    # AiInvalidOutput text is `error_summary` output: locs and reasons such as
+    # "finish_reason=length", never input values. A length cutoff stays diagnosable.
+    detail = (
+        str(error)[:200]
+        if isinstance(error, (AiTransientError, AiPermanentError, AiInvalidOutput))
+        else ""
+    )
     job_error = _to_job_error(error, purpose)
     if detail:
-        # Only the status and provider code ("HTTP 401 invalid_api_key"); the failure
+        # Status and provider code ("HTTP 401 invalid_api_key") or the invalid-output reason; the failure
         # hook stores it in `clip.fail_detail`, and the metrics alert reads it.
         job_error.detail = detail  # type: ignore[attr-defined]
     return job_error
