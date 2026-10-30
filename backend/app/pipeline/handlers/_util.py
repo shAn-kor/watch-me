@@ -41,8 +41,9 @@ def clip_frame_times(ctx, info) -> list[int]:
     """Frame times for a clip, limited to times that have a video frame.
 
     The audio can run past the video, so the clip duration alone may ask for a
-    time with no frame. Both `sample` and `draft` call this so they agree. When
-    the probe is not available the plain clip-duration grid is used."""
+    time with no frame. `sample` calls this; `draft` then uses the leading grid
+    times whose frame files exist. Without a probe the plain clip-duration grid
+    is used."""
     source_key = info.playback_path or info.original_path
     video_duration = frame_step = None
     if source_key and ctx.storage.exists(source_key):
