@@ -2,12 +2,15 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ApiClient } from "../../api/client";
 import { isApiError } from "../../api/errors";
 import { useApi } from "../../api/provider";
-import type { Clip, Session, SessionDetailResponse } from "../../api/types";
+import type { Clip, Fact, Session, SessionSummaryResponse } from "../../api/types";
 import { POLL_INTERVAL_MS } from "../../lib/constants";
 import { useAuth } from "../../state/AuthProvider";
 
+/** A polled session; `facts` is null until they were read once (review state). */
+export type FeedSession = SessionSummaryResponse & { facts: Fact[] | null };
+
 export interface FeedSnapshot {
-  data: SessionDetailResponse | null;
+  data: FeedSession | null;
   /** Set when the first load failed or the session is gone. */
   error: unknown;
   loading: boolean;
@@ -19,7 +22,7 @@ const SLOW_POLL_MS = 10_000;
 const FAILS_BEFORE_NOTICE = 3;
 
 /** Poll while the server still works on the session or on one of its clips. */
-export function wantsPolling(d: SessionDetailResponse): boolean {
+export function wantsPolling(d: SessionSummaryResponse): boolean {
   if (d.session.status === "processing") return true;
   return (
     d.session.status === "open" &&
@@ -45,7 +48,7 @@ export class SessionFeed {
   private closed = true;
   private inflight = false;
   private again = false;
-  /** `facts` in the snapshot are real (read with `getSession`), not the empty poll list. */
+  /** `facts` in the snapshot were read with `getSession` (not null). */
   private factsLoaded = false;
   private listeners = new Set<() => void>();
 
@@ -129,12 +132,12 @@ export class SessionFeed {
       if (r.notModified) {
         if (this.snap.failing) this.set({ failing: false });
       } else {
-        // Polls ask for `include=none`, so `facts` is empty. Keep the facts we
+        // Polls ask for `include=none`, so they carry no facts. Keep the facts we
         // already read for this review; otherwise read them once below.
         const keep = this.factsLoaded && r.data.session.status === "review";
         if (!keep) this.factsLoaded = false;
         this.set({
-          data: keep && this.snap.data ? { ...r.data, facts: this.snap.data.facts } : r.data,
+          data: { ...r.data, facts: keep && this.snap.data ? this.snap.data.facts : null },
           error: null,
           loading: false,
           failing: false,

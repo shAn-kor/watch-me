@@ -27,6 +27,7 @@ import type {
   QaAnswer,
   Session,
   SessionDetailResponse,
+  SessionSummaryResponse,
   Situation,
   UpdateDogRequest,
   UpdateFactRequest,
@@ -320,18 +321,22 @@ export class MockTransport implements ApiTransport {
       not_observed: by.filter((x) => !x.covered).map((x) => ({ situation: x.situation, label: x.label })),
     };
   }
-  private sessionDetail(s: Session, include: string | null): SessionDetailResponse {
+  private sessionDetail(s: Session, include: string | null): SessionSummaryResponse | SessionDetailResponse {
     this.advance(s);
     const clips = this.liveClips(undefined, s.id);
-    return {
+    const summary: SessionSummaryResponse = {
       session: s,
       clips,
-      facts: include === "none" ? [] : this.liveFacts(undefined, s.id).map((f) => this.view(f, this.currentMember())),
       progress: {
         clips_total: clips.length,
         clips_ready: clips.filter((c) => c.status === "ready").length,
         clips_failed: clips.filter((c) => c.status === "failed").length,
       },
+    };
+    if (include === "none") return summary;
+    return {
+      ...summary,
+      facts: this.liveFacts(undefined, s.id).map((f) => this.view(f, this.currentMember())),
     };
   }
   /** Each read moves processing work one step, so polling shows progress. */
@@ -882,7 +887,7 @@ export class MockTransport implements ApiTransport {
         sex: d.sex,
         age_estimate: d.age_estimate,
         size: d.size,
-        location: d.location,
+        location: d.location ?? this.state.org.location,
         photo_url: d.photo_url,
         published_at: d.published_at ?? this.now(),
       },

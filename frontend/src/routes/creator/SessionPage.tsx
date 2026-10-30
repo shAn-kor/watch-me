@@ -245,7 +245,7 @@ function SessionBody({
     }
   };
 
-  const draftCount = data.facts.filter((f) => f.status === "draft").length;
+  const draftCount = (data.facts ?? []).filter((f) => f.status === "draft").length;
   const readyCount = clips.filter((c) => c.status === "ready").length;
   const hasRows = clips.length > 0 || uploads.items.length > 0;
 

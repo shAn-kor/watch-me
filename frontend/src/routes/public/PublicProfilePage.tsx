@@ -120,7 +120,7 @@ function ProfileScreen({ slug }: { slug: string }) {
         )}
         <h1>{dog.name}</h1>
         <p>{`${SEX_LABEL[dog.sex]}, ${dog.age_estimate}, ${dog.size}`}</p>
-        {dog.location && <p>{dog.location}</p>}
+        <p>{dog.location}</p>
         <p>{org.name}</p>
       </header>
 

@@ -229,3 +229,24 @@ describe("FE-MCK-02 mock scenarios", () => {
     expect(e?.details.fields?.[0]?.problem).toBe("range_not_completed");
   });
 });
+
+describe("session detail include and public location (contract drift)", () => {
+  it("include=none has no facts key; the default read has facts", async () => {
+    const c = await staff();
+    const dog = await firstDog(c);
+    const s = dog.sessions[0]!;
+    const light = await c.getSession(s.id, { include: "none" });
+    expect("facts" in light).toBe(false);
+    const polled = await c.pollSession(s.id);
+    expect(polled.notModified).toBe(false);
+    if (!polled.notModified) expect("facts" in polled.data).toBe(false);
+    expect(Array.isArray((await c.getSession(s.id)).facts)).toBe(true);
+  });
+
+  it("public location is a non-empty string even when the dog has none", async () => {
+    const c = createMockClient({ scenario: "happy" });
+    const p = await c.getPublicProfile(MOCK_PUBLIC_SLUG);
+    expect(typeof p.dog.location).toBe("string");
+    expect(p.dog.location.length).toBeGreaterThan(0);
+  });
+});
