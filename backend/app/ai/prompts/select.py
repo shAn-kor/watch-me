@@ -27,6 +27,14 @@ what the question asks about. Return their refs only. Rules:
 - Return at most {max_refs} refs. Put the most direct match first.
 - If no observation answers the question, return an empty list. An empty list is
   a correct and common answer.
+- A question that asks for a trait or a label of the dog's character (calm,
+  easygoing, sweet, friendly, gentle, shy, aggressive, playful, obedient, "loves
+  everyone", "순해요") is not answered by single observed moments: return an empty
+  list. Answer only a question about a concrete behavior or situation, such as
+  "How does she act at mealtime?" or "Does she bark?".
+- If the question names a place, person, or situation that no observation shows
+  (for example a groomer, a vet, a car ride, children), return an empty list. Do
+  not use an observation of a similar situation instead.
 - Do not decide whether the dog is good, safe, or right for the visitor. Do not
   add facts. Do not answer in words.
 - A question about health, medicine, vaccines, illness, injury, age, weight,
@@ -39,11 +47,15 @@ what the question asks about. Return their refs only. Rules:
 """
 
 
-def build_select_messages(req: SelectRequest, *, nonce: str | None = None) -> list[dict[str, Any]]:
+def build_select_messages(
+    req: SelectRequest, *, nonce: str | None = None
+) -> list[dict[str, Any]]:
     nonce = nonce or new_nonce()
     lines = ["observations:"]
     for f in req.facts:
-        line = json_line({"ref": f.ref, "situation": f.situation, "behavior": f.behavior}, nonce)
+        line = json_line(
+            {"ref": f.ref, "situation": f.situation, "behavior": f.behavior}, nonce
+        )
         if line is not None:
             lines.append(line)
     question = json.dumps(neutralize(req.question, nonce), ensure_ascii=False)
@@ -60,7 +72,9 @@ def build_select_messages(req: SelectRequest, *, nonce: str | None = None) -> li
     ]
 
 
-def select_response_format(req: SelectRequest, *, strict: bool = True) -> dict[str, Any]:
+def select_response_format(
+    req: SelectRequest, *, strict: bool = True
+) -> dict[str, Any]:
     schema = {
         "type": "object",
         "additionalProperties": False,
