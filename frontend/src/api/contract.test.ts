@@ -17,21 +17,6 @@ type Widen<T> = T extends string
     : T extends object
       ? { [K in keyof T]: Widen<T[K]> }
       : T;
-/**
- * KNOWN DRIFT (frontend side, reported to the lead): two places where the backend
- * is stricter or different from types.ts, and the consumers (outside the files this
- * lane may change) still rely on types.ts. The checks below compare against the
- * backend type with these two spots adjusted. Remove the patches when types.ts
- * follows the backend.
- *  - `GET /api/sessions/{id}`: `facts` is absent with `include=none`
- *    (types.ts says `facts: Fact[]`, "empty").
- *  - `GET /api/public/dogs/{slug}`: `dog.location` is never null (the server falls
- *    back to the org location); types.ts says `string | null`.
- */
-type FactsRequired<G> = Omit<G, "facts"> & { facts: NonNullable<G extends { facts?: infer F } ? F : never> };
-type LocationNullable<G> = G extends { dog: infer D }
-  ? Omit<G, "dog"> & { dog: Omit<D, "location"> & { location: string | null } }
-  : never;
 type Eq<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 /**
  * `H` is the hand-written type, `G` the generated one. Same keys, optionality,
@@ -85,9 +70,11 @@ describe("FE-API-05 contract drift (checked by tsc)", () => {
     ok<Same<T.FactResponse, Ok<Get<"/api/facts/{fact_id}", "patch">>>>();
     ok<Same<T.MetricsResponse, Ok<Get<"/api/admin/metrics", "get">>>>();
     ok<Same<T.HealthResponse, Ok<Get<"/healthz", "get">>>>();
-    ok<Same<T.PublicProfile, LocationNullable<Ok<Get<"/api/public/dogs/{slug}", "get">>>>>();
+    ok<Same<T.PublicProfile, Ok<Get<"/api/public/dogs/{slug}", "get">>>>();
     ok<Same<T.QaAnswer, Ok<Get<"/api/public/dogs/{slug}/ask", "post">>>>();
-    ok<Same<T.SessionDetailResponse, FactsRequired<Ok<Get<"/api/sessions/{session_id}", "get">>>>>();
+    ok<Same<T.SessionDetailBody, Ok<Get<"/api/sessions/{session_id}", "get">>>>();
+    ok<Sends<T.SessionDetailResponse, Ok<Get<"/api/sessions/{session_id}", "get">>>>();
+    ok<Sends<T.SessionSummaryResponse, Ok<Get<"/api/sessions/{session_id}", "get">>>>();
     expect(true).toBe(true);
   });
 

@@ -437,17 +437,24 @@ export interface SessionResponse {
   session: Session;
 }
 
-export interface SessionDetailResponse {
+/** `GET /api/sessions/{id}?include=none`: no `facts` key at all. */
+export interface SessionSummaryResponse {
   session: Session;
   clips: Clip[];
-  /** Empty when requested with `include=none`. */
-  facts: Fact[];
   progress: {
     clips_total: number;
     clips_ready: number;
     clips_failed: number;
   };
 }
+
+/** `GET /api/sessions/{id}` (default `include=facts`). */
+export interface SessionDetailResponse extends SessionSummaryResponse {
+  facts: Fact[];
+}
+
+/** What the backend publishes for the route: `facts` is absent for `include=none`. */
+export type SessionDetailBody = SessionSummaryResponse & { facts?: Fact[] };
 
 export type UploadWarning = "no_audio_track";
 
@@ -522,7 +529,8 @@ export interface PublicDog {
   sex: DogSex;
   age_estimate: string;
   size: DogSize;
-  location: string | null;
+  /** Never null: the server falls back to the org location. */
+  location: string;
   photo_url: string | null;
   published_at: Timestamp;
 }

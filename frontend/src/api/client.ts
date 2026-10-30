@@ -32,6 +32,7 @@ import type {
   PublishResponse,
   QaAnswer,
   SessionDetailResponse,
+  SessionSummaryResponse,
   SessionResponse,
   UpdateDogRequest,
   UpdateFactRequest,
@@ -48,7 +49,7 @@ export interface ApiClientOptions {
 
 export type SessionPoll =
   | { notModified: true; etag: string | null }
-  | { notModified: false; etag: string | null; data: SessionDetailResponse };
+  | { notModified: false; etag: string | null; data: SessionSummaryResponse };
 
 const UNSAFE: ReadonlySet<HttpMethod> = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -236,14 +237,20 @@ export class ApiClient {
   createSession(dogId: Id, body: CreateSessionRequest): Promise<SessionResponse> {
     return this.json("POST", `/api/dogs/${dogId}/sessions`, body);
   }
-  getSession(id: Id, opts: { include?: "facts" | "none" } = {}): Promise<SessionDetailResponse> {
+  getSession(id: Id, opts?: { include?: "facts" }): Promise<SessionDetailResponse>;
+  getSession(id: Id, opts: { include: "none" }): Promise<SessionSummaryResponse>;
+  getSession(
+    id: Id,
+    opts: { include?: "facts" | "none" } = {},
+  ): Promise<SessionDetailResponse | SessionSummaryResponse> {
     const q = opts.include ? `?include=${opts.include}` : "";
     return this.json("GET", `/api/sessions/${id}${q}`);
   }
   /**
    * Conditional GET for the 3 s poll (If-None-Match, 304 means unchanged).
-   * Sends `include=none` (01 section 5.2): `facts` comes back empty. Callers
-   * that need facts read them with `getSession`.
+   * Sends `include=none` (01 section 5.2): the result has no `facts`
+   * key, so it is typed without one. Callers that need facts read them with
+   * `getSession`.
    */
   async pollSession(id: Id, etag?: string | null): Promise<SessionPoll> {
     const res = await this.send("GET", `/api/sessions/${id}?include=none`, undefined, {
@@ -251,7 +258,7 @@ export class ApiClient {
     });
     const tag = res.headers["etag"] ?? null;
     if (res.status === 304) return { notModified: true, etag: tag ?? etag ?? null };
-    return { notModified: false, etag: tag, data: res.body as SessionDetailResponse };
+    return { notModified: false, etag: tag, data: res.body as SessionSummaryResponse };
   }
   submitSession(id: Id): Promise<SessionResponse> {
     return this.json("POST", `/api/sessions/${id}/submit`);

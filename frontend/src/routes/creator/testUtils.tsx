@@ -12,6 +12,7 @@ import type {
   DogDetailResponse,
   MeResponse,
   SessionDetailResponse,
+  SessionSummaryResponse,
 } from "../../api/types";
 import { App, createQueryClient } from "../../app/App";
 import { createTestRouter } from "../../app/router";
@@ -92,12 +93,15 @@ export function patchSession(
 ) {
   const getOrig = client.getSession.bind(client);
   const pollOrig = client.pollSession.bind(client);
-  vi.spyOn(client, "getSession").mockImplementation(async (...a) =>
-    fn(structuredClone(await getOrig(...a))),
-  );
+  vi.spyOn(client, "getSession").mockImplementation((async (id: string, opts?: { include?: "facts" }) =>
+    fn(structuredClone(await getOrig(id, opts)))) as typeof client.getSession);
   vi.spyOn(client, "pollSession").mockImplementation(async (...a) => {
     const r = await pollOrig(...a);
-    return r.notModified ? r : { ...r, data: fn(structuredClone(r.data)) };
+    if (r.notModified) return r;
+    // The poll has no `facts`; give `fn` an empty list and drop it again.
+    const patched: Partial<SessionDetailResponse> = fn({ ...structuredClone(r.data), facts: [] });
+    delete patched.facts;
+    return { ...r, data: patched as SessionSummaryResponse };
   });
 }
 
