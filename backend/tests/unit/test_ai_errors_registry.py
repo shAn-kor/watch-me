@@ -167,9 +167,21 @@ def test_registry_refuses_contributor_model():
     )
 
 
-def test_registry_real_transcribers_wait_for_phase_3():
+def test_registry_builds_muse_transcribe():
+    from app.ai.adapters.muse_transcribe import MuseTranscriber
+
+    reg = AiRegistry.from_settings(settings(ai_transcriber="muse_transcribe", ai_api_key="k"))
+    assert isinstance(reg.transcriber(), MuseTranscriber)
+
+
+def test_registry_muse_transcribe_without_key_is_a_config_error():
     with pytest.raises(AiConfigError):
-        AiRegistry.from_settings(settings(ai_transcriber="muse_transcribe", ai_api_key="k"))
+        AiRegistry.from_settings(settings(ai_transcriber="muse_transcribe"))
+
+
+def test_registry_local_whisper_is_not_built():
+    with pytest.raises(AiConfigError):
+        AiRegistry.from_settings(settings(ai_transcriber="local_whisper", ai_api_key="k"))
 
 
 # ------------------------------------------------------------------- rules
