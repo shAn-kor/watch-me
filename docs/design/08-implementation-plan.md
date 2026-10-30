@@ -581,3 +581,13 @@ fixture, every clip failed as `ai_failed` with an empty `fail_detail`.
   circling a person's feet) is filed under `indoors_rest`.
 - Next: fix the duration bug; add drafter rules against frame-count wording
   and against age guesses without clear evidence; build `muse_transcribe`.
+
+Re-run after the fix (b7eea46, prompt `d2`, 2026-10-30). Same 10 clips, same
+setup. 10 of 10 clips `ready`, all four sessions `review` in 157 s; 14 draft
+facts; 10 draft calls, 57,358 tokens in, 7,343 out, $0.1029. No behavior
+mentions frames, no "child" (the shoe clip is now `new_person`), running and
+circling a person are `new_person`. Regression: the two couch clips (walking
+and rolling on the couch, no person) now give no fact, because indoor play
+fits no situation and the new rule says "or write no fact". Before, they gave
+five `indoors_rest` facts. Open: restore "moves around indoors" in
+`indoors_rest` as the fallback for indoor activity with no other situation.
