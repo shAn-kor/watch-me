@@ -11,6 +11,7 @@ from app.ai.adapters.openai_compat import (
     OpenAICompatSelector,
     build_chat_client,
 )
+from app.ai.adapters.muse_transcribe import MuseTranscriber
 from app.ai.adapters.rules import RulesChecker
 from app.ai.cost import PriceTable
 from app.ai.protocols import FactDrafter, FactSelector, Transcriber, WordingChecker
@@ -77,9 +78,16 @@ class AiRegistry:
 
         if settings.ai_transcriber == "mock":
             transcriber: Transcriber = mock
+        elif settings.ai_transcriber == "muse_transcribe":
+            conn = settings.ai_connection("transcriber")
+            if not conn.api_key:
+                raise AiConfigError(
+                    "AI_TRANSCRIBER=muse_transcribe needs AI_API_KEY (or AI_TRANSCRIBER_API_KEY)"
+                )
+            transcriber = MuseTranscriber(conn, price_table(), timeout_s=settings.ai_timeout_s)
         else:
             raise AiConfigError(
-                f"AI_TRANSCRIBER={settings.ai_transcriber} is not built yet (Phase 3); use mock"
+                f"AI_TRANSCRIBER={settings.ai_transcriber} is not built yet; use mock"
             )
 
         drafter: FactDrafter = (
