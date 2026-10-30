@@ -14,6 +14,7 @@ from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 AiRole = Literal["transcriber", "drafter", "checker", "selector"]
+ReasoningEffort = Literal["minimal", "low", "medium", "high", "xhigh", "max"]
 
 _APP_DIR = Path(__file__).resolve().parent
 DEFAULT_TRANSCRIBER_MODEL = "muse-voice-transcribe-1.0"
@@ -26,6 +27,8 @@ class AiConnection:
     base_url: str
     model: str
     api_key: str | None = field(default=None, repr=False)
+    # None = do not send `reasoning_effort` (providers that do not know it).
+    reasoning_effort: ReasoningEffort | None = None
 
 
 class Settings(BaseSettings):
@@ -99,6 +102,10 @@ class Settings(BaseSettings):
     ai_selector_base_url: str | None = None
     ai_selector_model: str | None = None
     ai_selector_api_key: SecretStr | None = None
+    # `reasoning_effort` per role. Empty = do not send it. "none" is rejected by muse-spark-1.3.
+    ai_drafter_reasoning_effort: ReasoningEffort | None = "low"
+    ai_checker_reasoning_effort: ReasoningEffort | None = "minimal"
+    ai_selector_reasoning_effort: ReasoningEffort | None = "minimal"
     ai_timeout_s: int = Field(75, gt=0)
     ai_stream: bool = False
     ai_schema_strict: bool = True
@@ -144,6 +151,19 @@ class Settings(BaseSettings):
     seed_volunteer_password: SecretStr | None = None
 
     # ------------------------------------------------------------ validators
+    @field_validator(
+        "ai_drafter_reasoning_effort",
+        "ai_checker_reasoning_effort",
+        "ai_selector_reasoning_effort",
+        mode="before",
+    )
+    @classmethod
+    def _blank_effort_is_unset(cls, v: object) -> object:
+        if isinstance(v, str):
+            v = v.strip().lower()
+            return v or None
+        return v
+
     @field_validator("secret_key")
     @classmethod
     def _secret_key_length(cls, value: SecretStr) -> SecretStr:
@@ -200,6 +220,7 @@ class Settings(BaseSettings):
             base_url=base_url,
             model=model,
             api_key=key.get_secret_value() if key is not None else None,
+            reasoning_effort=getattr(self, f"ai_{role}_reasoning_effort", None),
         )
 
     def forbidden_contributor_models(self) -> list[str]:
