@@ -160,7 +160,7 @@ Choices made by lanes, accepted by the lead:
   turns faults into `JobError` unless `raise_ai_errors=True`.
   `reasoning_effort` is off until the spike.
 - **D.** An unknown handler exception becomes `JobError(<step default code>,
-  retryable=False)`, and the job row stores `internal_error` (06 M31 over 07).
+retryable=False)`, and the job row stores `internal_error` (06 M31 over 07).
   Step codes: transcode and sample `transcode_failed`; transcribe, draft and
   check `ai_failed`; merge `merge_failed`; purge and sweep `purge_failed`.
   Backoff: pipeline 30 s, 120 s; purge 1 m, 5 m, 15 m, 1 h, 3 h, 6 h, 12 h.
@@ -208,7 +208,7 @@ Shared seams for later lanes:
   (lane P owns `run_purge_*`). Photos are re-encoded with Pillow, which drops
   EXIF. `.heic` returns 415. The extension must match the magic bytes.
 - **S3.** Upload enqueues `transcode` with payload `{clip_id, session_id,
-  dog_id}`. A manual retry enqueues the failed step's job type, with the same
+dog_id}`. A manual retry enqueues the failed step's job type, with the same
   payload, attempts reset to 0, and no dedupe key. The `merge` job has payload
   `{session_id}` and dedupe key `merge:{session_id}`. The `purge_clip` job has
   payload `{clip_id, dog_id}`, dedupe key `purge_clip:{id}`, and 8 attempts.
@@ -305,7 +305,7 @@ lane P paragraph below. lint-imports: 11 kept.
 3. "Delete clip" also shows for ready clips while the session is open. This
    adds to 05.
 4. Dog list row aria-label: `{name}, {status}, clips in N of 8 situations[, N
-   drafts to review]`.
+drafts to review]`.
 5. The client does not measure clip length before upload.
 6. The edit sheet adds no history entry.
 7. There is no automatic retry on `csrf_failed`.
@@ -502,3 +502,20 @@ built (909 MB). A container on a fresh named volume ran migrations as uid
 10001, became `healthy`, served `/healthz` 200 and the SPA 200, ran the seed
 tool twice (second run "exists"), accepted the staff login, and exited 0 on
 SIGTERM. Caddy and compose are not run yet.
+
+Compose + Caddy check (2026-10-30, same Mac mini, standalone `docker-compose`
+v2 because the `docker compose` plugin is not installed there; the deploy
+README keeps `docker compose` for the VM). `docker-compose.yml` plus a smoke
+override (Caddy on 18080, `SITE_ADDRESS=:80`, fake keys): `/healthz` 200, SPA
+200, seed then staff login 200 through Caddy.
+
+- Fixed: Caddy answered 503 "no upstreams available" for about 30 s after
+  start. Its first active health check ran before uvicorn listened and marked
+  the only upstream down until the next check. `deploy/Caddyfile` now has no
+  active health check and uses `lb_try_duration 15s`. Re-run: `/healthz` 200
+  right after `up`.
+- Body limit: a 210 MiB POST reaches the api (its JSON answer, not a Caddy
+  413). Caddy `request_body max_size` does not check `Content-Length`; it cuts
+  only a body it streams, so the api's own `Content-Length` check answers an
+  oversized clip first. A 230 MiB chunked JSON body that the api reads got
+  Caddy's 413, so the backstop works.

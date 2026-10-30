@@ -6,6 +6,9 @@
 
 	# 01 section 5.3: clip limit is 200 MiB, so the proxy must accept at least 210 MiB.
 	# Without this the proxy would answer its own 413 before the api can.
+	# Caddy does not check Content-Length here: it cuts the body only while it streams
+	# it, so the api's own Content-Length check answers first. This is the backstop
+	# for a chunked body that the api reads.
 	request_body {
 		max_size 220MiB
 	}
@@ -13,8 +16,11 @@
 	reverse_proxy app:8000 {
 		# The api reads the last X-Forwarded-For hop when TRUSTED_PROXY=true.
 		header_up X-Forwarded-For {remote_host}
-		health_uri /healthz
-		health_interval 30s
+		# One upstream, so no active health check: a failed first check (before uvicorn
+		# listens) marked it down for 30 s and Caddy answered 503. Instead, retry the
+		# dial while the app starts or restarts. Docker HEALTHCHECK covers liveness.
+		lb_try_duration 15s
+		lb_try_interval 250ms
 	}
 
 	log {
