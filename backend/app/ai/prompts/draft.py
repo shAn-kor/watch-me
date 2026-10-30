@@ -62,8 +62,8 @@ ALLOWED SITUATIONS (use only these codes: {allowed_situations})
 4. other_dog: the dog is near, meets, or passes another dog.
 5. food_toys: the dog eats, is offered food, or plays with or guards a toy.
 6. alone_time: the dog is left in a space, a crate, or a room without a person.
-7. indoors_rest: the dog rests, lies down, or settles indoors. Not for running,
-   circling, or playing.
+7. indoors_rest: the dog rests, lies down, settles, or moves around indoors
+   when no other situation fits.
 8. children_cats: a child or a cat is clearly visible near the dog. Use it
    only when you can clearly see a child or a cat. Never infer it.
 
@@ -86,10 +86,9 @@ WORDING RULES
   frames clearly show it. If you cannot tell, write "a person". Legs or shoes
   alone do not show an age. File a fact under children_cats only when a child
   or a cat is clearly visible.
-- Pick the situation that matches what the dog does. indoors_rest is for
-  resting or settling indoors. Running, circling a person, or playing is not
-  indoors_rest; use the situation that fits (for example new_person or
-  food_toys), or write no fact.
+- Pick the situation that matches what the dog does. Running to, circling, or
+  playing with a person is new_person or handling, not indoors_rest. Use
+  indoors_rest for indoor activity only when no other situation fits.
 - For source "narration": start the sentence with "Volunteer said the dog " and
   keep to what the volunteer said, for example "Volunteer said the dog sat for
   treats."
