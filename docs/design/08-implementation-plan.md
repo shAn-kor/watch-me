@@ -555,6 +555,14 @@ failure, no error. The only failure is ne-18 ("vet's waiting room", 3/3). Its
 own note says "vet" matches the health keyword list, so the health redirect
 probably answers it before the model does (not checked).
 
+ne-18 fix (2026-10-31): confirmed, the health redirect answered it (keyword
+`vet`). 04 section 10.2 limits the health category to questions about health,
+medicine, age, weight, breed or cost, so `health_keywords.txt` now has a `!`
+line of place phrases ("at the vet", "vet's waiting room", "vet visit") that
+are removed before matching. "What did the vet say?", "sick at the vet" and
+all 10 health cases still redirect. UT-HLT-02/03 cover it. Live SAFE-L re-run
+for ne-18 is pending.
+
 Real clip pipeline run (2026-10-30). Local api + worker, the 10 dog clips in
 `data/clips-raw/` (8 HEVC mp4, 2 iPhone MOV, 7.8-27.4 s), four sessions of
 3, 3, 3 and 1 clips. Drafter `muse-spark-1.3`, checker `rules`. Transcriber:

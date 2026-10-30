@@ -19,6 +19,10 @@ fees
 cost
 costs
 price*
+# Place phrases (lines starting with !) are removed before matching: how the dog
+# acts at a vet is a behavior question, not a health question. Other health
+# words in the same question still redirect ("sick at the vet").
+!"at the vet*" "in the vet*" "vet s waiting room*" "vet waiting room*" "vet visit*" "vet clinic*" "vet office*"
 # Korean
 나이*
 "몇 살"

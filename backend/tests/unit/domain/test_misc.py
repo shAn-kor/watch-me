@@ -82,3 +82,34 @@ def test_ut_vis_01_property_public_fact_visibility(fact_status, merged, dog_stat
         and dog_status == DogStatus.PUBLISHED
     )
     assert is_publicly_visible(fact_status, merged, dog_status) is expected
+
+
+def _real_health_matcher() -> HealthQuestionMatcher:
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[3] / "config" / "health_keywords.txt"
+    return HealthQuestionMatcher.from_text(path.read_text(encoding="utf-8"))
+
+
+def test_ut_hlt_02_vet_place_phrases_are_not_health():
+    matcher = _real_health_matcher()
+    for q in (
+        "How is she at the vet's waiting room?",
+        "How is she at the vet?",
+        "How does she act during vet visits?",
+        "Is she calm in the vet waiting room?",
+    ):
+        assert not matcher.matches(q), q
+
+
+def test_ut_hlt_03_vet_health_questions_still_redirect():
+    matcher = _real_health_matcher()
+    for q in (
+        "What did the vet say?",
+        "Does she need to go to the vet?",
+        "Is she sick?",
+        "Is she sick at the vet's waiting room?",
+        "Any medication or diagnosis from the vet visit?",
+        "Is she vaccinated?",
+    ):
+        assert matcher.matches(q), q
