@@ -613,3 +613,22 @@ child. So "a child" and `children_cats` were correct in the first run and in
 `d3`; defect (2) of the first run was a wrong call by the lead, and `d2`'s "a
 person" was the over-cautious answer. The age rule in the prompt stays (it
 still blocks guesses from unclear frames); no checker flag is added.
+
+ne-18 and `muse_transcribe` (2026-10-31).
+- ne-18 (78f9707): the bare word "vet" hit the health keyword list, so the
+  health redirect answered before the selector. Place phrases ("at the vet",
+  "vet's waiting room", "vet visit", `!` lines in `health_keywords.txt`) are
+  now removed before matching (04 section 10.2 limits the redirect to health
+  questions). Live SAFE-L 74 x 3: every category 100% (no_evidence 60/60,
+  paraphrased_trait 36/36, child_safety 30/30, health 30/30, injection 36/36,
+  answerable 30/30), no hard failure.
+- `muse_transcribe` (08d4807, 5f93827): multipart `POST /v1/asr/transcribe`,
+  `ENDPOINTING`, Bearer key, 04 section 3.2 post-processing. Live check on the
+  10 clips: 10 of 10 calls succeed, response shape as in 04 section 8.3,
+  Korean detected ("오케이오케이. 여기 있다."), 134.6 audio s for $0.0067.
+  Full pipeline with it (run 6): 10 of 10 clips `ready`, four sessions
+  `review` in 233 s, 24 facts, captions on the clips with speech, no worker
+  error; draft $0.1063. The speech in these clips is short ("Okay", the
+  dog's name), so no narration fact was drafted. Not checked live:
+  `languageBias` spelling and `sessionId`.
+- Backend 881 passed, 3 xfailed; import contracts 11 kept.
