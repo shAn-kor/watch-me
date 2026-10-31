@@ -111,6 +111,26 @@ def test_api_up_03_container_decides_not_extension(
     assert r.json()["clip"]["original_filename"] == "A.MOV"
 
 
+def test_api_up_03d_multipart_filename_is_kept_and_listed(
+    client, db, container, world, open_session, login_as
+):
+    # A real phone file name must come back as sent, not as the "upload" fallback.
+    token = login_as(world.vol1)
+    r = upload_file(
+        client,
+        token,
+        open_session.id,
+        "hevc_8s.mov",
+        filename="IMG_0001.MOV",
+        content_type="video/quicktime",
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["clip"]["original_filename"] == "IMG_0001.MOV"
+    listed = client.get(f"/api/sessions/{open_session.id}")
+    assert listed.status_code == 200, listed.text
+    assert [c["original_filename"] for c in listed.json()["clips"]] == ["IMG_0001.MOV"]
+
+
 @pytest.mark.parametrize(
     "filename", ["noextension", "blob", "1000012345", "trim.1A2B.weird", "clip.txt"]
 )
