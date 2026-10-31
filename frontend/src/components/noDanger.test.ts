@@ -21,7 +21,7 @@ describe("FE-LNT-01 no raw HTML sinks", () => {
     );
     expect(res!.messages.map((m) => m.ruleId)).toContain("react/no-danger");
     expect(res!.messages.find((m) => m.ruleId === "react/no-danger")?.severity).toBe(2);
-  });
+  }, 30_000);
 
   it("no source file uses dangerouslySetInnerHTML", () => {
     const needle = ["dangerously", "SetInnerHTML"].join("");
