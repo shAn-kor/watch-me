@@ -75,6 +75,7 @@ Validation errors (`422`) carry `details.fields`: a list of
 | 503  | `qa_cost_cap_reached`          | Daily Q&A spend reached `QA_DAILY_USD_CAP` (default 3.00 USD per UTC day, ADR-0033/0041; QA-1). `Retry-After` until 00:00 UTC. Only for questions that need a model call. The health and no-facts paths still answer | ask |
 | 503  | `qa_unavailable`            | Selector provider failed (no job retry for Q&A; any provider error), or returned schema-invalid output after the adapter's one retry. No guess is rendered | ask |
 | 503  | `storage_unavailable`          | Disk full or storage write failed                                                                                                                                                               | uploads                                                |
+| 503  | `service_busy`                 | The database write lock was not free within 5 s (a worker write in progress). Retryable. Header `Retry-After` (seconds)                                    |
 
 Pipeline failures (`unsupported_file`, `too_long`, `transcode_failed`,
 `ai_failed`, `ai_invalid_output`) are not HTTP errors. They appear as

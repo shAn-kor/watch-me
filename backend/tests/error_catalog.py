@@ -35,6 +35,7 @@ CATALOG: tuple[tuple[int, str], ...] = (
     (503, "qa_cost_cap_reached"),
     (503, "qa_unavailable"),
     (503, "storage_unavailable"),
+    (503, "service_busy"),
 )
 
 CODES: frozenset[str] = frozenset(code for _, code in CATALOG)
