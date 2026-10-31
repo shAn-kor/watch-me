@@ -379,7 +379,7 @@ function SessionBody({
               Choose from library
               <input
                 type="file"
-                accept=".mp4,.mov,video/mp4,video/quicktime"
+                accept=".mp4,.mov,video/*"
                 multiple
                 disabled={addBlocked}
                 className="wm-visually-hidden"

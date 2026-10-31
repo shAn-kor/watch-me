@@ -978,13 +978,19 @@ area (two file inputs), clip rows, bottom action bar, `RangePlayer` in
 - "Record with camera" is a file input with `accept="video/*"` and
   `capture="environment"`. On phones it opens the camera app and returns the
   file to the page (no in-page recorder in R1). "Choose from library" is a file
-  input with `accept=".mp4,.mov,video/mp4,video/quicktime"`.
+  input with `accept=".mp4,.mov,video/*"` (so phone pickers list every video).
 - Clips upload one at a time, in the order chosen. The client sends a fresh
   `client_request_id` per clip and reuses it on retry, so a dropped response
   never makes a second clip.
 - Before sending, the client checks the limits from `GET /api/me`
   (`max_clip_bytes`, `allowed_extensions`, `max_clips_per_session`) and shows
-  the same texts as the server codes below. It also reads the video duration
+  the same texts as the server codes below. The type check is loose because
+  the server decides by ffprobe (01 section 5.3): the client sends a file with
+  an allowed extension, any `video/*` type, no extension, or an empty type, and
+  rejects only a file that clearly is not a video (for example `image/*`,
+  `text/*`, `application/pdf` without an allowed extension). Rows rejected on
+  the client never reach the server and do not count toward the clip limit or
+  the "N of M" counter. It also reads the video duration
   from a hidden element when the browser can decode the file; if it cannot
   (HEVC in Chrome), it sends the file and lets the server decide.
 

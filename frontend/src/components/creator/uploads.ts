@@ -130,6 +130,21 @@ export function uploadFailure(e: unknown, limits: Limits): UploadFailure {
   }
 }
 
+/**
+ * Client precheck for type (01 5.3: the server decides by ffprobe). Send the
+ * file unless it clearly is not a video: an allowed extension, any `video/*`
+ * type, a missing extension or an empty type all go through.
+ */
+export function looksLikeVideo(file: File, allowed: string[]): boolean {
+  const name = file.name.toLowerCase();
+  if (allowed.some((ext) => name.endsWith(ext.toLowerCase()))) return true;
+  const type = file.type.toLowerCase();
+  if (type === "" || type.startsWith("video/")) return true;
+  const dot = name.lastIndexOf(".");
+  if (dot <= 0 || dot === name.length - 1) return true;
+  return false;
+}
+
 interface Options {
   api: ApiClient;
   sessionId: string;
@@ -257,10 +272,7 @@ export function useUploads({
           retryable: false,
           consentLink: false,
         };
-        const name = file.name.toLowerCase();
-        const okType = limits.allowed_extensions.some((ext) =>
-          name.endsWith(ext.toLowerCase()),
-        );
+        const okType = looksLikeVideo(file, limits.allowed_extensions);
         let error: string | null = null;
         if (existing + active >= limits.max_clips_per_session) {
           error = `This session already has ${limits.max_clips_per_session} clips. Delete one to add another.`;

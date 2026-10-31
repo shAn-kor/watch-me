@@ -245,7 +245,7 @@ describe("FE-UPL-03 error causes", () => {
 });
 
 describe("FE-UPL-04 client prechecks", () => {
-  it("rejects a 201 MiB file and an .avi without sending", async () => {
+  it("rejects a 201 MiB file and a text file without sending", async () => {
     const client = await prepareClient({ as: "staff" });
     const id = await newSession(client);
     const spy = vi.spyOn(client, "uploadClip");
@@ -257,7 +257,7 @@ describe("FE-UPL-04 client prechecks", () => {
         "This file is larger than 200 MB. Choose a smaller file or film a shorter clip.",
       ),
     ).toBeInTheDocument();
-    await user.upload(input, makeFile("old.avi", 1000, "video/x-msvideo"));
+    await user.upload(input, makeFile("notes.txt", 1000, "text/plain"));
     expect(
       await screen.findByText("This file type is not supported. Use an MP4 or MOV video."),
     ).toBeInTheDocument();
@@ -273,8 +273,26 @@ describe("FE-UPL-04 client prechecks", () => {
     expect(cam).toHaveAttribute("capture", "environment");
     expect(screen.getByLabelText("Choose from library")).toHaveAttribute(
       "accept",
-      ".mp4,.mov,video/mp4,video/quicktime",
+      ".mp4,.mov,video/*",
     );
+  });
+
+  it("sends a video with an odd extension or no extension, rejects an image or pdf", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const spy = vi.spyOn(client, "uploadClip");
+    const { user } = await renderApp(sessionUrl(id), { client, user: { applyAccept: false } });
+    const input = await screen.findByLabelText("Choose from library");
+    await user.upload(input, makeFile("clip.m4v", 1000, "video/x-m4v"));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
+    await user.upload(input, makeFile("IMG_0002", 1000, ""));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    await user.upload(input, makeFile("pic.png", 1000, "image/png"));
+    await user.upload(input, makeFile("doc.pdf", 1000, "application/pdf"));
+    expect((await screen.findAllByText("This file type is not supported. Use an MP4 or MOV video.")).length).toBeGreaterThan(0);
+    expect(screen.getByText("pic.png")).toBeInTheDocument();
+    expect(screen.getByText("doc.pdf")).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(2);
   });
 });
 
