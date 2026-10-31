@@ -31,6 +31,29 @@ const TYPE_TEXT = "This file type is not supported. Use an MP4 or MOV video.";
 const STOPPED_TEXT =
   "The upload stopped before it finished. Check your connection and try again.";
 
+/** Automatic retries after `service_busy` (503 + Retry-After), then a manual retry. */
+export const BUSY_RETRIES = 2;
+const BUSY_WAIT_MAX_S = 5;
+
+function busyDelayMs(e: { retryAfter: number | null }): number {
+  const s = e.retryAfter ?? 1;
+  return Math.min(Math.max(s, 0), BUSY_WAIT_MAX_S) * 1000;
+}
+
+/** Resolves after `ms`, or early when `signal` aborts. */
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal.aborted) return resolve();
+    const done = () => {
+      clearTimeout(t);
+      signal.removeEventListener("abort", done);
+      resolve();
+    };
+    const t = setTimeout(done, ms);
+    signal.addEventListener("abort", done);
+  });
+}
+
 function sizeText(limits: Limits, bytes?: number): string {
   return `This file is larger than ${megabytes(bytes ?? limits.max_clip_bytes)}. Choose a smaller file or film a shorter clip.`;
 }
@@ -93,6 +116,8 @@ export function uploadFailure(e: unknown, limits: Limits): UploadFailure {
         "The server cannot store files right now. Try again in a few minutes.",
         true,
       );
+    case "service_busy":
+      return plain("The server is busy right now. Try again in a moment.", true);
     case "rate_limited":
       return plain(
         `You have reached the limit of 20 uploads per hour. ${waitText(e.retryAfter)}`,
@@ -162,17 +187,37 @@ export function useUploads({
         controllers.current.set(next.key, ctl);
         sync();
         try {
-          const res = await api.uploadClip(sessionId, next.file, {
-            clientRequestId: next.requestId,
-            signal: ctl.signal,
-            onProgress: (loaded, total) => {
-              next.percent =
-                total > 0
-                  ? Math.min(100, Math.round((loaded * 100) / total))
-                  : 0;
+          let res;
+          for (let busy = 0; ; busy++) {
+            try {
+              res = await api.uploadClip(sessionId, next.file, {
+                clientRequestId: next.requestId,
+                signal: ctl.signal,
+                onProgress: (loaded, total) => {
+                  next.percent =
+                    total > 0
+                      ? Math.min(100, Math.round((loaded * 100) / total))
+                      : 0;
+                  sync();
+                },
+              });
+              break;
+            } catch (err) {
+              // SQLite stayed locked: wait Retry-After (capped), then resend
+              // with the same client_request_id so a landed upload is reused.
+              if (
+                !isApiError(err) ||
+                err.code !== "service_busy" ||
+                busy >= BUSY_RETRIES ||
+                ctl.signal.aborted
+              )
+                throw err;
+              next.percent = 0;
               sync();
-            },
-          });
+              await sleep(busyDelayMs(err), ctl.signal);
+              if (ctl.signal.aborted) throw err;
+            }
+          }
           // Cancelled just as the server answered: the row is already gone.
           if (ctl.signal.aborted) continue;
           queue.current = queue.current.filter((x) => x !== next);

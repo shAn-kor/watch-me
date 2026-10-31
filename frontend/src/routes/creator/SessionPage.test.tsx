@@ -192,6 +192,40 @@ describe("FE-UPL-03 error causes", () => {
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
   });
 
+  it("service_busy retries by itself and then uploads", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const real = client.uploadClip.bind(client);
+    const busy = new ApiError("service_busy", 503, {}, 0);
+    const spy = vi
+      .spyOn(client, "uploadClip")
+      .mockRejectedValueOnce(busy)
+      .mockRejectedValueOnce(busy)
+      .mockImplementation(real);
+    const { user } = await renderApp(sessionUrl(id), { client });
+    await user.upload(await screen.findByLabelText("Choose from library"), makeFile("a.mov"));
+    expect(await screen.findByText("Uploaded. Waiting to start.")).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(3);
+    const ids = spy.mock.calls.map((c) => c[2]?.clientRequestId);
+    expect(new Set(ids).size).toBe(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("service_busy that keeps failing shows a plain retry message after 3 tries", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const spy = vi
+      .spyOn(client, "uploadClip")
+      .mockRejectedValue(new ApiError("service_busy", 503, {}, 0));
+    const { user } = await renderApp(sessionUrl(id), { client });
+    await user.upload(await screen.findByLabelText("Choose from library"), makeFile("a.mov"));
+    expect(
+      await screen.findByText("The server is busy right now. Try again in a moment."),
+    ).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(3);
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
   it("retry reuses the same client_request_id", async () => {
     const client = await prepareClient({ as: "staff" });
     const id = await newSession(client);

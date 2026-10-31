@@ -77,7 +77,8 @@ export type ErrorCode =
   | "internal_error"
   | "qa_cost_cap_reached"
   | "qa_unavailable"
-  | "storage_unavailable";
+  | "storage_unavailable"
+  | "service_busy";
 
 export type ValidationProblem =
   | "required"
