@@ -1087,8 +1087,11 @@ export interface components {
         };
         /** NoticeOut */
         NoticeOut: {
-            /** Code */
-            code: string;
+            /**
+             * Code
+             * @constant
+             */
+            code: "ask_shelter_in_person_meeting";
             /** Text */
             text: string;
         };
@@ -1198,8 +1201,11 @@ export interface components {
         /** ProfileOut */
         ProfileOut: {
             ask: components["schemas"]["AskInfoOut"];
-            /** Banner Id */
-            banner_id: string;
+            /**
+             * Banner Id
+             * @constant
+             */
+            banner_id: "pub0_v1";
             contact: components["schemas"]["ContactOut"];
             coverage: components["schemas"]["ProfileCoverageOut"];
             dog: components["schemas"]["ProfileDogOut"];

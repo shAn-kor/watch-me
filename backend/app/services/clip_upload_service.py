@@ -11,6 +11,7 @@ Job enqueued: type `transcode`, payload `{clip_id, session_id, dog_id}`, columns
 
 from __future__ import annotations
 
+import contextlib
 import re
 from dataclasses import dataclass
 from pathlib import PurePosixPath
@@ -209,15 +210,11 @@ class ClipUploadService:
                 created=True,
             )
         except BaseException:
-            try:
+            with contextlib.suppress(Exception):
                 uow.rollback()
-            except Exception:  # noqa: BLE001
-                pass
             if key is not None:
-                try:
+                with contextlib.suppress(Exception):
                     self._storage.delete(key)
-                except Exception:  # noqa: BLE001
-                    pass
             raise
         finally:
             try:

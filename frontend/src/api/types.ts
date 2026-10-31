@@ -549,7 +549,7 @@ export interface KnownConcerns {
 }
 
 export interface FactNotice {
-  code: "ask_shelter_in_person_meeting" | (string & {});
+  code: "ask_shelter_in_person_meeting";
   text: string;
 }
 
@@ -583,7 +583,7 @@ export interface PublicFactGroup {
 }
 
 export interface PublicProfile {
-  banner_id: string;
+  banner_id: "pub0_v1";
   dog: PublicDog;
   org: { name: string; country: string };
   coverage: PublicCoverage;

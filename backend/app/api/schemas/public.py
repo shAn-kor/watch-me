@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,7 +23,7 @@ class ClipLengthOut(BaseModel):
 
 
 class NoticeOut(BaseModel):
-    code: str
+    code: Literal["ask_shelter_in_person_meeting"]
     text: str
 
 
@@ -189,7 +190,7 @@ class AskInfoOut(BaseModel):
 
 
 class ProfileOut(BaseModel):
-    banner_id: str
+    banner_id: Literal["pub0_v1"]
     dog: ProfileDogOut
     org: ProfileOrgOut
     coverage: ProfileCoverageOut

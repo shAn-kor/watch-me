@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -34,7 +34,7 @@ class RawCompletion:
 
 
 @dataclass
-class StructuredResult(Generic[T]):
+class StructuredResult[T: BaseModel]:
     value: T
     usages: list[Usage] = field(default_factory=list)
 

@@ -177,3 +177,12 @@ allow_indirect_imports = true
 # RUF059: tests unpack seed helpers that return tuples and use only some items.
 # B008: probe routers in the test support module use FastAPI `Depends` defaults.
 "tests/**" = ["F811", "RUF059", "B008"]
+
+# FastAPI reads `Depends(...)`, `Query(...)` and friends from parameter defaults
+# by design, so B008 stays on for every other call.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Query", "fastapi.Body", "fastapi.File",
+    "fastapi.Form", "fastapi.Header", "fastapi.Cookie", "fastapi.Path",
+    "fastapi.Security",
+]

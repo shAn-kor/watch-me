@@ -31,7 +31,7 @@ async function shown(p = profile()) {
 describe("FE-PUB-01 banner is a constant", () => {
   it("renders the PRD text above the facts, whatever the API sends", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const bad = { ...profile(), banner_id: "other" } as ReturnType<typeof profile>;
+    const bad = { ...profile(), banner_id: "other" } as unknown as ReturnType<typeof profile>;
     await shown(bad);
     const banner = screen.getByRole("complementary", { name: "Important notice" });
     expect(banner).toHaveTextContent(BANNER);

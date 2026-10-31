@@ -666,3 +666,33 @@ def test_pipe_e2e_24_check_is_one_batch_per_merge(make_env):
     new_facts = [f for f in env.facts(session_id=sess.id) if "Walked" in f.behavior]
     assert len(calls[1].items) == len(new_facts) > 0
     assert len(env.ledger("check")) == 2
+
+
+# ---------------------------------------------------------------- merge crash gap
+
+
+def test_pipe_e2e_10b_crash_after_merge_commit_still_runs_check(env):
+    """The worker stops after the merge commit and before `complete`: the retried
+    merge job must still hand the facts to the check step."""
+    dog, vol, sess = _world_session(env)
+    env.add_clip(sess, "h264_5s.mp4", ordinal=1)
+    while True:
+        job = env.runner.queue.claim("w-crash")
+        assert job is not None
+        if job.type == "merge":
+            break
+        env.runner.execute(job)
+    env.runner.ctx.services.merge_service.merge_session(sess.id)  # commit, then die
+    assert all(f.merged for f in env.facts(session_id=sess.id))
+    assert env.jobs("check") == []
+    env.advance(3600)
+    env.runner.reset_stale()
+    env.advance(3600)
+    env.run()
+    merge_job = env.jobs("merge")[0]
+    assert merge_job.status == "succeeded"
+    checks = env.jobs("check")
+    assert len(checks) == 1 and checks[0].status == "succeeded"
+    facts = env.facts(session_id=sess.id)
+    assert checks[0].payload["fact_ids"] == [f.id for f in facts]
+    assert env.session_row(sess.id).status == "review"

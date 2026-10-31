@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from types import TracebackType
+from typing import Self
 
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -28,7 +29,7 @@ class UnitOfWork:
         self._factory = session_factory
         self._session: Session | None = None
 
-    def __enter__(self) -> UnitOfWork:
+    def __enter__(self) -> Self:
         self._session = self._factory()
         return self
 
