@@ -5,9 +5,8 @@ from __future__ import annotations
 import os
 from logging.config import fileConfig
 
-from alembic import context
-
 import app.models  # noqa: F401  (registers tables)
+from alembic import context
 from app.db.base import Base
 from app.db.engine import make_engine
 
