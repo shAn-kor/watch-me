@@ -12,10 +12,11 @@ Job enqueued: type `transcode`, payload `{clip_id, session_id, dog_id}`, columns
 from __future__ import annotations
 
 import contextlib
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import Any, Protocol
+from typing import Any, NoReturn, Protocol
 
 from app.clock import Clock
 from app.config import Settings
@@ -34,6 +35,7 @@ from app.errors import (
 )
 from app.repositories.clips import ClipRepository
 from app.repositories.sessions import SessionRepository
+from app.services._write_lock import lock_for_write
 from app.services.job_queue import JobQueue
 from app.services.session_service import build_clip_view
 from app.services.views import ClipView, JobSpec, MediaUrls, Principal
@@ -42,6 +44,8 @@ from app.storage.base import StorageError
 MAX_FILENAME_CHARS = 200
 MAX_REQUEST_ID_CHARS = 40
 DURATION_TOLERANCE_S = 0.5
+MP4_FAMILY = frozenset({"mov", "mp4"})
+log = logging.getLogger("app.upload")
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 
 
@@ -131,24 +135,26 @@ class ClipUploadService:
         tmp = received.path
         key: str | None = None
         try:
+            # Phase 1 (reads only): the same checks as `precheck`, the retry lookup
+            # and the limit. The read snapshot is then released, so the long probe
+            # and file copy below never hold a stale snapshot or a lock.
             sess, dog, repo = self._guard(who, session_id, uow, check_limit=False)
+            sess_id, dog_id = sess.id, dog.id
             clip_repo = ClipRepository(uow.session)
             request_id = self._request_id(received.client_request_id)
-            if request_id is not None:
-                existing = clip_repo.by_request_id(sess.id, request_id)
-                if existing is not None and existing.deleted_at is None:
-                    return UploadResult(
-                        clip=self._view(repo, existing),
-                        warnings=() if existing.has_audio else ("no_audio_track",),
-                        created=False,
-                    )
-            self._check_limit(repo, sess.id)
+            replay = self._replay(repo, clip_repo, sess_id, request_id)
+            if replay is not None:
+                return replay
+            self._check_limit(repo, sess_id)
+            uow.rollback()
 
-            ext = PurePosixPath(clean_filename(received.filename, limit=None)).suffix.lower()
             allowed = [e.lower() for e in self._settings.allowed_extensions]
-            if ext not in allowed:
-                raise UnsupportedFileType(details={"allowed": allowed})
-            probe = self._probe(tmp, allowed)
+            suffix = PurePosixPath(
+                clean_filename(received.filename, limit=None)
+            ).suffix.lower()
+            probe = self._probe(tmp, allowed, suffix)
+            if not _is_mp4_family(probe.container):
+                self._reject(allowed, "unsupported_container", suffix)
             if probe.duration_s > self._settings.max_clip_s + DURATION_TOLERANCE_S:
                 raise ClipTooLong(
                     details={
@@ -156,14 +162,28 @@ class ClipUploadService:
                         "duration_s": round(probe.duration_s, 1),
                     }
                 )
+            # The client name is not trusted (phone pickers send `blob`, numeric
+            # names, odd suffixes): keep a known suffix, else derive one from the
+            # container.
+            ext = suffix if suffix in allowed else ".mp4"
 
             clip_id = new_id()
-            new_key = f"dogs/{dog.id}/clips/{clip_id}/original{ext}"
+            new_key = f"dogs/{dog_id}/clips/{clip_id}/original{ext}"
             try:
                 self._storage.put_file(new_key, tmp)
             except StorageError as exc:
                 raise StorageUnavailable() from exc
             key = new_key
+
+            # Phase 2: take the write lock before the first read (the worker may
+            # have committed meanwhile), then re-check what could have changed.
+            lock_for_write(uow)
+            sess, dog, repo = self._guard(who, session_id, uow, check_limit=False)
+            clip_repo = ClipRepository(uow.session)
+            replay = self._replay(repo, clip_repo, sess.id, request_id)
+            if replay is not None:
+                return replay
+            self._check_limit(repo, sess.id)
 
             ordinal = next(
                 n for n in range(1, 4) if n not in clip_repo.live_ordinals(sess.id)
@@ -231,6 +251,35 @@ class ClipUploadService:
             has_transcript=bool(repo.clip_ids_with_transcript([clip.id])),
         )
 
+    def _replay(
+        self,
+        repo: SessionRepository,
+        clip_repo: ClipRepository,
+        session_id: str,
+        request_id: str | None,
+    ) -> UploadResult | None:
+        """A repeated `client_request_id` returns the existing clip."""
+        if request_id is None:
+            return None
+        existing = clip_repo.by_request_id(session_id, request_id)
+        if existing is None or existing.deleted_at is not None:
+            return None
+        return UploadResult(
+            clip=self._view(repo, existing),
+            warnings=() if existing.has_audio else ("no_audio_track",),
+            created=False,
+        )
+
+    @staticmethod
+    def _reject(allowed: list[str], reason: str, suffix: str) -> NoReturn:
+        """415 with `details.reason`; the log keeps the reason and the suffix only."""
+        log.warning(
+            "upload rejected: unsupported_file_type reason=%s suffix=%r",
+            reason,
+            suffix[:12],
+        )
+        raise UnsupportedFileType(details={"allowed": allowed, "reason": reason})
+
     @staticmethod
     def _request_id(raw: str | None) -> str | None:
         if raw is None:
@@ -246,7 +295,7 @@ class ClipUploadService:
             )
         return raw
 
-    def _probe(self, path: Any, allowed: list[str]):
+    def _probe(self, path: Any, allowed: list[str], suffix: str):
         try:
             probe = self._ffmpeg.probe(path)
         except (
@@ -254,16 +303,15 @@ class ClipUploadService:
         ) as exc:  # FFmpegError is duck-typed: services do not import pipeline
             kind = getattr(exc, "kind", None)
             if kind == "timeout":
-                raise UnsupportedFileType(
-                    details={"allowed": allowed, "reason": "probe_timeout"}
-                ) from exc
+                self._reject(allowed, "probe_timeout", suffix)
             if kind in ("exit", "bad_output", "killed"):
-                raise UnsupportedFileType(
-                    details={"allowed": allowed, "reason": "unreadable"}
-                ) from exc
+                self._reject(allowed, "unreadable", suffix)
             raise
         if not probe.has_video or probe.duration_s <= 0:
-            raise UnsupportedFileType(
-                details={"allowed": allowed, "reason": "no_video"}
-            )
+            self._reject(allowed, "no_video", suffix)
         return probe
+
+
+def _is_mp4_family(container: str | None) -> bool:
+    """ffprobe names the whole mp4/mov/3gp family `mov,mp4,m4a,3gp,3g2,mj2`."""
+    return bool(MP4_FAMILY & set((container or "").lower().split(",")))
