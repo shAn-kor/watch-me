@@ -393,34 +393,38 @@ export function PublishPanel({
       {isStaff && dog.status !== "adopted" ? (
         <div className="wm-stack" style={{ marginTop: 24 }}>
           <h2>Danger zone</h2>
-          {dog.status === "draft" ? (
+          <div className="wm-row">
+            {dog.status === "draft" ? (
+              <button
+                type="button"
+                className="wm-btn wm-btn--danger"
+                onClick={() => setDialog("adopt")}
+              >
+                Mark as adopted
+              </button>
+            ) : null}
             <button
               type="button"
               className="wm-btn wm-btn--danger"
-              onClick={() => setDialog("adopt")}
+              onClick={() => setDialog("delete")}
             >
-              Mark as adopted
+              Delete dog
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="wm-btn wm-btn--danger"
-            onClick={() => setDialog("delete")}
-          >
-            Delete dog
-          </button>
+          </div>
         </div>
       ) : null}
       {isStaff && dog.status === "adopted" ? (
         <div className="wm-stack" style={{ marginTop: 24 }}>
           <h2>Danger zone</h2>
-          <button
-            type="button"
-            className="wm-btn wm-btn--danger"
-            onClick={() => setDialog("delete")}
-          >
-            Delete dog
-          </button>
+          <div className="wm-row">
+            <button
+              type="button"
+              className="wm-btn wm-btn--danger"
+              onClick={() => setDialog("delete")}
+            >
+              Delete dog
+            </button>
+          </div>
         </div>
       ) : null}
 

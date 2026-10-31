@@ -100,6 +100,14 @@ describe("FE-PNL-02 publish result", () => {
 });
 
 describe("FE-PNL-03 destructive actions", () => {
+  it("spaces the danger buttons in a wrapping row (8 px gap)", async () => {
+    await renderApp(dogUrl(MOCK_IDS.dogDraft), { as: "staff" });
+    const adopt = await screen.findByRole("button", { name: "Mark as adopted" });
+    const del = screen.getByRole("button", { name: "Delete dog" });
+    expect(adopt.parentElement).toHaveClass("wm-row");
+    expect(del.parentElement).toBe(adopt.parentElement);
+  });
+
   it("asks before marking a dog as adopted", async () => {
     const { user, client } = await renderApp(dogUrl(MOCK_IDS.dogDraft), { as: "staff" });
     const spy = vi.spyOn(client, "markAdopted");
