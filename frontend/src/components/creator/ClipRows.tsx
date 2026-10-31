@@ -62,10 +62,14 @@ export function ClipRow({
   const retryable = clipRetryable(clip);
   return (
     <li>
-      <p>
-        <span className="wm-strong">Clip {clip.ordinal}</span>{" "}
-        <span>{clip.original_filename}</span>
-        {clip.status === "ready" ? <> {formatClock(clip.duration_s)}</> : null}
+      <p className="wm-clip-line">
+        <span className="wm-strong">Clip {clip.ordinal}</span>
+        <span className="wm-clip-name" title={clip.original_filename}>
+          {clip.original_filename}
+        </span>
+        {clip.status === "ready" ? (
+          <span className="wm-clip-time">{formatClock(clip.duration_s)}</span>
+        ) : null}
       </p>
       {clip.status === "uploaded" ? <p>Uploaded. Waiting to start.</p> : null}
       {clip.status === "processing" ? (
@@ -151,9 +155,11 @@ export function LocalRow({
 }) {
   return (
     <li>
-      <p>
-        <span className="wm-strong">Clip {ordinal}</span>{" "}
-        <span>{item.file.name}</span>
+      <p className="wm-clip-line">
+        <span className="wm-strong">Clip {ordinal}</span>
+        <span className="wm-clip-name" title={item.file.name}>
+          {item.file.name}
+        </span>
       </p>
       {item.state === "waiting" ? <p>Waiting to upload</p> : null}
       {item.state === "uploading" ? (

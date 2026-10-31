@@ -417,6 +417,27 @@
   cursor: not-allowed;
 }
 
+/* Clip rows: a long file name shortens with an ellipsis, never widens the page */
+.wm-page li {
+  min-width: 0;
+}
+.wm-clip-line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+.wm-clip-line > * {
+  flex: none;
+}
+.wm-clip-line > .wm-clip-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Fact cards */
 .wm-card {
   border: 1px solid var(--wm-border);
