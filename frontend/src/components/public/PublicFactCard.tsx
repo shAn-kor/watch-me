@@ -49,20 +49,20 @@ export function PublicFactCard({
       <p className="public-fact__text" style={{ whiteSpace: "pre-line" }}>
         {fact.behavior}
       </p>
-      <p>
+      <p className="public-fact__meta">
         {staffNote ? "" : `${fact.clip_length.label} - `}
         {fact.source_label}
       </p>
-      <p>Observed {formatDay(fact.observed_on)}</p>
-      <p>{fact.confirmed_by_label}</p>
-      {fact.notice && <p>{fact.notice.text}</p>}
+      <p className="public-fact__meta">Observed {formatDay(fact.observed_on)}</p>
+      <p className="public-fact__meta">{fact.confirmed_by_label}</p>
+      {fact.notice && <p className="wm-notice">{fact.notice.text}</p>}
       {fact.source === "narration" && (
         <p>The volunteer says this in the clip. The clip may not show it.</p>
       )}
       {staffNote ? (
-        <p>No clip.</p>
+        <p className="public-fact__meta">No clip.</p>
       ) : (
-        <div>
+        <div className="wm-row">
           {ranges.map((_, i) => {
             const label =
               ranges.length === 1 ? "Play clip" : `Play range ${i + 1}`;
@@ -70,6 +70,7 @@ export function PublicFactCard({
               <button
                 key={i}
                 type="button"
+                className="wm-btn wm-btn--secondary"
                 aria-label={`${label} for: ${fact.behavior}`}
                 aria-expanded={
                   mine !== null && (ranges.length === 1 || mine.range === i)
@@ -91,7 +92,11 @@ export function PublicFactCard({
             endS={range.end_s}
             autoplay
           />
-          <button type="button" onClick={close}>
+          <button
+            type="button"
+            className="wm-btn wm-btn--secondary"
+            onClick={close}
+          >
             Close
           </button>
         </div>

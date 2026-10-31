@@ -357,3 +357,29 @@ describe("profile page errors and footer", () => {
 void act;
 void waitFor;
 void answer;
+
+describe("FE-PUB-E2E-01 page structure and styling hooks", () => {
+  it("uses the shared page frame so the creator stylesheet applies", async () => {
+    const { container } = await shown();
+    expect(container.querySelector(".wm-page.wm-public")).not.toBeNull();
+    expect(container.querySelector(".wm-topbar")).not.toBeNull();
+    expect(container.querySelector(".public-banner.wm-notice")).not.toBeNull();
+  });
+
+  it("ties the ask label to a textarea and puts the label above it", async () => {
+    await shown();
+    const box = screen.getByLabelText("Ask about this dog");
+    expect(box.tagName).toBe("TEXTAREA");
+    const label = document.querySelector('label[for="ask-q"]')!;
+    expect(label).toHaveTextContent("Ask about this dog");
+    expect(label.parentElement).toHaveClass("wm-field");
+    expect(label.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("styles the play buttons as 44 px buttons", async () => {
+    await shown();
+    for (const b of screen.getAllByRole("button", { name: /^Play clip for:/ })) {
+      expect(b).toHaveClass("wm-btn");
+    }
+  });
+});

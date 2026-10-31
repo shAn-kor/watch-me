@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { PublicTopBar } from "../../components/public/PublicTopBar";
+import { PublicPage } from "../../components/public/PublicPage";
 
 /**
  * S10. One page for unknown, unpublished, adopted and deleted profiles, and for
@@ -17,8 +17,7 @@ export default function NotAvailablePage() {
     };
   }, []);
   return (
-    <div>
-      <PublicTopBar />
+    <PublicPage>
       <h1 ref={h1} tabIndex={-1}>
         This profile is not available
       </h1>
@@ -33,6 +32,6 @@ export default function NotAvailablePage() {
       <p>
         <Link to="/terms">Terms</Link>
       </p>
-    </div>
+    </PublicPage>
   );
 }
