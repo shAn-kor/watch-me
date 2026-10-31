@@ -707,3 +707,13 @@ created_at, clip ordinal, start_s, id (01 section 2 states it; set once on the
 `service_busy` twice after Retry-After (cap 5 s), then shows a retry message
 (05 S7 table). noDanger test timeout 30 s. Checks: backend 894 passed,
 3 xfailed; frontend 281.
+
+Browser re-check (2026-10-31, ego-browser, 390/360 px, fresh stack): `.mp4`
+uploads 201, upload during processing OK, public page 44 px controls and label
+above textarea, range playback, no overflow, chip icons, "All facts confirmed".
+Found and fixed (lane-recheck): the client refused files without `.mp4/.mov`
+before sending (now sends when name, type or missing extension allow; input
+accept adds `video/*`); "1 drafts" plural; Save checklist / Publish spacing.
+Clip name "upload" was an automation artifact (filename test added). Public
+facts newest-confirmed first is per 01. Not checked: captions toggle (no clip
+with captions), multi-range order (single-range facts), console capture weak.
