@@ -294,6 +294,25 @@ describe("FE-UPL-04 client prechecks", () => {
     expect(screen.getByText("doc.pdf")).toBeInTheDocument();
     expect(spy).toHaveBeenCalledTimes(2);
   });
+
+  it("does not count client-rejected rows toward the limit or the counter", async () => {
+    const client = await prepareClient({ as: "staff" });
+    const id = await newSession(client);
+    const spy = vi.spyOn(client, "uploadClip");
+    const { user } = await renderApp(sessionUrl(id), { client, user: { applyAccept: false } });
+    const input = await screen.findByLabelText("Choose from library");
+    await user.upload(input, [
+      makeFile("a.txt", 1000, "text/plain"),
+      makeFile("b.png", 1000, "image/png"),
+      makeFile("c.pdf", 1000, "application/pdf"),
+    ]);
+    expect((await screen.findAllByText("This file type is not supported. Use an MP4 or MOV video.")).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "Add clips (0 of 3)" })).toBeInTheDocument();
+    await user.upload(input, [makeFile("1.mov"), makeFile("2.mov"), makeFile("3.mov")]);
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(3));
+    expect(screen.queryByText(/already has 3 clips/)).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Add clips (3 of 3)" })).toBeInTheDocument();
+  });
 });
 
 describe("FE-UPL-05 failed clip actions", () => {
