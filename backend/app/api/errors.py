@@ -18,6 +18,7 @@ from fastapi import FastAPI, Request
 from fastapi.exception_handlers import http_exception_handler as _plain_http_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from sqlalchemy.exc import OperationalError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.errors import (
@@ -25,6 +26,7 @@ from app.errors import (
     InternalError,
     MalformedRequest,
     NotFound,
+    ServiceBusy,
     ValidationFailed,
 )
 
@@ -101,6 +103,14 @@ def install_error_handlers(app: FastAPI) -> None:
             return _error_response(MalformedRequest())
         # 304, 416 and similar protocol answers keep their plain form (01 section 7).
         return await _plain_http_handler(request, exc)
+
+    @app.exception_handler(OperationalError)
+    async def db_error_handler(request: Request, exc: OperationalError) -> JSONResponse:
+        if "database is locked" not in str(exc):
+            return await unexpected_handler(request, exc)
+        # A write could not get the SQLite lock in time: retryable, not a bug.
+        log.warning("database is locked on %s %s", request.method, request.url.path)
+        return _error_response(ServiceBusy(), headers=dict(NO_STORE))
 
     @app.exception_handler(Exception)
     async def unexpected_handler(request: Request, exc: Exception) -> JSONResponse:

@@ -218,6 +218,25 @@ class QaCostCapReached(AppError):
         self.retry_after_s = retry_after_s
 
 
+@_register
+class ServiceBusy(AppError):
+    """503 `service_busy`: the database write lock was not free in time. Retryable."""
+
+    code = "service_busy"
+    http_status = 503
+    default_message = "The service is busy. Try again in a moment."
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        details: dict[str, Any] | None = None,
+        retry_after_s: int = 2,
+    ):
+        super().__init__(message, details=details)
+        self.retry_after_s = retry_after_s
+
+
 QaUnavailable = _make(
     "QaUnavailable", "qa_unavailable", 503, "Questions are unavailable right now."
 )

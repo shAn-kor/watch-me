@@ -93,22 +93,60 @@ def test_api_up_02_upload_hevc_mov_octet_stream(
     assert row.original_path.endswith("original.mov")
 
 
-def test_api_up_03_extension_check(
-    client, db, container, world, open_session, login_as
+def test_api_up_03_container_decides_not_extension(
+    client, db, container, world, open_session, login_as, caplog
 ):
     token = login_as(world.vol1)
-    r = upload_file(
-        client, token, open_session.id, "legacy.avi", content_type="video/x-msvideo"
-    )
+    with caplog.at_level("INFO", logger="app.upload"):
+        r = upload_file(
+            client, token, open_session.id, "legacy.avi", content_type="video/x-msvideo"
+        )
     assert r.status_code == 415 and _code(r) == "unsupported_file_type"
-    assert "allowed" in r.json()["error"]["details"]
-    r = upload_file(
-        client, token, open_session.id, "h264_5s.mp4", filename="noextension"
-    )
-    assert r.status_code == 415 and _code(r) == "unsupported_file_type"
+    details = r.json()["error"]["details"]
+    assert "allowed" in details and details["reason"] == "unsupported_container"
+    assert "reason=unsupported_container" in caplog.text and "'.avi'" in caplog.text
     assert clips_of(db, open_session.id) == []
     r = upload_file(client, token, open_session.id, "hevc_8s.mov", filename="A.MOV")
     assert r.status_code == 201, r.text
+    assert r.json()["clip"]["original_filename"] == "A.MOV"
+
+
+@pytest.mark.parametrize(
+    "filename", ["noextension", "blob", "1000012345", "trim.1A2B.weird", "clip.txt"]
+)
+def test_api_up_03b_odd_or_missing_extension_is_accepted(
+    client, db, container, world, open_session, login_as, filename
+):
+    # 01 5.3: the name is not trusted; ffprobe (mp4/mov family + video) decides.
+    token = login_as(world.vol1)
+    r = upload_file(
+        client,
+        token,
+        open_session.id,
+        "h264_5s.mp4",
+        filename=filename,
+        content_type="application/octet-stream",
+    )
+    assert r.status_code == 201, r.text
+    clip = r.json()["clip"]
+    assert clip["original_filename"] == filename
+    row = clips_of(db, open_session.id)[0]
+    assert row.original_path.endswith("/original.mp4")  # derived from the container
+    assert container.storage.exists(row.original_path)
+
+
+def test_api_up_03c_jpg_renamed_mp4_is_rejected_with_reason(
+    client, db, container, world, open_session, login_as, caplog
+):
+    token = login_as(world.vol1)
+    jpg = b"\xff\xd8\xff\xe0" + b"\x00" * 64
+    with caplog.at_level("INFO", logger="app.upload"):
+        r = upload_bytes(client, token, open_session.id, jpg, "IMG_0001.mp4")
+    assert r.status_code == 415 and _code(r) == "unsupported_file_type"
+    assert r.json()["error"]["details"]["reason"] in ("unreadable", "no_video")
+    assert "upload rejected" in caplog.text and "'.mp4'" in caplog.text
+    assert "IMG_0001" not in caplog.text
+    _no_trace(container, db, open_session.id)
 
 
 @pytest.mark.parametrize("key", ["not_video.mp4", "audio_only.mp4"])
@@ -330,7 +368,7 @@ def test_api_up_18_check_order_matrix(client, db, container, seed, world, login_
         client, token, fresh.id
     )
     assert _code(r) == "file_too_large"
-    # extension beats the duration (a legacy file is never probed for length)
+    # the container check beats the duration (a legacy file is never measured)
     r = upload_file(client, token, fresh.id, "legacy.avi")
     assert _code(r) == "unsupported_file_type"
 
