@@ -409,7 +409,7 @@ describe("E2E 4 public ranges in time order", () => {
       evidence: [evidence("clip-a", 13, 14), evidence("clip-a", 2, 4)],
     });
     const p = profile({
-      facts_by_situation: [{ situation: "meeting_person", label: "Meeting a new person", facts: [f] }],
+      facts_by_situation: [{ situation: "new_person", label: "Meeting a new person", facts: [f] }],
     });
     await shown(p);
     const buttons = screen.getAllByRole("button", { name: /^Play range \d for:/ });

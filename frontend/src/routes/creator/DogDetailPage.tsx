@@ -19,7 +19,12 @@ import { BlockedButton, Loading, Screen } from "../../components/creator/ui";
 import { SITUATIONS } from "../../lib/constants";
 import { useEnsureAuth } from "../../state/AuthProvider";
 
-function sessionStatus(s: SessionSummary): string {
+/** A session in review whose drafts are all confirmed is done, not "ready to review". */
+function allConfirmed(s: SessionSummary, confirmed: number): boolean {
+  return s.status === "review" && s.draft_fact_count === 0 && confirmed > 0;
+}
+
+function sessionStatus(s: SessionSummary, confirmed: number): string {
   switch (s.status) {
     case "processing":
       return `Processing - ${s.ready_clip_count} of ${s.clip_count} clips ready`;
@@ -30,20 +35,22 @@ function sessionStatus(s: SessionSummary): string {
           : "No clip could be processed."
       }`;
     case "review":
-      return "Ready to review";
+      return allConfirmed(s, confirmed)
+        ? "All facts confirmed"
+        : "Ready to review";
     default:
       return `Not submitted - ${s.clip_count} ${s.clip_count === 1 ? "clip" : "clips"}`;
   }
 }
 
-function SessionRow({ s }: { s: SessionSummary }) {
+function SessionRow({ s, confirmed }: { s: SessionSummary; confirmed: number }) {
   return (
     <li>
       <p className="wm-strong">
         {formatDay(s.observed_on)} - {s.owner_name}
       </p>
-      <p>{sessionStatus(s)}</p>
-      {s.status === "review" ? (
+      <p>{sessionStatus(s, confirmed)}</p>
+      {s.status === "review" && !allConfirmed(s, confirmed) ? (
         <p className="wm-muted">{s.draft_fact_count} drafts</p>
       ) : null}
       <Link
@@ -238,7 +245,15 @@ export default function DogDetailPage() {
         ) : (
           <ul className="wm-list">
             {data.sessions.map((s) => (
-              <SessionRow key={s.id} s={s} />
+              <SessionRow
+                key={s.id}
+                s={s}
+                confirmed={
+                  data.facts.filter(
+                    (f) => f.session_id === s.id && f.status === "confirmed",
+                  ).length
+                }
+              />
             ))}
           </ul>
         )}

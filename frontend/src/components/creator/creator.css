@@ -332,6 +332,9 @@
   line-height: 20px;
   white-space: nowrap;
 }
+.wm-chip__icon {
+  flex: none;
+}
 .wm-chip--ok {
   color: var(--wm-success);
   border-color: var(--wm-success);
