@@ -637,3 +637,23 @@ ne-18 and `muse_transcribe` (2026-10-31).
   validated. `["Korean"]`, `["English","Korean"]` and `["ko"]` gave "누키야
   누키"; no bias gave Japanese kana; `["Klingon"]` gave English. Always send
   a bias (the adapter does). The response also carries `sessionId`.
+
+Lane gaps (2026-10-31, merged b8e1eca).
+- Merge crash (section 10 note 7) fixed (dfa1c6b): when nothing is unmerged
+  and the session is still `processing`, the merge returns the merged facts so
+  the retried job runs the check step. Test
+  `test_pipe_e2e_10b_crash_after_merge_commit_still_runs_check`. Side effect:
+  a clip retry that yields no new fact while the session is `processing`
+  re-checks every merged fact (free with `AI_CHECKER=rules`).
+- `ai_auth_error`: unchanged. It clears on the next successful AI job, a clip
+  retry or a clip delete, not on a restart with a fixed key (section 11
+  decision). Clearing on reload would need persisted state.
+- Response types: `NoticeOut.code` and `ProfileOut.banner_id` are literals;
+  OpenAPI types regenerated, `types.ts` matched.
+- Ruff clean (108 to 0): FastAPI dependency callables in
+  `extend-immutable-calls`, the other six fixed.
+- Still open: global `BEGIN IMMEDIATE` vs `lock_for_write` (16 call sites).
+  Proposed: `UnitOfWork(write=True)` issues `BEGIN IMMEDIATE`; read-only units
+  stay deferred.
+- Checks: backend 882 passed, 3 xfailed; import contracts 11 kept; ruff
+  clean; frontend 256 passed; `pnpm contract` no diff.
