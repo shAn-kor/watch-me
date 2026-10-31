@@ -49,6 +49,19 @@ describe("E2E 6 session line after review", () => {
     expect(await screen.findByText("Ready to review")).toBeInTheDocument();
     expect(screen.getByText("2 drafts")).toBeInTheDocument();
   });
+
+  it("uses the singular for one draft", async () => {
+    const client = await prepareClient({ as: "staff" });
+    patchDog(client, (r) => ({
+      ...r,
+      sessions: r.sessions.map((s) =>
+        s.status === "review" ? { ...s, draft_fact_count: 1 } : s,
+      ),
+    }));
+    await renderApp(dogUrl(MOCK_IDS.dogDraft), { client });
+    expect(await screen.findByText("1 draft")).toBeInTheDocument();
+    expect(screen.queryByText("1 drafts")).not.toBeInTheDocument();
+  });
 });
 
 describe("FE-PNL-01 publish panel", () => {
