@@ -1,0 +1,109 @@
+/* Public screens (S9, S10): tokens and base type come from creator.css. */
+.wm-public .public-topbar {
+  justify-content: flex-start;
+}
+.wm-public .public-topbar .wm-topbar__title {
+  font-weight: 400;
+}
+.wm-public .public-profile-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.wm-public .public-profile-head h1 {
+  margin: 0 0 4px;
+}
+.wm-public .public-profile-head p {
+  margin-bottom: 4px;
+}
+.wm-public .public-photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--wm-muted);
+}
+.wm-public .public-banner {
+  font-weight: 600;
+}
+.wm-public .public-banner p {
+  margin: 0;
+}
+.wm-public .public-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.wm-public .public-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--wm-accent);
+  border-radius: 8px;
+  text-decoration: none;
+}
+.wm-public ul.public-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+}
+.wm-public ul.public-list > li {
+  border: 1px solid var(--wm-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 0 16px;
+}
+.wm-public ul.public-plain > li {
+  padding: 4px 0;
+}
+.wm-public .public-fact__text {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+}
+.wm-public .public-fact__situation {
+  font-weight: 600;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.wm-public .public-fact__meta {
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.wm-public .public-fact .range-player {
+  margin: 12px 0;
+}
+.wm-public ul.contact-links {
+  list-style: none;
+  padding: 0;
+}
+.wm-public ul.contact-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+.wm-public .public-ask textarea {
+  display: block;
+  width: 100%;
+}
+.wm-public .public-ask .wm-btn {
+  width: 100%;
+}
+.wm-public .public-footer {
+  margin-top: 32px;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.wm-public .public-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

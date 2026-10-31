@@ -357,3 +357,65 @@ describe("profile page errors and footer", () => {
 void act;
 void waitFor;
 void answer;
+
+describe("FE-PUB-E2E-01 page structure and styling hooks", () => {
+  it("uses the shared page frame so the creator stylesheet applies", async () => {
+    const { container } = await shown();
+    expect(container.querySelector(".wm-page.wm-public")).not.toBeNull();
+    expect(container.querySelector(".wm-topbar")).not.toBeNull();
+    expect(container.querySelector(".public-banner.wm-notice")).not.toBeNull();
+  });
+
+  it("ties the ask label to a textarea and puts the label above it", async () => {
+    await shown();
+    const box = screen.getByLabelText("Ask about this dog");
+    expect(box.tagName).toBe("TEXTAREA");
+    const label = document.querySelector('label[for="ask-q"]')!;
+    expect(label).toHaveTextContent("Ask about this dog");
+    expect(label.parentElement).toHaveClass("wm-field");
+    expect(label.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("styles the play buttons as 44 px buttons", async () => {
+    await shown();
+    for (const b of screen.getAllByRole("button", { name: /^Play clip for:/ })) {
+      expect(b).toHaveClass("wm-btn");
+    }
+  });
+});
+
+describe("FE-PUB-E2E-02 player controls", () => {
+  it("opens the shared player with play, position, captions and sound controls", async () => {
+    await shown();
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /^Play clip for:/ })[0]!,
+    );
+    const video = document.querySelector("video")!;
+    expect(video).not.toBeNull();
+    expect(video).not.toHaveAttribute("controls");
+    expect(document.querySelectorAll("video")).toHaveLength(1);
+    expect(screen.getByRole("slider", { name: "Position" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Captions" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Sound" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^(Loading clip|Play|Pause)$/ }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("E2E 4 public ranges in time order", () => {
+  it("lists ranges of a fact by start time", async () => {
+    const f = fact("fx", "Moved between a person's feet.", {
+      evidence: [evidence("clip-a", 13, 14), evidence("clip-a", 2, 4)],
+    });
+    const p = profile({
+      facts_by_situation: [{ situation: "new_person", label: "Meeting a new person", facts: [f] }],
+    });
+    await shown(p);
+    const buttons = screen.getAllByRole("button", { name: /^Play range \d for:/ });
+    expect(buttons).toHaveLength(2);
+    fireEvent.click(buttons[0]!);
+    expect(document.querySelector("video")).toHaveAttribute("src", "/media/clip-a.mp4");
+    expect(screen.getByText(/0:02 - 0:04/)).toBeInTheDocument();
+  });
+});

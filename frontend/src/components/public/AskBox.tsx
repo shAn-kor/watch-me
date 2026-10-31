@@ -86,7 +86,7 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
 
   if (!config.enabled) {
     return (
-      <section id="ask">
+      <section id="ask" className="public-ask">
         <h2>Ask about this dog</h2>
         <p>Questions are turned off for this profile.</p>
       </section>
@@ -130,20 +130,22 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
   const remaining = answer?.limits.remaining_this_hour;
 
   return (
-    <section id="ask">
+    <section id="ask" className="public-ask">
       <h2>Ask about this dog</h2>
       <p>Answers use only confirmed facts on this page.</p>
       <form onSubmit={submit}>
-        <label htmlFor="ask-q">Ask about this dog</label>
-        <textarea
-          id="ask-q"
-          rows={3}
-          value={text}
-          readOnly={busy}
-          placeholder="For example: Does he pull on the leash?"
-          onChange={(e) => setText(e.target.value)}
-        />
-        <p>
+        <div className="wm-field">
+          <label htmlFor="ask-q">Ask about this dog</label>
+          <textarea
+            id="ask-q"
+            rows={3}
+            value={text}
+            readOnly={busy}
+            placeholder="For example: Does he pull on the leash?"
+            onChange={(e) => setText(e.target.value)}
+          />
+        </div>
+        <p className="wm-muted">
           <span>
             {text.length} / {config.max_question_chars}
           </span>{" "}
@@ -153,11 +155,15 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
               : `${remaining} ${plural(remaining, "question", "questions")} left this hour.`}
           </span>
         </p>
-        <button type="submit" disabled={disabled}>
+        <button type="submit" className="wm-btn" disabled={disabled}>
           {busy ? "Asking..." : "Ask"}
         </button>
       </form>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert" className="wm-error-text">
+          {error}
+        </p>
+      )}
       <div role="region" aria-label="Answer" aria-live="polite">
         {answer && (
           <div>
@@ -166,7 +172,7 @@ export function AskBox({ slug, config, onNotFound }: AskBoxProps) {
             </h3>
             {answer.hint && <p>{answer.hint}</p>}
             {answer.outcome === "answered" && (
-              <ul>
+              <ul className="public-list">
                 {answer.lines.map((l) => (
                   <PublicFactCard
                     key={l.fact_id}

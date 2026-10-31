@@ -438,3 +438,20 @@ describe("S8 list, filters and redirects", () => {
     expect(c).toHaveTextContent("No clip. This is a staff note.");
   });
 });
+
+describe("E2E 4 evidence ranges in time order", () => {
+  it("lists ranges by clip order then start time, whatever order the API sent", async () => {
+    const client = await prepareClient({ as: "staff" });
+    patchSession(client, (r) => ({
+      ...r,
+      facts: r.facts.map((f) =>
+        f.id === F_PERSON ? { ...f, evidence: [...f.evidence].reverse() } : f,
+      ),
+    }));
+    await renderApp(sessionReview(), { client });
+    const c = await card(/Meeting a new person/);
+    const buttons = within(c).getAllByRole("button", { name: /^Range \d of 2/ });
+    expect(buttons[0]).toHaveTextContent(/^Range 1 of 2 0:05-0:12/);
+    expect(buttons[1]).toHaveTextContent(/^Range 2 of 2 0:30-0:37/);
+  });
+});

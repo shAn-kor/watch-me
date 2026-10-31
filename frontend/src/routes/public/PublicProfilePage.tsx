@@ -9,7 +9,7 @@ import { ContactLinks } from "../../components/public/ContactLinks";
 import { plural, SEX_LABEL } from "../../components/public/format";
 import { PublicFactCard } from "../../components/public/PublicFactCard";
 import { PublicPlayerProvider } from "../../components/public/PublicPlayerContext";
-import { PublicTopBar } from "../../components/public/PublicTopBar";
+import { PublicPage } from "../../components/public/PublicPage";
 import NotAvailablePage from "./NotAvailablePage";
 
 type State =
@@ -76,26 +76,30 @@ function ProfileScreen({ slug }: { slug: string }) {
 
   if (state.kind === "loading") {
     return (
-      <div>
-        <PublicTopBar />
+      <PublicPage>
         <Banner />
-        <p>Loading profile...</p>
-      </div>
+        <p role="status">Loading profile...</p>
+      </PublicPage>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <div>
-        <PublicTopBar />
-        <p role="alert">{state.text}</p>
-        <button type="button" onClick={() => {
+      <PublicPage>
+        <p role="alert" className="wm-error-text">
+          {state.text}
+        </p>
+        <button
+          type="button"
+          className="wm-btn"
+          onClick={() => {
             setState({ kind: "loading" });
             setAttempt((n) => n + 1);
-          }}>
+          }}
+        >
           Try again
         </button>
-      </div>
+      </PublicPage>
     );
   }
 
@@ -104,47 +108,53 @@ function ProfileScreen({ slug }: { slug: string }) {
 
   return (
     <PublicPlayerProvider>
-      <PublicTopBar orgName={org.name} />
+      <PublicPage orgName={org.name}>
       <Banner bannerId={p.banner_id} />
 
-      <header>
+      <header className="public-profile-head">
         {dog.photo_url ? (
           <img
             src={dog.photo_url}
             alt={`Photo of ${dog.name}`}
             width={96}
             height={96}
+            className="wm-photo wm-photo--lg"
           />
         ) : (
-          <div style={{ width: 96, height: 96 }}>No photo yet</div>
+          <div className="wm-photo wm-photo--lg public-photo-empty">
+            No photo yet
+          </div>
         )}
-        <h1>{dog.name}</h1>
-        <p>{`${SEX_LABEL[dog.sex]}, ${dog.age_estimate}, ${dog.size}`}</p>
-        <p>{dog.location}</p>
-        <p>{org.name}</p>
+        <div>
+          <h1>{dog.name}</h1>
+          <p>{`${SEX_LABEL[dog.sex]}, ${dog.age_estimate}, ${dog.size}`}</p>
+          <p>{dog.location}</p>
+          <p className="wm-muted">{org.name}</p>
+        </div>
       </header>
 
       <section aria-labelledby="coverage-h">
         <h2 id="coverage-h">Coverage</h2>
         <p>{`Clips in ${coverage.situations_covered} of ${coverage.situations_total} situations`}</p>
-        <ul>
+        <ul className="wm-list">
           {coverage.by_situation.map((s) => (
             <li key={s.situation}>
               <strong>{s.label}</strong>
-              <div>
+              <div className="wm-muted">
                 {s.clip_count === 0
                   ? "0 clips"
                   : `${s.clip_count} ${plural(s.clip_count, "clip", "clips")}, ${secs(s.filmed_s)} s filmed`}
               </div>
-              {s.covered && <div>{`${secs(s.confirmed_s)} s of it is used in facts`}</div>}
+              {s.covered && <div className="wm-muted">{`${secs(s.confirmed_s)} s of it is used in facts`}</div>}
             </li>
           ))}
         </ul>
       </section>
 
-      <nav aria-label="Jump to a section">
-        <a href="#facts">Facts</a> -{" "}
-        <a href="#not-observed">Not observed yet</a> - <a href="#ask">Ask</a>
+      <nav aria-label="Jump to a section" className="public-nav">
+        <a href="#facts">Facts</a>
+        <a href="#not-observed">Not observed yet</a>
+        <a href="#ask">Ask</a>
       </nav>
 
       <section aria-labelledby="concerns-h">
@@ -170,7 +180,7 @@ function ProfileScreen({ slug }: { slug: string }) {
           p.facts_by_situation.map((g) => (
             <div key={g.situation}>
               <h3>{g.label}</h3>
-              <ul>
+              <ul className="public-list">
                 {g.facts.map((f) => (
                   <PublicFactCard key={f.id} fact={f} scope="facts" />
                 ))}
@@ -190,7 +200,7 @@ function ProfileScreen({ slug }: { slug: string }) {
         ) : (
           <>
             <p>No clip shows these situations yet.</p>
-            <ul>
+            <ul className="public-list public-plain">
               {p.not_observed.map((s) => (
                 <li key={s.situation}>{s.label}</li>
               ))}
@@ -213,12 +223,13 @@ function ProfileScreen({ slug }: { slug: string }) {
         onNotFound={gone}
       />
 
-      <footer>
+      <footer className="public-footer">
         <p>Questions use a cookie to count your hourly limit.</p>
         <p>
           <Link to="/terms">Terms</Link>
         </p>
       </footer>
+      </PublicPage>
     </PublicPlayerProvider>
   );
 }

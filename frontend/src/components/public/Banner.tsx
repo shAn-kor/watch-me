@@ -18,8 +18,7 @@ export function Banner({ bannerId }: { bannerId?: string }) {
   return (
     <aside
       aria-label="Important notice"
-      className="public-banner"
-      style={{ background: "#FFF4D6", padding: "12px", margin: "12px 0" }}
+      className="public-banner wm-notice"
     >
       <p>{BANNER_TEXT}</p>
     </aside>

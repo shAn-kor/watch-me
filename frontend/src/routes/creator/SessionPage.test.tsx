@@ -524,3 +524,17 @@ describe("S7 session actions", () => {
     expect(screen.getByRole("link", { name: "Back to dogs" })).toBeInTheDocument();
   });
 });
+
+describe("E2E 6 review box when nothing is left to review", () => {
+  it("says all facts are confirmed instead of '0 drafts'", async () => {
+    const client = await prepareClient({ as: "staff" });
+    patchSession(client, (r) => ({
+      ...r,
+      facts: r.facts.map((f) => ({ ...f, status: "confirmed" as const })),
+    }));
+    await renderApp(sessionUrl(MOCK_IDS.sessionReview), { client });
+    expect(await screen.findByText("All facts are confirmed.")).toBeInTheDocument();
+    expect(screen.queryByText("Facts are ready to review.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^0 drafts/)).not.toBeInTheDocument();
+  });
+});

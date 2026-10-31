@@ -20,6 +20,37 @@ describe("S5 dog detail", () => {
   });
 });
 
+describe("E2E 6 session line after review", () => {
+  it("says all facts are confirmed, not '0 drafts', once no draft is left", async () => {
+    const client = await prepareClient({ as: "staff" });
+    patchDog(client, (r) => ({
+      ...r,
+      sessions: r.sessions.map((s) =>
+        s.status === "review" ? { ...s, draft_fact_count: 0 } : s,
+      ),
+      facts: r.facts.map((f) => ({ ...f, status: "confirmed" as const })),
+    }));
+    await renderApp(dogUrl(MOCK_IDS.dogDraft), { client });
+    await screen.findByRole("heading", { name: "Biscuit" });
+    expect(screen.getByText("All facts confirmed")).toBeInTheDocument();
+    expect(screen.queryByText("Ready to review")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 drafts")).not.toBeInTheDocument();
+  });
+
+  it("still says Ready to review with the draft count while drafts remain", async () => {
+    const client = await prepareClient({ as: "staff" });
+    patchDog(client, (r) => ({
+      ...r,
+      sessions: r.sessions.map((s) =>
+        s.status === "review" ? { ...s, draft_fact_count: 2 } : s,
+      ),
+    }));
+    await renderApp(dogUrl(MOCK_IDS.dogDraft), { client });
+    expect(await screen.findByText("Ready to review")).toBeInTheDocument();
+    expect(screen.getByText("2 drafts")).toBeInTheDocument();
+  });
+});
+
 describe("FE-PNL-01 publish panel", () => {
   it("names each missing item, keeps Publish blocked, then enables it when ready", async () => {
     const { user, client } = await renderApp(dogUrl(MOCK_IDS.dogDraft), { as: "staff" });
@@ -100,6 +131,14 @@ describe("FE-PNL-02 publish result", () => {
 });
 
 describe("FE-PNL-03 destructive actions", () => {
+  it("spaces the danger buttons in a wrapping row (8 px gap)", async () => {
+    await renderApp(dogUrl(MOCK_IDS.dogDraft), { as: "staff" });
+    const adopt = await screen.findByRole("button", { name: "Mark as adopted" });
+    const del = screen.getByRole("button", { name: "Delete dog" });
+    expect(adopt.parentElement).toHaveClass("wm-row");
+    expect(del.parentElement).toBe(adopt.parentElement);
+  });
+
   it("asks before marking a dog as adopted", async () => {
     const { user, client } = await renderApp(dogUrl(MOCK_IDS.dogDraft), { as: "staff" });
     const spy = vi.spyOn(client, "markAdopted");

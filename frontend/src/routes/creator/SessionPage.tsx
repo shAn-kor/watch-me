@@ -246,6 +246,8 @@ function SessionBody({
   };
 
   const draftCount = (data.facts ?? []).filter((f) => f.status === "draft").length;
+  const factCount = (data.facts ?? []).length;
+  const allConfirmed = factCount > 0 && draftCount === 0;
   const readyCount = clips.filter((c) => c.status === "ready").length;
   const hasRows = clips.length > 0 || uploads.items.length > 0;
 
@@ -286,11 +288,23 @@ function SessionBody({
 
       {session.status === "review" ? (
         <div className="wm-notice wm-notice--ok">
-          <p className="wm-strong">Facts are ready to review.</p>
-          <p>
-            {draftCount} {plural(draftCount, "draft")} from {readyCount}{" "}
-            {plural(readyCount, "clip")}.
-          </p>
+          {allConfirmed ? (
+            <>
+              <p className="wm-strong">All facts are confirmed.</p>
+              <p>
+                {factCount} {plural(factCount, "fact")} from {readyCount}{" "}
+                {plural(readyCount, "clip")}.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="wm-strong">Facts are ready to review.</p>
+              <p>
+                {draftCount} {plural(draftCount, "draft")} from {readyCount}{" "}
+                {plural(readyCount, "clip")}.
+              </p>
+            </>
+          )}
           <Link to={`/app/sessions/${session.id}/review`} className="wm-btn">
             Review facts
           </Link>
