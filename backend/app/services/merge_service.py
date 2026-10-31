@@ -2,7 +2,10 @@
 
 Only `merged=0` facts of the session take part. Cross-clip duplicates collapse
 into one fact with combined evidence, the banned-word rules flag the survivors,
-and the survivors become `merged=1` (visible to review). Safe to run twice.
+and the survivors become `merged=1` (visible to review). Safe to run twice: when
+nothing is unmerged but the session is still `processing` (the worker stopped
+between the merge commit and `complete`), the report lists the merged facts so
+the retried job still runs the check step.
 """
 
 from __future__ import annotations
@@ -73,7 +76,24 @@ class MergeService:
                 )
             )
             if not facts:
-                return MergeReport(())
+                if sess.status != "processing":
+                    return MergeReport(())
+                # A crash between the merge commit and `complete` leaves the
+                # session in `processing` with every fact merged. The retried
+                # job must still reach the check step, so hand it the merged
+                # facts again. The model pass replaces its own flags.
+                pending = tuple(
+                    uow.session.scalars(
+                        select(Fact.id)
+                        .where(
+                            Fact.session_id == session_id,
+                            Fact.merged.is_(True),
+                            Fact.status != "deleted",
+                        )
+                        .order_by(Fact.created_at, Fact.id)
+                    )
+                )
+                return MergeReport(pending)
             by_id = {f.id: f for f in facts}
             drafts = [self._draft(f) for f in facts]
             across = merge_across_clips(drafts)
