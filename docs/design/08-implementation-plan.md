@@ -632,3 +632,8 @@ ne-18 and `muse_transcribe` (2026-10-31).
   dog's name), so no narration fact was drafted. Not checked live:
   `languageBias` spelling and `sessionId`.
 - Backend 881 passed, 3 xfailed; import contracts 11 kept.
+- `languageBias` live probe (2026-10-31, the clip with the dog's name): the
+  API accepts any value with 200 (`"Klingon"` too), so the spelling is not
+  validated. `["Korean"]`, `["English","Korean"]` and `["ko"]` gave "누키야
+  누키"; no bias gave Japanese kana; `["Klingon"]` gave English. Always send
+  a bias (the adapter does). The response also carries `sessionId`.

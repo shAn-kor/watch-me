@@ -15,6 +15,7 @@ Host: Oracle Cloud Always Free A1 (arm64). Run all commands from the repo root.
 
 - VM: Ubuntu arm64 with Docker + compose plugin. Open ports 80, 443 (TCP) and 443 (UDP) in the Oracle security list and the VM firewall.
 - DNS: an A record for your host name pointing at the VM public IP. Caddy cannot get a certificate without it.
+- No domain: use the free wildcard DNS name `<ip-with-dashes>.sslip.io` (for VM IP `203.0.113.7`, `203-0-113-7.sslip.io`). It resolves to the IP with no setup, and Caddy gets a Let's Encrypt certificate for it. Put that name in `SITE_ADDRESS` and `PUBLIC_BASE_URL`.
 - Idle A1 VMs can be reclaimed (ADR-0027). Keep some load or check the VM weekly.
 
 ## Build

@@ -54,6 +54,8 @@ FRAME_MAX_COUNT=48
 SEGMENT_LEN_S=10
 
 # --- AI adapters
+# Submission (Meta model, live): AI_TRANSCRIBER=muse_transcribe, AI_DRAFTER=openai_compat,
+# AI_CHECKER=rules, AI_SELECTOR=openai_compat, and set AI_API_KEY (Meta key).
 # transcriber: mock | local_whisper | muse_transcribe
 AI_TRANSCRIBER=mock
 # drafter: mock | openai_compat
