@@ -323,7 +323,6 @@ class DogService:
             key=lambda f: (SITUATION_ORDER.index(f.situation), -f.observed_on.toordinal(), f.created_at)
         )
         clip_by_id = {c.id: c for c in clips}
-        clip_pos = {c.id: i for i, c in enumerate(clips)}
         owners = repo.session_owners(f.session_id for f in facts if f.session_id)
         names = repo.member_names(f.confirmed_by for f in facts if f.confirmed_by)
         snapshots = repo.playback_snapshots(principal.member_id, [f.id for f in facts])
@@ -333,9 +332,7 @@ class DogService:
         dog_info = DogInfo(dog.status, dog.people_check_at)
         views = []
         for fact in facts:
-            rows = sorted(
-                fact.evidence, key=lambda e: (clip_pos.get(e.clip_id, 10**6), e.start_s, e.id)
-            )
+            rows = list(fact.evidence)  # model order = 01 evidence order
             ctx = ConfirmContext(
                 fact=FactInfo(
                     id=fact.id,

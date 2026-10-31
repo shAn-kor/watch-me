@@ -397,7 +397,7 @@ class FactReviewService:
         self, uow: UnitOfWork, principal: Principal, row: FactRow, acknowledge_flags: bool
     ) -> ConfirmContext:
         fact, dog = row.fact, row.dog
-        evidence = sorted(fact.evidence, key=lambda e: (e.start_s, e.end_s, e.id))
+        evidence = list(fact.evidence)  # model order = 01 evidence order
         events = PlaybackRepository(uow.session).events_of_member([fact.id], principal.member_id)
         return ConfirmContext(
             fact=FactInfo(
@@ -440,7 +440,7 @@ class FactReviewService:
     def _view(self, uow: UnitOfWork, principal: Principal, row: FactRow) -> FactView:
         repo = FactRepository(uow.session)
         fact = row.fact
-        evidence = sorted(fact.evidence, key=lambda e: (e.start_s, e.end_s, e.id))
+        evidence = list(fact.evidence)  # model order = 01 evidence order
         clips = repo.clips_by_id(e.clip_id for e in evidence)
         with_transcript = repo.clip_ids_with_transcript(clips)
         playback = PlaybackRepository(uow.session)

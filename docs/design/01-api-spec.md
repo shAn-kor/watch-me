@@ -275,6 +275,8 @@ returns "not available" then). `photo_url` is `null` without a photo.
 
 Each creator evidence item carries `media_url` and `captions_url` in the same shape as the public API (`captions_url` is `null` when the clip has no transcript rows), so the player never builds URLs from `clip_id` (D7). Both are `null` only if the clip is not `ready`; a fact cannot cite such a clip (`clip_not_ready`).
 
+Evidence order (every response that lists `evidence`: creator facts, dog review, public profile): the cited clip's session `created_at`, then the clip `ordinal`, then `start_s`, then `id` as a tie-break. Within one session this is clip ordinal then `start_s`; the session key only matters when a staff-added fact cites clips of several sessions.
+
 `confirmed` is `null` or `{ "by_member_id", "by_name", "role", "at" }`.
 `can_confirm` and `blocked_reason` are computed for the requesting member
 (`null` when allowed; otherwise the first failing confirm guard code from data

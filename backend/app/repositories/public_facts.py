@@ -24,7 +24,15 @@ from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
 from app.domain.situations import SITUATION_ORDER
-from app.models import Clip, Dog, Fact, FactEvidence, Org, TranscriptSegment
+from app.models import (
+    Clip,
+    Dog,
+    Fact,
+    FactEvidence,
+    FilmingSession,
+    Org,
+    TranscriptSegment,
+)
 
 _SITUATION_RANK = {code: i for i, code in enumerate(SITUATION_ORDER)}
 
@@ -121,15 +129,16 @@ def _evidence_by_fact(session: Session, fact_ids: list[str]) -> dict[str, list[P
     if not fact_ids:
         return {}
     rows = session.execute(
-        select(FactEvidence, Clip.created_at)
+        select(FactEvidence, FilmingSession.created_at, Clip.ordinal)
         .join(Clip, Clip.id == FactEvidence.clip_id)
+        .join(FilmingSession, FilmingSession.id == Clip.session_id)
         .where(
             FactEvidence.fact_id.in_(fact_ids),
             Clip.status == "ready",
             Clip.deleted_at.is_(None),
         )
     ).all()
-    clip_ids = {ev.clip_id for ev, _ in rows}
+    clip_ids = {r[0].clip_id for r in rows}
     with_transcript = (
         set(
             session.scalars(
@@ -141,9 +150,9 @@ def _evidence_by_fact(session: Session, fact_ids: list[str]) -> dict[str, list[P
         if clip_ids
         else set()
     )
-    rows.sort(key=lambda r: (r[1], r[0].start_s, r[0].id))
+    rows.sort(key=lambda r: (r[1], r[2], r[0].start_s, r[0].id))
     out: dict[str, list[PublicEvidence]] = defaultdict(list)
-    for ev, _created in rows:
+    for ev, _session_at, _ordinal in rows:
         out[ev.fact_id].append(
             PublicEvidence(
                 clip_id=ev.clip_id,

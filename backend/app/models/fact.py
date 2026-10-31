@@ -23,6 +23,27 @@ from app.domain.enums import FactStatus, Origin, Role, Situation, Source, values
 from app.models._cols import created_at_col, id_col, updated_at_col
 
 
+def _evidence_order() -> tuple:
+    """Evidence reading order (01 section 5): session `created_at`, clip ordinal,
+    `start_s`, then `id` as a stable tie-break."""
+    from sqlalchemy import select
+
+    from app.models.clip import Clip
+    from app.models.filming_session import FilmingSession
+
+    session_at = (
+        select(FilmingSession.created_at)
+        .join(Clip, Clip.session_id == FilmingSession.id)
+        .where(Clip.id == FactEvidence.clip_id)
+        .correlate(FactEvidence)
+        .scalar_subquery()
+    )
+    ordinal = (
+        select(Clip.ordinal).where(Clip.id == FactEvidence.clip_id).correlate(FactEvidence).scalar_subquery()
+    )
+    return (session_at, ordinal, FactEvidence.start_s, FactEvidence.id)
+
+
 class Fact(Base):
     __tablename__ = "fact"
     __table_args__ = (
@@ -84,7 +105,7 @@ class Fact(Base):
         back_populates="fact",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        order_by="FactEvidence.id",
+        order_by=lambda: _evidence_order(),
     )
 
 
