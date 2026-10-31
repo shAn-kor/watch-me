@@ -154,6 +154,9 @@ export default function ReviewPage() {
   const canEdit = (f: Fact) =>
     isStaff || ownSession(f.session_id) || f.created_by === member.id;
 
+  const clipOrder = Object.fromEntries(
+    data.clips.map((c) => [c.id, c.ordinal]),
+  );
   const ready = data.clips.filter((c) => c.status === "ready");
   const citable = isStaff
     ? ready
@@ -295,6 +298,7 @@ export default function ReviewPage() {
               wordingMode={wordingMode}
               canEdit={canEdit(f)}
               dogPublished={dogPublished}
+              clipOrder={clipOrder}
               onReload={reload}
               onEdit={setEditing}
               onDelete={setDeleting}

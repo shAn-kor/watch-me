@@ -402,3 +402,20 @@ describe("FE-PUB-E2E-02 player controls", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("E2E 4 public ranges in time order", () => {
+  it("lists ranges of a fact by start time", async () => {
+    const f = fact("fx", "Moved between a person's feet.", {
+      evidence: [evidence("clip-a", 13, 14), evidence("clip-a", 2, 4)],
+    });
+    const p = profile({
+      facts_by_situation: [{ situation: "meeting_person", label: "Meeting a new person", facts: [f] }],
+    });
+    await shown(p);
+    const buttons = screen.getAllByRole("button", { name: /^Play range \d for:/ });
+    expect(buttons).toHaveLength(2);
+    fireEvent.click(buttons[0]!);
+    expect(document.querySelector("video")).toHaveAttribute("src", "/media/clip-a.mp4");
+    expect(screen.getByText(/0:02 - 0:04/)).toBeInTheDocument();
+  });
+});

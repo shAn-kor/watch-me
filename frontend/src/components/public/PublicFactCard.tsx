@@ -4,6 +4,7 @@ import type {
   FactSource,
   PublicEvidence,
 } from "../../api/types";
+import { sortEvidence } from "../../lib/evidence";
 import { RangePlayer } from "../RangePlayer";
 import { formatDay } from "./format";
 import { usePublicPlayer } from "./PublicPlayerContext";
@@ -37,7 +38,7 @@ export function PublicFactCard({
   const { active, open, close } = usePublicPlayer();
   const key = `${scope}:${fact.id}`;
   const mine = active?.key === key ? active : null;
-  const ranges = fact.evidence;
+  const ranges = sortEvidence(fact.evidence);
   const range = mine ? ranges[mine.range] : undefined;
   const staffNote = fact.source === "staff_note" || ranges.length === 0;
 

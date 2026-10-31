@@ -4,6 +4,7 @@ import { isApiError } from "../../api/errors";
 import { useApi } from "../../api/provider";
 import type { Evidence, Fact, FactFlag, WordingCheck } from "../../api/types";
 import { SITUATION_LABELS } from "../../lib/constants";
+import { sortEvidence } from "../../lib/evidence";
 import { formatClock } from "../../lib/time";
 import { RangePlayer } from "../RangePlayer";
 import type { RangeReport } from "../RangeTracker";
@@ -87,6 +88,8 @@ export interface FactCardProps {
   wordingMode: WordingCheck;
   canEdit: boolean;
   dogPublished: boolean;
+  /** Clip id to clip ordinal; ranges list in clip order, then start time. */
+  clipOrder?: Readonly<Record<string, number>>;
   /** Reload the list from the server. */
   onReload: () => void;
   onEdit: (fact: Fact) => void;
@@ -100,6 +103,7 @@ export function FactCard({
   wordingMode,
   canEdit,
   dogPublished,
+  clipOrder,
   onReload,
   onEdit,
   onDelete,
@@ -120,7 +124,7 @@ export function FactCard({
   const [consentLink, setConsentLink] = useState(false);
 
   const draft = fact.status === "draft";
-  const ranges = fact.evidence;
+  const ranges = sortEvidence(fact.evidence, clipOrder);
   const multi = ranges.length > 1;
   const current: Evidence | undefined =
     ranges[Math.min(idx, ranges.length - 1)];
