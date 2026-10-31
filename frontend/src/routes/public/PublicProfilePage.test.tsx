@@ -383,3 +383,22 @@ describe("FE-PUB-E2E-01 page structure and styling hooks", () => {
     }
   });
 });
+
+describe("FE-PUB-E2E-02 player controls", () => {
+  it("opens the shared player with play, position, captions and sound controls", async () => {
+    await shown();
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /^Play clip for:/ })[0]!,
+    );
+    const video = document.querySelector("video")!;
+    expect(video).not.toBeNull();
+    expect(video).not.toHaveAttribute("controls");
+    expect(document.querySelectorAll("video")).toHaveLength(1);
+    expect(screen.getByRole("slider", { name: "Position" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Captions" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Sound" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^(Loading clip|Play|Pause)$/ }),
+    ).toBeInTheDocument();
+  });
+});
