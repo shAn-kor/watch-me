@@ -700,3 +700,10 @@ E2E defect fixes (2026-10-31, merged 0abed11 lane-e2e-fe, c3a6fdd lane-e2e-be):
   `service_busy`. Not yet re-checked in a real browser.
 - Checks: backend 892 passed, 3 xfailed; lint-imports 11 kept; ruff clean;
   frontend 279 tests, lint, build, contract no diff.
+
+Follow-up (lane-followup): evidence in every API list is ordered by session
+created_at, clip ordinal, start_s, id (01 section 2 states it; set once on the
+`Fact.evidence` relationship, public query aligned). Upload retries
+`service_busy` twice after Retry-After (cap 5 s), then shows a retry message
+(05 S7 table). noDanger test timeout 30 s. Checks: backend 894 passed,
+3 xfailed; frontend 281.
