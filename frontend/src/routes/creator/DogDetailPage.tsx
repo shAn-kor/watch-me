@@ -11,6 +11,7 @@ import {
 import { ErrorNotice } from "../../components/creator/errors";
 import {
   formatDay,
+  plural,
   SEX_LABEL,
   SIZE_LABEL,
 } from "../../components/creator/format";
@@ -27,7 +28,7 @@ function allConfirmed(s: SessionSummary, confirmed: number): boolean {
 function sessionStatus(s: SessionSummary, confirmed: number): string {
   switch (s.status) {
     case "processing":
-      return `Processing - ${s.ready_clip_count} of ${s.clip_count} clips ready`;
+      return `Processing - ${s.ready_clip_count} of ${s.clip_count} ${plural(s.clip_count, "clip")} ready`;
     case "failed":
       return `Failed - ${
         s.fail_code === "merge_failed"
@@ -51,7 +52,7 @@ function SessionRow({ s, confirmed }: { s: SessionSummary; confirmed: number }) 
       </p>
       <p>{sessionStatus(s, confirmed)}</p>
       {s.status === "review" && !allConfirmed(s, confirmed) ? (
-        <p className="wm-muted">{s.draft_fact_count} drafts</p>
+        <p className="wm-muted">{s.draft_fact_count} {plural(s.draft_fact_count, "draft")}</p>
       ) : null}
       <Link
         to={

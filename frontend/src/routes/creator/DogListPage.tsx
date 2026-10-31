@@ -4,13 +4,14 @@ import { useApi } from "../../api/provider";
 import type { DogListItem } from "../../api/types";
 import { DogStatusChip } from "../../components/creator/Chips";
 import { ErrorNotice } from "../../components/creator/errors";
+import { plural } from "../../components/creator/format";
 import { Loading, Screen } from "../../components/creator/ui";
 import { useEnsureAuth } from "../../state/AuthProvider";
 
 function countsLine(item: DogListItem): string | null {
   const { draft_facts, confirmed_facts, clips, sessions_in_review } = item.counts;
   if (draft_facts + confirmed_facts > 0 || clips > 0) {
-    return `${draft_facts} drafts to review - ${confirmed_facts} confirmed`;
+    return `${draft_facts} ${plural(draft_facts, "draft")} to review - ${confirmed_facts} confirmed`;
   }
   if (sessions_in_review > 0) return null;
   return null;
@@ -26,7 +27,7 @@ function DogRow({ item }: { item: DogListItem }) {
     dog.name,
     statusText,
     coverageText.toLowerCase().replace(/^clips/, "clips"),
-    line && counts.draft_facts > 0 ? `${counts.draft_facts} drafts to review` : null,
+    line && counts.draft_facts > 0 ? `${counts.draft_facts} ${plural(counts.draft_facts, "draft")} to review` : null,
   ]
     .filter(Boolean)
     .join(", ");

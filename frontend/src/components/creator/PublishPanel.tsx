@@ -343,13 +343,6 @@ export function PublishPanel({
               Confirmed facts: {checklist.confirmed_fact_count} confirmed
             </p>
           </fieldset>
-          <button
-            type="submit"
-            className="wm-btn wm-btn--secondary"
-            disabled={!dirty || busy}
-          >
-            Save checklist
-          </button>
           {missing.length > 0 ? (
             <div id={missingId}>
               <p>Still needed to publish:</p>
@@ -362,13 +355,22 @@ export function PublishPanel({
           ) : dirty ? (
             <p id={missingId}>Save the checklist before you publish.</p>
           ) : null}
-          <BlockedButton
-            blocked={!canPublish || busy}
-            describedBy={missing.length > 0 || dirty ? missingId : undefined}
-            onClick={() => setDialog("publish")}
-          >
-            Publish
-          </BlockedButton>
+          <div className="wm-row">
+            <button
+              type="submit"
+              className="wm-btn wm-btn--secondary"
+              disabled={!dirty || busy}
+            >
+              Save checklist
+            </button>
+            <BlockedButton
+              blocked={!canPublish || busy}
+              describedBy={missing.length > 0 || dirty ? missingId : undefined}
+              onClick={() => setDialog("publish")}
+            >
+              Publish
+            </BlockedButton>
+          </div>
         </form>
       ) : (
         <div className="wm-stack">
