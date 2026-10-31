@@ -657,3 +657,22 @@ Lane gaps (2026-10-31, merged b8e1eca).
   stay deferred.
 - Checks: backend 882 passed, 3 xfailed; import contracts 11 kept; ruff
   clean; frontend 256 passed; `pnpm contract` no diff.
+
+Mobile browser E2E (2026-10-31, ego-browser, 390x844 and 360x640, local api +
+worker with live Meta models, 07 section 3.19). Pass: E2E-01 consent gate,
+02 dog with photo, 03 rules and situations, 08 live step status (3 clips ready
+in about 40 s, draft under 1 min), 09 review playback gate, 13 publish
+checklist, 15 layout (creator screens), 16 ask (answer 3-6 s; trait and
+injection -> "Not observed yet"; health -> vet redirect), 17 unpublish, 18
+delete (media 404, folder gone), 23, 24, 26. No console error. Not run: phone
+cases 04-06, 19, 20, and 10-12, 21, 22, 25.
+Defects, sent to lanes e2e-be and e2e-fe:
+- Browser uploads got 415 `unsupported_file_type` (curl of the same files
+  passed). The server decides the type by filename extension before ffprobe,
+  so a picker name without `.mp4`/`.mov` is refused. Exact browser cause not
+  confirmed (the run injected files, not a real picker).
+- `database is locked` -> 500 on a clip upload while the worker transcoded.
+- Public profile unstyled (22 px buttons, default textarea); public player
+  has no controls; long filename overflows at 390 px; evidence ranges out of
+  time order; 24 px checkboxes, touching buttons, a toast over Delete; badge
+  glyphs "o Draft" / "+ Confirmed"; "0 drafts" line after all confirmed.
