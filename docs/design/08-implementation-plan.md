@@ -676,3 +676,27 @@ Defects, sent to lanes e2e-be and e2e-fe:
   has no controls; long filename overflows at 390 px; evidence ranges out of
   time order; 24 px checkboxes, touching buttons, a toast over Delete; badge
   glyphs "o Draft" / "+ Confirmed"; "0 drafts" line after all confirmed.
+
+E2E defect fixes (2026-10-31, merged 0abed11 lane-e2e-fe, c3a6fdd lane-e2e-be):
+- Upload type is now decided by ffprobe (container in the mov/mp4 family and a
+  video stream), not by the client filename. Names without an extension are
+  accepted; storage suffix comes from the client `.mp4`/`.mov` or defaults to
+  `.mp4`. Every 415 carries `details.reason` (`unsupported_container`,
+  `unreadable`, `no_video`, `probe_timeout`) and logs a WARNING with the suffix
+  only. 01 section 5.3 updated.
+- `database is locked` root cause: the upload route read (precheck), streamed
+  the body, then wrote on the same transaction. A worker commit in between left
+  a stale snapshot, so the read-to-write upgrade failed at once (busy_timeout
+  does not apply). Fix: accept drops the read snapshot before probe and copy,
+  then takes `lock_for_write` and re-checks before insert. A residual lock now
+  maps to 503 `service_busy` with Retry-After (01 catalog). Worker unchanged.
+- Public pages never imported `creator.css`; a `PublicPage` frame now does.
+  Public player controls existed (RangePlayer) and only lacked styles. Also:
+  filename ellipsis, 44 px check rows, spaced danger buttons, non-blocking
+  info toasts, SVG chip icons, "All facts confirmed" state, UI sort of ranges.
+- Open: creator evidence is ordered by `FactEvidence.id` in
+  `backend/app/models/fact.py` (01 says clip ordinal then start_s); public
+  sorts by clip created_at. The UI sorts for now. No retry message yet for
+  `service_busy`. Not yet re-checked in a real browser.
+- Checks: backend 892 passed, 3 xfailed; lint-imports 11 kept; ruff clean;
+  frontend 279 tests, lint, build, contract no diff.
