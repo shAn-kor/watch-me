@@ -74,17 +74,17 @@ describe("FE-PUB-01 banner is a constant", () => {
 });
 
 describe("FE-PUB-02 section order", () => {
-  it("banner, header and coverage, concerns, facts, not observed, contact, ask", async () => {
+  it("safety and concerns precede facts, questions and coverage", async () => {
     await shown();
     const order = [
       screen.getByRole("complementary", { name: "Important notice" }),
       screen.getByRole("heading", { level: 1, name: "Biscuit" }),
-      screen.getByRole("heading", { level: 2, name: "Coverage" }),
       screen.getByRole("heading", { level: 2, name: "Known concerns from the shelter" }),
       screen.getByRole("heading", { level: 2, name: "Facts" }),
+      screen.getByRole("heading", { level: 2, name: "Ask about this dog" }),
+      screen.getByRole("heading", { level: 2, name: "Coverage" }),
       screen.getByRole("heading", { level: 2, name: "Not observed yet" }),
       screen.getByRole("heading", { level: 2, name: "Contact the shelter" }),
-      screen.getByRole("heading", { level: 2, name: "Ask about this dog" }),
     ];
     for (let i = 1; i < order.length; i++) {
       expect(

@@ -81,80 +81,86 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="wm-page">
-      <p className="wm-strong">Watch Me!</p>
-      <h1>Sign in</h1>
-      <p>Use the account your shelter gave you.</p>
-      {ended ? (
-        <Notice tone="info">
-          <p>Your session ended. Sign in again.</p>
-        </Notice>
-      ) : null}
-      {lockText ? (
-        <div role="alert" className="wm-notice wm-notice--error">
-          <p>{lockText}</p>
-        </div>
-      ) : null}
-      {failure ? (
-        <ErrorNotice
-          error={failure}
-          table={{ invalid_credentials: "Email or password is not correct." }}
-        />
-      ) : null}
-      <form onSubmit={submit} noValidate>
-        <Field label="Email" error={errors.email}>
-          {({ id, describedBy, invalid }) => (
-            <input
-              id={id}
-              type="email"
-              autoComplete="username"
-              value={email}
-              readOnly={busy}
-              aria-invalid={invalid}
-              aria-describedby={describedBy}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          )}
-        </Field>
-        <Field label="Password" error={errors.password}>
-          {({ id, describedBy, invalid }) => (
-            <div className="wm-row">
+    <div className="wm-page wm-login">
+      <div className="wm-login__intro">
+        <p className="wm-brand">Watch Me!</p>
+        <p className="wm-login__headline">Get to know the dog.<br />Watch the evidence.</p>
+        <p>Turn everyday shelter clips into behavior profiles. Every confirmed fact links to the moment it happened.</p>
+      </div>
+      <div className="wm-login__panel">
+        <h1>Sign in</h1>
+        <p>Use the account your shelter gave you.</p>
+        {ended ? (
+          <Notice tone="info">
+            <p>Your session ended. Sign in again.</p>
+          </Notice>
+        ) : null}
+        {lockText ? (
+          <div role="alert" className="wm-notice wm-notice--error">
+            <p>{lockText}</p>
+          </div>
+        ) : null}
+        {failure ? (
+          <ErrorNotice
+            error={failure}
+            table={{ invalid_credentials: "Email or password is not correct." }}
+          />
+        ) : null}
+        <form onSubmit={submit} noValidate>
+          <Field label="Email" error={errors.email}>
+            {({ id, describedBy, invalid }) => (
               <input
                 id={id}
-                type={show ? "text" : "password"}
-                autoComplete="current-password"
-                value={password}
+                type="email"
+                autoComplete="username"
+                value={email}
                 readOnly={busy}
                 aria-invalid={invalid}
                 aria-describedby={describedBy}
-                style={{ flex: 1 }}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <button
-                type="button"
-                className="wm-btn wm-btn--secondary"
-                aria-pressed={show}
-                aria-label="Show password"
-                onClick={() => setShow(!show)}
-              >
-                {show ? "Hide" : "Show"}
-              </button>
-            </div>
-          )}
-        </Field>
-        <button
-          type="submit"
-          className="wm-btn"
-          style={{ width: "100%" }}
-          disabled={busy || lockedUntil !== null}
-          aria-busy={busy}
-        >
-          {busy ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-      <p className="wm-muted">
-        Accounts are created by your shelter. Ask staff if you cannot sign in.
-      </p>
+            )}
+          </Field>
+          <Field label="Password" error={errors.password}>
+            {({ id, describedBy, invalid }) => (
+              <div className="wm-row">
+                <input
+                  id={id}
+                  type={show ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  readOnly={busy}
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  style={{ flex: 1 }}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="wm-btn wm-btn--secondary"
+                  aria-pressed={show}
+                  aria-label="Show password"
+                  onClick={() => setShow(!show)}
+                >
+                  {show ? "Hide" : "Show"}
+                </button>
+              </div>
+            )}
+          </Field>
+          <button
+            type="submit"
+            className="wm-btn"
+            style={{ width: "100%" }}
+            disabled={busy || lockedUntil !== null}
+            aria-busy={busy}
+          >
+            {busy ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+        <p className="wm-muted">
+          Accounts are created by your shelter. Ask staff if you cannot sign in.
+        </p>
+      </div>
     </div>
   );
 }

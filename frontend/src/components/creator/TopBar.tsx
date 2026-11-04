@@ -17,6 +17,7 @@ export function TopBar({ title, backTo, onBack }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <header className="wm-topbar">
+      <span className="wm-brand">Watch Me!</span>
       {onBack ? (
         <button
           type="button"

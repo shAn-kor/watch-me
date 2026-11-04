@@ -1,109 +1,125 @@
-/* Public screens (S9, S10): tokens and base type come from creator.css. */
-.wm-public .public-topbar {
-  justify-content: flex-start;
+/* Watch Me adapts Meta's photo-led layouts. Contract: docs/design/09-visual-system.md. */
+.wm-page.wm-public {
+  background: var(--wm-bg);
+  max-width: 1200px;
 }
-.wm-public .public-topbar .wm-topbar__title {
+body:has(.wm-public) { background: var(--wm-bg); }
+.wm-public .wm-content { max-width: none; padding: 0; border: 0; background: transparent; }
+.wm-public .public-topbar { justify-content: flex-start; }
+.wm-public .public-topbar .wm-topbar__title { font-weight: 400; }
+.wm-public .wm-brand { font-weight: 600; }
+
+.wm-public .public-banner {
+  background: var(--wm-surface);
+  color: var(--wm-muted);
+  border: 0;
+  padding: 16px 24px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 400;
 }
+.wm-public .public-banner p { margin: 0; }
 .wm-public .public-profile-head {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px;
+  padding: 48px 0;
 }
+.wm-public .public-profile-head > div { min-width: 0; grid-column: 1; grid-row: 1; }
+.wm-public .public-profile-head .wm-photo--lg {
+  width: 100%;
+  height: 400px;
+  grid-column: 2;
+  grid-row: 1;
+  object-fit: cover;
+  object-position: center 52%;
+}
+.wm-public .public-profile-head .public-photo-empty { grid-column: 2; }
 .wm-public .public-profile-head h1 {
-  margin: 0 0 4px;
+  font-size: 56px;
+  line-height: 60px;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+  margin: 8px 0 24px;
+  overflow-wrap: anywhere;
 }
-.wm-public .public-profile-head p {
-  margin-bottom: 4px;
-}
+.wm-public .public-profile-head p { margin: 0 0 8px; color: var(--wm-muted); }
+.wm-public .public-profile-eyebrow { font-size: 20px; line-height: 28px; }
 .wm-public .public-photo-empty {
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 14px;
-  line-height: 20px;
   color: var(--wm-muted);
 }
-.wm-public .public-banner {
-  font-weight: 600;
-}
-.wm-public .public-banner p {
+.wm-public .wm-content > section[aria-labelledby="concerns-h"] {
+  background: var(--wm-surface);
+  border: 0;
+  border-radius: var(--wm-radius);
+  padding: 24px;
   margin: 0;
 }
+.wm-public section[aria-labelledby="concerns-h"] h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
 .wm-public .public-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 16px 0;
+  gap: 32px;
+  margin: 24px 0 48px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--wm-border);
 }
 .wm-public .public-nav a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--wm-accent);
-  border-radius: 8px;
   text-decoration: none;
+  color: var(--wm-text);
 }
-.wm-public ul.public-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 8px;
+.wm-public .public-nav a:hover { color: var(--wm-accent); text-decoration: underline; text-underline-offset: 4px; }
+.public-profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 280px); gap: 64px; align-items: start; }
+.public-profile-main, .public-profile-sidebar { min-width: 0; }
+.wm-public .public-profile-layout section { margin: 0 0 48px; }
+.wm-public .public-profile-layout section > h2:first-child { margin: 0 0 24px; font-weight: 500; }
+.wm-public #facts > h2 { font-size: 32px; line-height: 40px; }
+.wm-public #facts h3 { margin: 32px 0 16px; color: var(--wm-muted); font-size: 16px; line-height: 24px; font-weight: 500; }
+.wm-public ul.public-list { list-style: none; padding: 0; margin: 0; }
+.wm-public ul.public-list > li { border: 0; padding: 0 0 32px; margin: 0 0 32px; border-bottom: 1px solid var(--wm-border); }
+.wm-public .public-fact__text { font-size: 24px; line-height: 32px; font-weight: 500; margin-bottom: 16px; }
+.wm-public .public-fact__situation { color: var(--wm-muted); font-weight: 500; }
+.wm-public .public-fact__meta { display: inline-block; color: var(--wm-muted); font-size: 14px; line-height: 20px; margin-right: 12px; }
+.wm-public .public-fact > .wm-row { margin-top: 16px; }
+.wm-public .public-fact .range-player { margin: 24px 0; }
+.wm-public .public-fact .wm-btn--secondary {
+  background: var(--wm-bg);
+  border-color: var(--wm-border-strong);
+  color: var(--wm-accent);
 }
-.wm-public ul.public-list > li {
-  border: 1px solid var(--wm-border);
-  border-radius: 8px;
-  padding: 16px;
-  margin: 0 0 16px;
-}
-.wm-public ul.public-plain > li {
-  padding: 4px 0;
-}
-.wm-public .public-fact__text {
-  font-size: 18px;
-  line-height: 26px;
-  font-weight: 600;
-}
-.wm-public .public-fact__situation {
-  font-weight: 600;
-  color: var(--wm-muted);
-  font-size: 14px;
-  line-height: 20px;
-}
-.wm-public .public-fact__meta {
-  color: var(--wm-muted);
-  font-size: 14px;
-  line-height: 20px;
-}
-.wm-public .public-fact .range-player {
-  margin: 12px 0;
-}
-.wm-public ul.contact-links {
-  list-style: none;
-  padding: 0;
-}
-.wm-public ul.contact-links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  overflow-wrap: anywhere;
-}
-.wm-public .public-ask textarea {
-  display: block;
-  width: 100%;
-}
-.wm-public .public-ask .wm-btn {
-  width: 100%;
-}
-.wm-public .public-footer {
-  margin-top: 32px;
-  color: var(--wm-muted);
-  font-size: 14px;
-  line-height: 20px;
-}
-.wm-public .public-footer a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+.wm-public .public-profile-sidebar { padding: 24px; background: var(--wm-surface); border-radius: var(--wm-radius); }
+.wm-public .public-profile-sidebar h2 { font-size: 20px; line-height: 28px; }
+.wm-public .public-profile-sidebar .wm-list > li { padding: 12px 0; }
+.wm-public .public-profile-sidebar section:last-child { margin-bottom: 0; }
+.wm-public .public-profile-sidebar .wm-list strong { font-weight: 500; }
+.wm-public ul.public-plain > li { padding: 4px 0; margin: 0; border: 0; }
+.wm-public ul.contact-links { list-style: none; padding: 0; }
+.wm-public ul.contact-links a { display: inline-flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+.wm-public .public-ask { padding-top: 16px; }
+.wm-public .public-ask textarea { display: block; width: 100%; }
+.wm-public .public-ask .wm-btn { min-width: 120px; }
+.wm-public .public-footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--wm-border); color: var(--wm-muted); font-size: 14px; line-height: 20px; }
+.wm-public .public-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+
+@media (max-width: 767px) {
+  .wm-public .public-profile-head { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 32px 0; }
+  .wm-public .public-profile-head .wm-photo--lg { grid-column: 1; grid-row: 1; height: 280px; }
+  .wm-public .public-profile-head > div { grid-column: 1; grid-row: 2; }
+  .wm-public .public-profile-head .public-photo-empty { grid-row: 1; }
+  .wm-public .public-profile-head h1 { font-size: 40px; line-height: 48px; margin-bottom: 16px; }
+  .wm-public .public-banner { padding: 16px; }
+  .wm-public .wm-content > section[aria-labelledby="concerns-h"] { padding: 16px; }
+  .wm-public .public-nav { gap: 24px; margin-bottom: 32px; }
+  .public-profile-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .wm-public .public-profile-sidebar { padding: 24px; }
+  .wm-public .public-fact__text { font-size: 20px; line-height: 28px; }
 }

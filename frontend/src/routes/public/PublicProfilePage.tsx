@@ -126,36 +126,13 @@ function ProfileScreen({ slug }: { slug: string }) {
           </div>
         )}
         <div>
+          <p className="public-profile-eyebrow">A closer look at</p>
           <h1>{dog.name}</h1>
           <p>{`${SEX_LABEL[dog.sex]}, ${dog.age_estimate}, ${dog.size}`}</p>
           <p>{dog.location}</p>
           <p className="wm-muted">{org.name}</p>
         </div>
       </header>
-
-      <section aria-labelledby="coverage-h">
-        <h2 id="coverage-h">Coverage</h2>
-        <p>{`Clips in ${coverage.situations_covered} of ${coverage.situations_total} situations`}</p>
-        <ul className="wm-list">
-          {coverage.by_situation.map((s) => (
-            <li key={s.situation}>
-              <strong>{s.label}</strong>
-              <div className="wm-muted">
-                {s.clip_count === 0
-                  ? "0 clips"
-                  : `${s.clip_count} ${plural(s.clip_count, "clip", "clips")}, ${secs(s.filmed_s)} s filmed`}
-              </div>
-              {s.covered && <div className="wm-muted">{`${secs(s.confirmed_s)} s of it is used in facts`}</div>}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <nav aria-label="Jump to a section" className="public-nav">
-        <a href="#facts">Facts</a>
-        <a href="#not-observed">Not observed yet</a>
-        <a href="#ask">Ask</a>
-      </nav>
 
       <section aria-labelledby="concerns-h">
         <h2 id="concerns-h">Known concerns from the shelter</h2>
@@ -169,59 +146,90 @@ function ProfileScreen({ slug }: { slug: string }) {
         )}
       </section>
 
-      <section id="facts" aria-labelledby="facts-h">
-        <h2 id="facts-h">Facts</h2>
-        {p.facts_by_situation.length === 0 ? (
-          <p>
-            No facts are shown right now. The shelter may be updating this
-            profile.
-          </p>
-        ) : (
-          p.facts_by_situation.map((g) => (
-            <div key={g.situation}>
-              <h3>{g.label}</h3>
-              <ul className="public-list">
-                {g.facts.map((f) => (
-                  <PublicFactCard key={f.id} fact={f} scope="facts" />
-                ))}
-              </ul>
-            </div>
-          ))
-        )}
-      </section>
+      <nav aria-label="Jump to a section" className="public-nav">
+        <a href="#facts">Facts</a>
+        <a href="#not-observed">Not observed yet</a>
+        <a href="#ask">Ask</a>
+      </nav>
 
-      <section id="not-observed" aria-labelledby="no-h">
-        <h2 id="no-h">Not observed yet</h2>
-        {p.not_observed.length === 0 ? (
-          <p>
-            Every situation has at least one clip. The clips are still short
-            samples.
-          </p>
-        ) : (
-          <>
-            <p>No clip shows these situations yet.</p>
-            <ul className="public-list public-plain">
-              {p.not_observed.map((s) => (
-                <li key={s.situation}>{s.label}</li>
+      <div className="public-profile-layout">
+        <div className="public-profile-main">
+          <section id="facts" aria-labelledby="facts-h">
+            <h2 id="facts-h">Facts</h2>
+            {p.facts_by_situation.length === 0 ? (
+              <p>
+                No facts are shown right now. The shelter may be updating this
+                profile.
+              </p>
+            ) : (
+              p.facts_by_situation.map((g) => (
+                <div key={g.situation}>
+                  <h3>{g.label}</h3>
+                  <ul className="public-list">
+                    {g.facts.map((f) => (
+                      <PublicFactCard key={f.id} fact={f} scope="facts" />
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </section>
+
+          <AskBox
+            slug={dog.slug}
+            config={p.ask}
+            contact={p.contact}
+            onNotFound={gone}
+          />
+
+        </div>
+        <aside className="public-profile-sidebar" aria-label="Shelter information">
+          <section aria-labelledby="coverage-h">
+            <h2 id="coverage-h">Coverage</h2>
+            <p>{`Clips in ${coverage.situations_covered} of ${coverage.situations_total} situations`}</p>
+            <ul className="wm-list">
+              {coverage.by_situation.map((s) => (
+                <li key={s.situation}>
+                  <strong>{s.label}</strong>
+                  <div className="wm-muted">
+                    {s.clip_count === 0
+                      ? "0 clips"
+                      : `${s.clip_count} ${plural(s.clip_count, "clip", "clips")}, ${secs(s.filmed_s)} s filmed`}
+                  </div>
+                  {s.covered && <div className="wm-muted">{`${secs(s.confirmed_s)} s of it is used in facts`}</div>}
+                </li>
               ))}
             </ul>
-          </>
-        )}
-      </section>
+          </section>
 
-      <section aria-labelledby="contact-h">
-        <h2 id="contact-h">Contact the shelter</h2>
-        <p>{org.name}</p>
-        <ContactLinks contact={p.contact} />
-        <p>Applications happen with the shelter, not on this page.</p>
-      </section>
+          <section id="not-observed" aria-labelledby="no-h">
+            <h2 id="no-h">Not observed yet</h2>
+            {p.not_observed.length === 0 ? (
+              <p>
+                Every situation has at least one clip. The clips are still short
+                samples.
+              </p>
+            ) : (
+              <>
+                <p>No clip shows these situations yet.</p>
+                <ul className="public-list public-plain">
+                  {p.not_observed.map((s) => (
+                    <li key={s.situation}>{s.label}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
 
-      <AskBox
-        slug={dog.slug}
-        config={p.ask}
-        contact={p.contact}
-        onNotFound={gone}
-      />
+          <section aria-labelledby="contact-h">
+            <h2 id="contact-h">Contact the shelter</h2>
+            <p>{org.name}</p>
+            <ContactLinks contact={p.contact} />
+            <p>Applications happen with the shelter, not on this page.</p>
+          </section>
+
+        </aside>
+      </div>
 
       <footer className="public-footer">
         <p>Questions use a cookie to count your hourly limit.</p>
