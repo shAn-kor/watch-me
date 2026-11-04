@@ -397,3 +397,9 @@ huggingface.co/docs/hub/spaces-overview, developers.cloudflare.com/r2/pricing.
   train on the content: use only for clips with explicit opt-in (NFR-5).
 - Voice Transcribe: $0.18 per audio hour.
 - Doc index: https://dev.meta.ai/llms.txt (each page has a `.md` version).
+
+## Visual refresh (2026-11-04)
+
+The user selected Meta as the visual reference. The product-specific token
+contract is in `design/09-visual-system.md`. It governs appearance while the
+existing screen, API and safety contracts continue to govern behavior.

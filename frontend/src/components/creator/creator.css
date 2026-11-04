@@ -1,12 +1,16 @@
-/* Creator screens: plain, one column, no shadows or gradients (05 section 8). */
+/* Meta reference adapted for Watch Me. See docs/design/09-visual-system.md. */
 :root {
   --wm-bg: #ffffff;
-  --wm-surface: #f4f4f1;
-  --wm-text: #1a1a1a;
-  --wm-muted: #555b61;
-  --wm-border: #d5d8dc;
+  --wm-canvas: #f0f2f5;
+  --wm-accent-pressed: #0058c4;
+  --wm-font: "Avenir Next", "Helvetica Neue", Helvetica, sans-serif;
+  --wm-radius: 8px;
+  --wm-surface: #f7f8fa;
+  --wm-text: #1c2b33;
+  --wm-muted: #465a69;
+  --wm-border: #e4e6eb;
   --wm-border-strong: #6b7178;
-  --wm-accent: #1f5fa8;
+  --wm-accent: #0064e0;
   --wm-on-accent: #ffffff;
   --wm-success: #1e6b3a;
   --wm-danger: #b3261e;
@@ -15,19 +19,20 @@
   --wm-warn-border: #8a6100;
 }
 
+body {
+  margin: 0;
+  background: var(--wm-canvas);
+}
+
 .wm-page {
   color-scheme: light;
-  background: var(--wm-bg);
+  background: var(--wm-canvas);
   color: var(--wm-text);
-  font:
-    400 16px/24px system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  max-width: 640px;
+  /* Avenir Next adds humanist letterforms without distributing proprietary Meta fonts. */
+  font: 400 16px/24px var(--wm-font);
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 56px 16px 96px;
+  padding: 88px 16px 112px;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -37,20 +42,21 @@
   box-sizing: border-box;
 }
 .wm-page h1 {
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.01em;
+  font-weight: 500;
   margin: 16px 0 8px;
 }
 .wm-page h2 {
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 500;
   margin: 32px 0 8px;
 }
 .wm-page h3 {
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 600;
   margin: 16px 0 4px;
 }
@@ -78,7 +84,13 @@
 }
 
 .wm-content {
-  padding-top: 8px;
+  min-width: 0;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--wm-bg);
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius);
 }
 .wm-stack > * + * {
   margin-top: 12px;
@@ -122,13 +134,13 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: 72px;
   background: var(--wm-bg);
   border-bottom: 1px solid var(--wm-border);
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 16px;
+  padding: 0 max(16px, calc((100% - 1072px) / 2));
   z-index: 10;
 }
 .wm-topbar__title {
@@ -165,7 +177,7 @@
   min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--wm-accent);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   background: var(--wm-accent);
   color: var(--wm-on-accent);
   font: inherit;
@@ -237,7 +249,7 @@
   min-height: 48px;
   padding: 8px 12px;
   border: 1px solid var(--wm-border-strong);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   font: inherit;
   background: var(--wm-bg);
   color: var(--wm-text);
@@ -293,8 +305,7 @@
 /* Notices */
 .wm-notice {
   border: 1px solid var(--wm-warn-border);
-  border-left-width: 4px;
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   background: var(--wm-warn-bg);
   color: var(--wm-warn-text);
   padding: 12px;
@@ -327,7 +338,7 @@
   min-height: 28px;
   padding: 0 8px;
   border: 1px solid var(--wm-border-strong);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   font-size: 14px;
   line-height: 20px;
   white-space: nowrap;
@@ -355,7 +366,7 @@
 .wm-photo {
   width: 64px;
   height: 64px;
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   object-fit: cover;
   background: var(--wm-surface);
   flex: none;
@@ -398,7 +409,7 @@
 /* Skeleton */
 .wm-skeleton {
   background: var(--wm-surface);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   height: 64px;
   margin: 8px 0;
 }
@@ -409,7 +420,7 @@
   height: 8px;
   background: var(--wm-surface);
   border: 1px solid var(--wm-border-strong);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   overflow: hidden;
 }
 .wm-progress > div {
@@ -456,14 +467,14 @@
 /* Fact cards */
 .wm-card {
   border: 1px solid var(--wm-border);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   padding: 16px;
   margin: 16px 0;
 }
 .wm-card h2 {
   margin: 0;
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 20px;
+  line-height: 28px;
 }
 .wm-range-state {
   font-weight: 600;
@@ -477,7 +488,7 @@
   width: 100%;
   max-height: 60vh;
   background: #000000;
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   object-fit: contain;
 }
 .range-player__controls {
@@ -486,7 +497,7 @@
   gap: 8px;
   align-items: center;
   background: var(--wm-surface);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   padding: 8px;
   margin-top: 4px;
 }
@@ -495,7 +506,7 @@
   min-width: 44px;
   font: inherit;
   border: 1px solid var(--wm-accent);
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   background: var(--wm-bg);
   color: var(--wm-accent);
 }
@@ -518,12 +529,7 @@
 .wm-dialog {
   background: var(--wm-bg);
   color: var(--wm-text);
-  font:
-    400 16px/24px system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font: 400 16px/24px var(--wm-font);
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
@@ -534,7 +540,7 @@
 }
 .wm-dialog--dialog {
   margin: auto;
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
 }
 .wm-overlay:has(.wm-dialog--dialog) {
   align-items: center;
@@ -547,8 +553,8 @@
   gap: 8px;
 }
 .wm-dialog__title {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 24px;
+  line-height: 32px;
   margin: 0;
 }
 .wm-dialog a {
@@ -568,7 +574,7 @@
 .wm-toast {
   background: var(--wm-text);
   color: #ffffff;
-  border-radius: 8px;
+  border-radius: var(--wm-radius);
   padding: 12px 16px;
   margin: 8px 0 0;
 }
@@ -590,4 +596,80 @@
 .wm-file-btn:focus-within {
   outline: 3px solid currentColor;
   outline-offset: 2px;
+}
+
+.wm-brand {
+  color: var(--wm-accent);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.wm-topbar__title { min-width: 0; }
+.wm-topbar .wm-brand { margin-right: 16px; }
+.wm-btn { padding: 8px 20px; gap: 8px; }
+.wm-btn--secondary, .wm-page a.wm-btn--secondary {
+  background: var(--wm-border);
+  border-color: transparent;
+  color: var(--wm-text);
+}
+.wm-btn:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--wm-accent-pressed);
+  border-color: var(--wm-accent-pressed);
+  color: var(--wm-on-accent);
+}
+.wm-btn--secondary:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--wm-canvas);
+  border-color: var(--wm-border-strong);
+  color: var(--wm-text);
+}
+.wm-btn--danger:not(:disabled):not([aria-disabled="true"]):hover,
+.wm-btn--danger-fill:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--wm-danger);
+  border-color: var(--wm-danger);
+}
+.wm-btn:not(:disabled):not([aria-disabled="true"]):active {
+  background: var(--wm-text);
+  color: var(--wm-on-accent);
+}
+.wm-field input[aria-invalid="true"], .wm-field textarea[aria-invalid="true"] {
+  border-color: var(--wm-danger);
+}
+.wm-field input, .wm-field select, .wm-field textarea { min-width: 0; }
+.wm-check input { accent-color: var(--wm-accent); }
+.wm-card { background: var(--wm-bg); padding: 24px; }
+.wm-dog-link { align-items: center; padding: 8px; gap: 16px; border-radius: var(--wm-radius); }
+.wm-dog-link:hover { background: var(--wm-surface); }
+.wm-dog-link > div { min-width: 0; }
+.wm-dog-link .wm-strong { font-size: 20px; line-height: 28px; }
+.wm-photo { width: 80px; height: 80px; }
+.wm-photo--lg { width: 144px; height: 144px; }
+.wm-content > h1:first-child { margin-top: 0; }
+.wm-content > section { margin-top: 32px; }
+.wm-content > section > h2:first-child { margin-top: 0; }
+.wm-page section[id] { scroll-margin-top: 96px; }
+
+.wm-login { display: grid; align-items: center; gap: 48px; padding-top: 48px; padding-bottom: 48px; }
+.wm-login__headline { font-weight: 400; letter-spacing: -0.01em; max-width: 560px; font-size: 56px; line-height: 60px; margin: 24px 0 16px; }
+.wm-login__intro > p:last-child { max-width: 440px; color: var(--wm-muted); }
+.wm-login__panel { width: 100%; max-width: 400px; padding: 32px; background: var(--wm-bg); border: 0; border-radius: var(--wm-radius); }
+.wm-login__panel h1 { margin: 0 0 8px; font-size: 24px; line-height: 32px; }
+.wm-login__panel form { margin: 24px 0 16px; }
+
+@media (min-width: 768px) {
+  .wm-page { padding-right: 24px; padding-left: 24px; }
+  .wm-login { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); }
+  .wm-dialog { padding: 24px; }
+}
+@media (max-width: 767px) {
+  .wm-topbar { gap: 8px; }
+  .wm-topbar .wm-brand { font-size: 20px; margin-right: 0; }
+  .wm-topbar__title { font-size: 14px; }
+  .wm-topbar .wm-btn { padding: 8px 12px; }
+  .wm-content { padding: 16px; }
+  .wm-login { gap: 24px; }
+  .wm-login__headline { font-size: 32px; line-height: 40px; }
+  .wm-login__panel { max-width: none; padding: 24px; }
+  .wm-card { padding: 16px; }
 }
